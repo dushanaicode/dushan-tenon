@@ -16,6 +16,19 @@ pub const DECLARATIONS: [&ModuleDeclaration; 6] = [
     &tenon_module_demo::DECLARATION,
 ];
 
+/// 编译进宿主的全部迁移，包含停用模块；CLI 不构造运行期服务。
+pub fn migrations() -> Vec<tenon_framework::db::migrate::Migration> {
+    tenon_framework::migrations::MIGRATIONS
+        .iter()
+        .copied()
+        .chain(
+            DECLARATIONS
+                .iter()
+                .flat_map(|declaration| declaration.migrations.iter().copied()),
+        )
+        .collect()
+}
+
 pub fn registry(
     account: Arc<AccountService>,
     notify: Arc<NotifyService>,

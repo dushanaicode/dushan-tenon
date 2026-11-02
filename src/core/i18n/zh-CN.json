@@ -1128,6 +1128,7 @@
   "errors.ai.stream.cancel_unconfirmed": "尚未确认停止，结果不明",
   "errors.notify.channel.reserved": "通知渠道 {{channel}} 是保留渠道，不能注册。",
   "errors.notify.channel.unavailable": "通知渠道 {{channel}} 不可用。",
+  "errors.notify.desktop.failed": "桌面通知发送失败",
   "shell.nav.more": "更多",
   "shell.nav.menu": "导航菜单",
   "shell.back": "返回",

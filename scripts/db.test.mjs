@@ -1,6 +1,39 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { snapshotCrates } from "./db.mjs";
+import { databaseArgs, snapshotCrates } from "./db.mjs";
+import { hostCli, hostDbCliFeature, hostPackage } from "./product.mjs";
+
+test("database commands route through the derived CLI with explicit state and backup confirmation", () => {
+  for (const command of ["status", "upgrade"]) {
+    const args = ["--state-root", "Temp/state", "--confirm-backup"];
+    assert.deepEqual(databaseArgs(command, args, {}), [
+      "run",
+      "--locked",
+      "--package",
+      hostPackage,
+      "--bin",
+      hostCli,
+      "--features",
+      hostDbCliFeature,
+      "--",
+      "db",
+      command,
+      ...args,
+    ]);
+    assert.doesNotThrow(() =>
+      databaseArgs(command, [], { TENON_STATE_ROOT: "Temp/state" }),
+    );
+    assert.doesNotThrow(() =>
+      databaseArgs(command, ["--state-root=Temp/state"], {}),
+    );
+    assert.throws(() => databaseArgs(command, [], {}), /state-root/);
+  }
+  assert.doesNotThrow(() =>
+    databaseArgs("export-sql", ["--dialect", "postgres"], {}),
+  );
+  assert.doesNotThrow(() => databaseArgs("status", ["--help"], {}));
+  assert.throws(() => databaseArgs("unknown", [], {}), /未知/);
+});
 
 test("snapshot crates derive from direct crate snapshot directories", () => {
   assert.deepEqual(

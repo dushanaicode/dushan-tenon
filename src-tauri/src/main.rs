@@ -5,10 +5,13 @@ mod boot;
 mod commands;
 pub mod exchange;
 mod i18n;
+#[cfg(test)]
+mod ipc_tests;
 mod lifecycle;
 mod notification;
 mod ports;
 pub mod state;
+mod stream;
 mod window;
 
 use dushan_tenon_lib::modules;

@@ -497,6 +497,17 @@ impl RuntimeReady {
         });
         let identity = extensions.identity();
         AppState {
+            data: tenon_desktop::data::DataService::new(
+                db.clone(),
+                configured.root.clone(),
+                configured.root.join("Temp/backup"),
+                configured.root.join("Temp/restore"),
+            ),
+            workbench: tenon_desktop::workbench::WorkbenchStore::new(
+                &configured.root,
+                &configured.root.join("Temp/workbench"),
+            ),
+            keyboard: tenon_desktop::keyboard::KeyboardStore::new(&configured.root),
             state_root: configured.root,
             overrides: configured.overrides,
             config: configured.config,

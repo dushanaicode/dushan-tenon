@@ -1128,6 +1128,7 @@
   "errors.ai.stream.cancel_unconfirmed": "Stopping has not been confirmed; the result is unknown.",
   "errors.notify.channel.reserved": "Notification channel {{channel}} is reserved and cannot be registered.",
   "errors.notify.channel.unavailable": "Notification channel {{channel}} is unavailable.",
+  "errors.notify.desktop.failed": "Desktop notification could not be sent.",
   "shell.nav.more": "More",
   "shell.nav.menu": "Navigation menu",
   "shell.back": "Back",

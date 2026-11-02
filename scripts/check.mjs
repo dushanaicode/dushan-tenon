@@ -1,4 +1,5 @@
 import { checkIdentity } from "./check-identity.mjs";
+import { checkIpc } from "./check-ipc.mjs";
 import { checkKit } from "./check-kit.mjs";
 import { checkLicenses } from "./check-licenses.mjs";
 import { checkStructure } from "./check-structure.mjs";
@@ -23,6 +24,7 @@ await task("check", async (env) => {
   );
   await runBin("TypeScript 类型", "typescript", "tsc", ["--noEmit"], env);
   await checkStructure(env);
+  await checkIpc(env);
   await checkKit(env);
   await checkIdentity();
   await checkLicenses();

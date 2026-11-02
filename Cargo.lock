@@ -1420,6 +1420,7 @@ dependencies = [
  "tenon-module-notify",
  "tokio",
  "tracing",
+ "ts-rs",
 ]
 
 [[package]]

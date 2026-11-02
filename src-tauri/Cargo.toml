@@ -11,8 +11,17 @@ publish.workspace = true
 [lib]
 name = "dushan_tenon_lib"
 
+[features]
+db-cli = []
+
+[[bin]]
+name = "dushan-tenon-cli"
+path = "src/bin/dushan-tenon-cli.rs"
+required-features = ["db-cli"]
+
 [build-dependencies]
 tauri-build.workspace = true
+serde_json.workspace = true
 
 [dependencies]
 clap.workspace = true
@@ -31,6 +40,7 @@ tenon-module-files.workspace = true
 tenon-module-notify.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+ts-rs.workspace = true
 
 [dev-dependencies]
 tauri = { workspace = true, features = ["test"] }
