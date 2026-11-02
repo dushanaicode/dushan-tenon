@@ -1,0 +1,23 @@
+[package]
+name = "tenon-module-devtools"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+tenon-framework.workspace = true
+tenon-module-account.workspace = true
+serde.workspace = true
+tokio.workspace = true
+ts-rs.workspace = true
+
+[dev-dependencies]
+tenon-framework = { workspace = true, features = ["test-support"] }
+tenon-module-account = { workspace = true, features = ["test-support"] }
+sea-query.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true
