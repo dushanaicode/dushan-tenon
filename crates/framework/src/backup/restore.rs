@@ -402,7 +402,9 @@ pub fn stage_digests(
     Ok(entries)
 }
 
-fn collect_files(
+/// 只读收集附件摘要，沿用归档路径、深度、单文件及总量预算。
+/// root/directory 必须是同一恢复树的根与 files 目录；entries/total 含已计入的对象。
+pub fn collect_files(
     root: &Path,
     directory: &Path,
     entries: &mut BTreeMap<String, Digest>,

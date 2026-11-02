@@ -58,7 +58,8 @@ impl Cancellation {
         self.0.load(Ordering::Acquire) == 0
     }
 
-    fn commit(&self) -> Result<(), AppError> {
+    /// 原子结束可取消阶段；供上层恢复会话与归档共用同一提交边界。
+    pub fn commit(&self) -> Result<(), AppError> {
         self.0
             .compare_exchange(0, 2, Ordering::AcqRel, Ordering::Acquire)
             .map(|_| ())
