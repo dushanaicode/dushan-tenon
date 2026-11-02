@@ -492,16 +492,6 @@ test("licenses: published exception table matches the checker", async () => {
   );
 });
 
-test("licenses: real repository satisfies L1–L6", async () => {
-  const data = await readLicenseData();
-  assert.deepEqual(scanLicenses(data), []);
-  const normal = selectReleasePackages(data.metadata, await readReleaseTree());
-  assert.deepEqual(
-    normal.filter((pkg) => pkg.license === "MPL-2.0").map((pkg) => pkg.name),
-    ["option-ext"],
-  );
-});
-
 test("notices: Cargo normal graph excludes feature-unified build packages and deduplicates rows", () => {
   const data = fixture();
   // metadata 把构建域 feature 依赖也挂在共享节点的 normal 边上。

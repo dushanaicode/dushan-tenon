@@ -353,7 +353,7 @@ export const frameworkModules = [
   "module",
 ];
 
-// ponytail: inspect written tokens; macro expansion and name binding need compiler analysis.
+// Inspect written tokens; macro expansion and name binding need compiler analysis.
 function rustTokens(text) {
   const tokens = [];
   const pattern =
