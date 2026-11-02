@@ -5037,6 +5037,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "tenon-module-notify"
+version = "0.1.0"
+dependencies = [
+ "jiff",
+ "sea-query",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tempfile",
+ "tenon-framework",
+ "tenon-module-account",
+ "tokio",
+ "tracing",
+ "ts-rs",
+]
+
+[[package]]
 name = "termcolor"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

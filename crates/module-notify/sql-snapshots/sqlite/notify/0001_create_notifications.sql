@@ -1,0 +1,4 @@
+CREATE TABLE "notify_notification" ( "id" varchar(36) NOT NULL PRIMARY KEY, "user_id" varchar(36) NOT NULL, "category" varchar(32) NOT NULL, "title_key" varchar(128) NOT NULL, "body_key" varchar(128) NOT NULL, "params" text NOT NULL, "job_id" varchar(36), "read_at" integer, "created_at" integer NOT NULL );
+CREATE TABLE "notify_notification_delivery" ( "id" varchar(36) NOT NULL PRIMARY KEY, "notification_id" varchar(36) NOT NULL, "channel" varchar(32) NOT NULL, "status" varchar(16) NOT NULL, "error_code" varchar(128), "attempted_at" integer NOT NULL, CONSTRAINT "uq_notify_delivery_notification_channel" UNIQUE ("notification_id", "channel") );
+CREATE INDEX "ix_notify_notification_user_read_at" ON "notify_notification" ("user_id", "read_at");
+CREATE INDEX "ix_notify_notification_user_created_at" ON "notify_notification" ("user_id", "created_at");

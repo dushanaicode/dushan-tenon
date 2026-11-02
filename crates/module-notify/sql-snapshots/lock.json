@@ -1,0 +1,5 @@
+{
+  "mysql/notify/0001_create_notifications.sql": "f4de80be9297270ba294fc43c6d8ebfcf51b7a3ff38a4c8752ab9d5566c16910",
+  "postgres/notify/0001_create_notifications.sql": "14acc73db60c60393c943a7983cdbff6c6f532bce4dc9a28e6f3c846a34f9a2b",
+  "sqlite/notify/0001_create_notifications.sql": "ffb21631aa22723962fa836e0afba733e648007154e84f70d4204f8c8259e3a2"
+}
