@@ -25,6 +25,7 @@ allow_attributes = "warn"
 allow_attributes_without_reason = "warn"
 
 [workspace.dependencies]
+croner = { version = "4.0.1", default-features = false, features = ["jiff"] }
 tauri = { version = "2.12", default-features = false, features = ["wry", "compression", "common-controls-v6"] }
 tauri-build = "2.7"
 jiff = { version = "0.2", default-features = false, features = ["std", "tz-system", "tzdb-bundle-platform", "tzdb-zoneinfo"] }
