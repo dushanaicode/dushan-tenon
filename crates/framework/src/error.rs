@@ -25,7 +25,8 @@ impl fmt::Display for ErrorCode {
     }
 }
 
-pub(crate) const fn is_valid_code(value: &str) -> bool {
+/// 校验持久化或外部输入的安全错误码，不构造静态 ErrorCode。
+pub const fn is_valid_code(value: &str) -> bool {
     let bytes = value.as_bytes();
     let mut index = 0;
     let mut separators = 0;
