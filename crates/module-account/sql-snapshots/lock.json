@@ -1,0 +1,5 @@
+{
+  "mysql/account/0001_create_account.sql": "948f47dfc3a8e19482a3359111871d4f5247cf5b55d824e1ca9fb394bcc2ac5c",
+  "postgres/account/0001_create_account.sql": "44c212b0935b26f0b2c45ce15930456ca740c18b0bde37dc0970e46e6ca9f272",
+  "sqlite/account/0001_create_account.sql": "6d473b546b1c910914e63ace4af5f13bd932992e77e7dad10c8ba901301647c0"
+}

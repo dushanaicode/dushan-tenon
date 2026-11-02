@@ -37,6 +37,15 @@ node scripts/check-licenses.mjs --notices Temp/check/THIRD_PARTY_LICENSES.md
 
 分发前检查清单中的“缺许可正文”表并补齐所列内容，将清单和本文件随二进制一同提供，保留适用的版权与 NOTICE 声明。若修改 MPL-2.0 文件，还须提供对应的修改源码及获取方式。
 
+## JetBrains Mono 验证码字体
+
+`crates/module-account/assets/fonts/JetBrainsMono-Bold.ttf` 来自
+[JetBrains/JetBrainsMono](https://github.com/JetBrains/JetBrainsMono)，用于生成账号验证码。
+字体与同目录的 [OFL.txt](crates/module-account/assets/fonts/OFL.txt) 均按原始字节保留。
+字体采用 **SIL Open Font License 1.1（OFL-1.1）**，不随项目重新许可为 MIT。
+分发字体或包含字体的应用时，须随附原版权声明和 OFL 许可全文；修改或再分发字体须遵守
+OFL 的保留字体名称、不得单独售卖及衍生字体继续采用 OFL 等要求，具体以原许可为准。
+
 ## vendor/calamine
 
 `vendor/calamine` 来自 calamine **0.36.1** 的 crates.io 发布包，采用 **MIT** 许可。
