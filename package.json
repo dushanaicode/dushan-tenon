@@ -15,8 +15,27 @@
     "test": "node scripts/test.mjs"
   },
   "dependencies": {
+    "@streamdown/cjk": "1.0.4",
+    "@tanstack/react-query": "5.104.3",
+    "@tanstack/react-table": "9.2.6",
+    "@tanstack/react-virtual": "3.14.17",
+    "@tauri-apps/api": "2.12.4",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "cmdk": "1.1.1",
+    "i18next": "26.4.5",
+    "lucide-react": "1.57.0",
+    "radix-ui": "1.6.7",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "react-i18next": "17.0.17",
+    "react-resizable-panels": "4.14.2",
+    "react-router": "7.18.4",
+    "sonner": "2.0.8",
+    "streamdown": "2.7.0",
+    "tailwind-merge": "3.7.0",
+    "tinykeys": "4.0.1",
+    "use-stick-to-bottom": "1.1.6"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
