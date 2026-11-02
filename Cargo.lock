@@ -5037,6 +5037,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "tenon-module-devtools"
+version = "0.1.0"
+dependencies = [
+ "sea-query",
+ "serde",
+ "serde_json",
+ "tenon-framework",
+ "tenon-module-account",
+ "tokio",
+ "ts-rs",
+]
+
+[[package]]
 name = "termcolor"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
