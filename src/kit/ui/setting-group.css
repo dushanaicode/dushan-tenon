@@ -1,0 +1,4 @@
+/* Keep the source below its control across the shared responsive layout. */
+[data-kit="setting-row"] > .kit-setting-row {
+  row-gap: 8px;
+}
