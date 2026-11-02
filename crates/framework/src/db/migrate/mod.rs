@@ -99,7 +99,9 @@ pub fn checksum(sql: &[u8]) -> String {
 }
 
 // 元数据来自程序注册，校验连续版本与可安全用作快照路径的标识符。
-fn validate_registry(infos: impl IntoIterator<Item = MigrationInfo>) -> Result<(), AppError> {
+pub(crate) fn validate_registry(
+    infos: impl IntoIterator<Item = MigrationInfo>,
+) -> Result<(), AppError> {
     let mut versions = BTreeMap::new();
     for info in infos {
         let module_valid = info.module.starts_with(|c: char| c.is_ascii_lowercase())
