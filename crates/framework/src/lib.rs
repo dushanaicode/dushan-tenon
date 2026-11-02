@@ -3,11 +3,13 @@
 //! 分层与公开接口约束见仓库的 [架构文档](../../../docs/architecture.md)。
 
 pub mod actor;
+pub mod backup;
 pub mod bootstrap;
 pub mod cache;
 pub mod db;
 pub mod dict;
 pub mod error;
+pub mod exchange;
 pub mod file;
 pub mod i18n;
 pub mod id;

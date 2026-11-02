@@ -34,6 +34,24 @@ pub fn dialect() -> Dialect {
     })
 }
 
+/// 只构造延迟连接池，用于上层确认远端不支持的操作在联网前即被拒绝。
+#[cfg(test)]
+pub(crate) fn lazy_remote(dialect: Dialect) -> Db {
+    Db {
+        pool: match dialect {
+            Dialect::Mysql => Pool::Mysql(
+                sqlx::MySqlPool::connect_lazy("mysql://fixture:fixture@127.0.0.1:1/fixture")
+                    .unwrap(),
+            ),
+            Dialect::Postgres => Pool::Postgres(
+                sqlx::PgPool::connect_lazy("postgres://fixture:fixture@127.0.0.1:1/fixture")
+                    .unwrap(),
+            ),
+            Dialect::Sqlite => panic!("lazy_remote requires a remote dialect"),
+        },
+    }
+}
+
 fn connection_url(variable: &str) -> String {
     if let Some(value) = std::env::var_os(variable) {
         return value

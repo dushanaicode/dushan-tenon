@@ -2,6 +2,7 @@
 mod sniff;
 mod store;
 pub use store::FileStore;
+pub(crate) use store::SnapshotEntry;
 
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
