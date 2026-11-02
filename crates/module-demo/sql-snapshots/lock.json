@@ -1,0 +1,8 @@
+{
+  "mysql/demo/0001_create_demo.sql": "a80fbbaea38cc25c8284c3df98f801a5e257e23194331d1cf3c28359a47c0af8",
+  "mysql/demo/0002_sample_drafts.sql": "1b2b0d0088938ce72d2a6e6147e13b6362c855723704b2fc2e8b355b0294c5d9",
+  "postgres/demo/0001_create_demo.sql": "9e6d05e77f7dbe23324d7fc17210f95c924fb0ed81c1b0ed3eeba0f3723c5f12",
+  "postgres/demo/0002_sample_drafts.sql": "471ffbcd4a2770730d48e126aef853d47166c23fab147dd502ea669d4ab5c623",
+  "sqlite/demo/0001_create_demo.sql": "e69a3afaa8d15398ed72c3c049d51a2bf37c153565b69888f582651867f0dc6a",
+  "sqlite/demo/0002_sample_drafts.sql": "d2fce52116566659099c7d54716a611aafaf23d10cd8ad114014440fa18d6f97"
+}
