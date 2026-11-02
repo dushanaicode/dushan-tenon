@@ -8,6 +8,8 @@ pub mod file_ingress;
 pub mod i18n;
 pub mod identity;
 pub mod keyboard;
+pub mod native;
+pub mod network;
 pub mod picked_files;
 pub mod restore;
 pub mod startup_recovery;
