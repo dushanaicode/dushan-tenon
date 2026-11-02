@@ -89,6 +89,19 @@ impl fmt::Debug for Db {
 }
 
 impl Db {
+    pub(crate) fn sqlite_pool(&self) -> Option<&SqlitePool> {
+        match &self.pool {
+            Pool::Sqlite(pool) => Some(pool),
+            Pool::Mysql(_) | Pool::Postgres(_) => None,
+        }
+    }
+
+    pub(crate) fn from_sqlite_pool(pool: SqlitePool) -> Self {
+        Self {
+            pool: Pool::Sqlite(pool),
+        }
+    }
+
     pub async fn open_sqlite(path: impl AsRef<Path>) -> Result<Self, AppError> {
         let options = SqliteConnectOptions::new()
             .filename(path)
@@ -233,7 +246,7 @@ impl Db {
     }
 }
 
-pub(super) async fn snapshot_connection(
+pub(crate) async fn snapshot_connection(
     connection: &mut sqlx::SqliteConnection,
     path: &Path,
 ) -> Result<(), AppError> {

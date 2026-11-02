@@ -11,7 +11,7 @@ name = "tenon_framework"
 
 [features]
 migration-tools = []
-test-support = ["dep:tempfile"]
+test-support = []
 
 [dependencies]
 calamine.workspace = true
@@ -27,7 +27,7 @@ serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
 sqlx.workspace = true
-tempfile = { workspace = true, optional = true }
+tempfile.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["time", "sync"] }
 tokio-util = { workspace = true, features = ["rt"] }

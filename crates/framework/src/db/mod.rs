@@ -12,6 +12,7 @@ mod table;
 
 pub use config::{DatabaseConfig, DatabaseConnection, DatabaseKind, RemoteDatabaseConfig};
 pub use page::{Page, PageRequest, contains_literal};
+pub(crate) use pool::snapshot_connection;
 pub use pool::{Db, FromDbRow, Tx};
 pub use query::{Select, select};
 pub use table::Table;

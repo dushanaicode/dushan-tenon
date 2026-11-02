@@ -36,6 +36,14 @@ const TABLE: Table = Table {
 #[derive(Clone)]
 pub struct FileStore(Arc<Inner>);
 
+/// 仅向归档层提供校验过的登记内容句柄，不暴露磁盘路径。
+pub(crate) struct SnapshotEntry {
+    pub path: String,
+    pub bytes: u64,
+    pub sha256: String,
+    pub file: File,
+}
+
 struct Inner {
     db: Db,
     root: PathBuf,
@@ -45,6 +53,81 @@ struct Inner {
 }
 
 impl FileStore {
+    /// 仅用于尚未投入使用的恢复副本；混合或空实例登记不能合并。
+    pub(crate) async fn rebind_restored_instance(
+        stage: &Db,
+        source: &str,
+        target: InstanceId,
+    ) -> Result<(), AppError> {
+        let mut tx = stage.begin().await?;
+        let foreign: Option<(String,)> = tx
+            .fetch_optional(
+                &Query::select()
+                    .column("id")
+                    .from("fw_file")
+                    .and_where(
+                        Expr::col("instance_id")
+                            .ne(source)
+                            .or(Expr::col("instance_id").is_null()),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        if foreign.is_some() {
+            tx.rollback().await?;
+            return Err(invalid("instance_id"));
+        }
+        tx.execute(
+            &Query::update()
+                .table("fw_file")
+                .value("instance_id", target.to_string())
+                .and_where(Expr::col("instance_id").eq(source))
+                .to_owned(),
+        )
+        .await?;
+        tx.commit().await
+    }
+
+    pub(crate) async fn snapshot_entries(
+        &self,
+        snapshot: &Db,
+        limit: std::num::NonZeroU32,
+        max_file: u64,
+    ) -> Result<Vec<SnapshotEntry>, AppError> {
+        let mut tx = snapshot.begin().await?;
+        let records: Vec<FileRecord> = tx.fetch_batch(&self.query(), limit).await?;
+        tx.rollback().await?;
+        records
+            .into_iter()
+            .map(|record| {
+                let path = self.path(&record).map_err(|_| AppError::new(MISSING))?;
+                // 同时检查根之上的现存分量，不能经根目录的父联接读取附件。
+                for ancestor in path.ancestors().filter(|path| path.has_root()) {
+                    let metadata =
+                        fs::symlink_metadata(ancestor).map_err(|_| AppError::new(MISSING))?;
+                    if is_link(&metadata) {
+                        return Err(AppError::new(MISSING));
+                    }
+                }
+                let file = File::open(path).map_err(|_| AppError::new(MISSING))?;
+                let metadata = file.metadata().map_err(|_| AppError::new(MISSING))?;
+                let bytes = u64::try_from(record.size_bytes).map_err(|_| invalid("size_bytes"))?;
+                if !metadata.is_file() || metadata.len() != bytes {
+                    return Err(AppError::new(MISSING));
+                }
+                if bytes > max_file {
+                    return Err(AppError::new(TOO_LARGE));
+                }
+                Ok(SnapshotEntry {
+                    path: format!("files/{}", record.stored_path),
+                    bytes,
+                    sha256: record.sha256,
+                    file,
+                })
+            })
+            .collect()
+    }
+
     pub fn instance_id(&self) -> InstanceId {
         self.0.instance_id
     }
