@@ -356,7 +356,8 @@ impl LockGuard {
     }
 }
 
-pub(crate) fn valid_name(value: &str) -> bool {
+/// 缓存键前缀与名称共用的字符约束，供配置边界复用。
+pub fn valid_name(value: &str) -> bool {
     !value.is_empty()
         && value.bytes().all(|c| {
             c.is_ascii_lowercase() || c.is_ascii_digit() || matches!(c, b'_' | b'.' | b'-')

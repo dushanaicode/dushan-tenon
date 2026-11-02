@@ -6,6 +6,7 @@ import { readIdentityFiles, scanIdentity } from "./check-identity.mjs";
 
 const configPath = "src-tauri/tauri.conf.json";
 const cargoPath = "src-tauri/Cargo.toml";
+const desktopIdentityPath = "crates/desktop/src/identity.rs";
 
 function fixture() {
   return new Map([
@@ -35,6 +36,14 @@ function fixture() {
     ],
     ["package.json", '{\n  "name": "dushan-tenon"\n}'],
     [
+      desktopIdentityPath,
+      [
+        "//! Product identity.",
+        'pub const CREDENTIAL_SERVICE: &str = "com.dushan.tenon";',
+        'pub const DEFAULT_CACHE_KEY_PREFIX: &str = "dushan-tenon";',
+      ].join("\n"),
+    ],
+    [
       "index.html",
       "<html>\n<head>\n<title>Dushan Tenon</title>\n</head>\n</html>",
     ],
@@ -62,7 +71,7 @@ function rejects(files, rule, path, message, line) {
   );
 }
 
-test("identity: real repository satisfies I1, I2 and I5", async () => {
+test("identity: real repository satisfies I1 through I5", async () => {
   assert.deepEqual(scanIdentity(await readIdentityFiles(resolve("."))), []);
 });
 
@@ -98,6 +107,8 @@ test("identity: reader loads only identity text", async (t) => {
     ["I1", configPath],
     ["I2", cargoPath],
     ["I2", "package.json"],
+    ["I3", desktopIdentityPath],
+    ["I4", desktopIdentityPath],
     ["I5", "index.html"],
   ])
     rejects(missing, rule, path, /无法解析/, 1);
@@ -143,6 +154,67 @@ test("I5 rejects identity mismatch in index.html", () => {
   const files = fixture();
   replace(files, "index.html", "Dushan Tenon", "Other");
   rejects(files, "I5", "index.html", /tauri\.conf\.json productName/, 3);
+});
+
+for (const [rule, name, before, after, key, line] of [
+  [
+    "I3",
+    "CREDENTIAL_SERVICE",
+    "com.dushan.tenon",
+    "com.example.other",
+    "identifier",
+    2,
+  ],
+  [
+    "I4",
+    "DEFAULT_CACHE_KEY_PREFIX",
+    '"dushan-tenon"',
+    '"other-app"',
+    "mainBinaryName",
+    3,
+  ],
+]) {
+  test(`${rule} rejects desktop identity mismatch`, () => {
+    const files = fixture();
+    replace(files, desktopIdentityPath, before, after);
+    rejects(
+      files,
+      rule,
+      desktopIdentityPath,
+      new RegExp(`tauri\\.conf\\.json ${key}`),
+      line,
+    );
+  });
+  test(`${rule} rejects missing or commented ${name}`, () => {
+    for (const replacement of [
+      `// pub const ${name}`,
+      `pub const OTHER_${name}`,
+    ]) {
+      const files = fixture();
+      replace(files, desktopIdentityPath, `pub const ${name}`, replacement);
+      rejects(
+        files,
+        rule,
+        desktopIdentityPath,
+        new RegExp(`无法解析 ${name}`),
+        1,
+      );
+    }
+  });
+}
+
+test("I3 and I4 follow a changed product identity", () => {
+  const files = new Map(
+    [...fixture()].map(([path, text]) => [
+      path,
+      text
+        .replaceAll("com.dushan.tenon", "org.example.board")
+        .replaceAll("dushan-tenon", "example-board")
+        .replaceAll("dushan_tenon", "example_board")
+        .replaceAll("Dushan Tenon", "Example Board"),
+    ]),
+  );
+  assert.deepEqual(scanIdentity(files), []);
 });
 
 for (const [rule, path, key] of [
