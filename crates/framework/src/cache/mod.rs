@@ -1,4 +1,4 @@
-//! 字节缓存、命名空间版本与租期锁；键前缀必填，锁显式释放，Drop 不执行 I/O。
+//! 字节缓存与租期锁；键前缀必填，锁显式释放，Drop 不执行 I/O。
 //! 依赖 error、dict、secret、network；连接失败不回退本机后端。
 
 use std::{
@@ -106,7 +106,6 @@ enum Backend {
 
 struct Local {
     values: moka::future::Cache<String, Value>,
-    versions: Mutex<HashMap<String, i64>>,
     // 锁不参与缓存容量淘汰，否则尚未到期的锁会提前失效。
     locks: Mutex<HashMap<String, (Uuid, Instant)>>,
 }
@@ -155,7 +154,6 @@ impl Cache {
                     .max_capacity(config.local_capacity.get())
                     .expire_after(Expiry)
                     .build(),
-                versions: Mutex::new(HashMap::new()),
                 locks: Mutex::new(HashMap::new()),
             })),
             CacheConnection::Redis(remote) => {
@@ -190,29 +188,14 @@ impl Cache {
         Ok(())
     }
 
-    async fn data_key(&self, ns: &str, key: &str) -> Result<String, AppError> {
+    fn data_key(&self, ns: &str, key: &str) -> Result<String, AppError> {
         validate_name(ns)?;
         validate_name(key)?;
-        let version_key = format!("{}:{ns}:@version", self.prefix);
-        let version = match &self.backend {
-            Backend::Local(local) => *local
-                .versions
-                .lock()
-                .map_err(|_| internal("缓存内部锁中毒"))?
-                .get(&version_key)
-                .unwrap_or(&0),
-            Backend::Redis(connection) => redis::cmd("GET")
-                .arg(version_key)
-                .query_async::<Option<i64>>(&mut connection.clone())
-                .await
-                .map_err(|_| unavailable())?
-                .unwrap_or(0),
-        };
-        Ok(format!("{}:{ns}:v{version}:{key}", self.prefix))
+        Ok(format!("{}:{ns}:{key}", self.prefix))
     }
 
     pub async fn get(&self, ns: &str, key: &str) -> Result<Option<Vec<u8>>, AppError> {
-        let key = self.data_key(ns, key).await?;
+        let key = self.data_key(ns, key)?;
         match &self.backend {
             Backend::Local(local) => Ok(local.values.get(&key).await.map(|value| value.bytes)),
             Backend::Redis(connection) => redis::cmd("GET")
@@ -232,7 +215,7 @@ impl Cache {
         ttl: Duration,
     ) -> Result<(), AppError> {
         let millis = ttl_millis(ttl)?;
-        let key = self.data_key(ns, key).await?;
+        let key = self.data_key(ns, key)?;
         match &self.backend {
             Backend::Local(local) => {
                 let expires = Instant::now()
@@ -262,43 +245,13 @@ impl Cache {
     }
 
     pub async fn delete(&self, ns: &str, key: &str) -> Result<(), AppError> {
-        let key = self.data_key(ns, key).await?;
+        let key = self.data_key(ns, key)?;
         match &self.backend {
             Backend::Local(local) => {
                 local.values.invalidate(&key).await;
                 Ok(())
             }
             Backend::Redis(connection) => redis::cmd("DEL")
-                .arg(key)
-                .query_async(&mut connection.clone())
-                .await
-                .map_err(|_| unavailable()),
-        }
-    }
-
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "缓存命名空间失效为内部入口，当前由缓存合同测试覆盖"
-        )
-    )]
-    pub(crate) async fn invalidate(&self, ns: &str) -> Result<(), AppError> {
-        validate_name(ns)?;
-        let key = format!("{}:{ns}:@version", self.prefix);
-        match &self.backend {
-            Backend::Local(local) => {
-                let mut versions = local
-                    .versions
-                    .lock()
-                    .map_err(|_| internal("缓存内部锁中毒"))?;
-                let version = versions.entry(key).or_insert(0);
-                *version = version
-                    .checked_add(1)
-                    .ok_or_else(|| internal("缓存命名空间版本溢出"))?;
-                Ok(())
-            }
-            Backend::Redis(connection) => redis::cmd("INCR")
                 .arg(key)
                 .query_async(&mut connection.clone())
                 .await
@@ -332,7 +285,7 @@ impl Cache {
     pub async fn try_lock(&self, name: &str, ttl: Duration) -> Result<Option<LockGuard>, AppError> {
         validate_name(name)?;
         let millis = ttl_millis(ttl)?;
-        // @ 不在合法命名空间字符集中，锁不会与数据或版本号碰撞。
+        // @ 不在合法命名空间字符集中，锁不会与数据碰撞。
         let key = format!("{}:@lock:{name}", self.prefix);
         let token = Uuid::new_v4();
         let acquired = match &self.backend {

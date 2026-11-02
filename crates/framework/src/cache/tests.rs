@@ -97,7 +97,7 @@ async fn contract_values_ttl_delete_and_json() {
 }
 
 #[tokio::test]
-async fn contract_namespace_versions_and_prefix_isolation() {
+async fn contract_namespace_and_prefix_isolation() {
     let cache = cache().await;
     // 共享同一后端，确保本机测试真正验证前缀编码，而非两个独立缓存。
     let other = Cache {
@@ -108,8 +108,10 @@ async fn contract_namespace_versions_and_prefix_isolation() {
     cache.set("b", "key", b"second", TTL).await.unwrap();
     assert_eq!(other.get("a", "key").await.unwrap(), None);
     other.set("a", "key", b"isolated", TTL).await.unwrap();
-    cache.invalidate("a").await.unwrap();
-    assert_eq!(cache.get("a", "key").await.unwrap(), None);
+    assert_eq!(
+        cache.get("a", "key").await.unwrap(),
+        Some(b"first".to_vec())
+    );
     assert_eq!(
         cache.get("b", "key").await.unwrap(),
         Some(b"second".to_vec())
@@ -120,16 +122,6 @@ async fn contract_namespace_versions_and_prefix_isolation() {
     );
     cache.set("a", "key", b"new", TTL).await.unwrap();
     assert_eq!(cache.get("a", "key").await.unwrap(), Some(b"new".to_vec()));
-    cache.invalidate("a").await.unwrap();
-    assert_eq!(cache.get("a", "key").await.unwrap(), None);
-    if let Backend::Redis(connection) = &cache.backend {
-        // 仅删除本用例的版本元数据；数据和锁由短 TTL 回收，不扫描服务器。
-        redis::cmd("DEL")
-            .arg(format!("{}:a:@version", cache.prefix))
-            .query_async::<()>(&mut connection.clone())
-            .await
-            .unwrap();
-    }
 }
 
 #[tokio::test]
@@ -160,10 +152,6 @@ async fn contract_rejects_invalid_names_and_ttls() {
         );
         assert_eq!(
             cache.delete(invalid, "key").await.unwrap_err().code(),
-            INTERNAL_UNEXPECTED
-        );
-        assert_eq!(
-            cache.invalidate(invalid).await.unwrap_err().code(),
             INTERNAL_UNEXPECTED
         );
         assert_eq!(
@@ -232,7 +220,7 @@ async fn contract_lock_token_expiry_and_explicit_release() {
 }
 
 #[tokio::test]
-async fn local_capacity_does_not_evict_locks_or_versions() {
+async fn local_capacity_does_not_evict_locks() {
     let root = tempfile::tempdir_in(std::env::temp_dir()).unwrap();
     let config = CacheConfig {
         local_capacity: std::num::NonZeroU64::new(1).unwrap(),
@@ -246,7 +234,6 @@ async fn local_capacity_does_not_evict_locks_or_versions() {
     .await
     .unwrap();
     let lock = cache.try_lock("capacity", TTL).await.unwrap().unwrap();
-    cache.invalidate("ns").await.unwrap();
     for i in 0..100 {
         cache
             .set("ns", &format!("key{i}"), b"value", TTL)
@@ -259,7 +246,6 @@ async fn local_capacity_does_not_evict_locks_or_versions() {
     local.values.run_pending_tasks().await;
     assert!(local.values.entry_count() <= 1);
     assert!(cache.try_lock("capacity", TTL).await.unwrap().is_none());
-    assert!(cache.data_key("ns", "key").await.unwrap().contains(":v1:"));
     lock.release().await.unwrap();
 }
 
@@ -281,29 +267,14 @@ async fn poisoned_local_locks_return_internal_errors() {
     let Backend::Local(local) = &cache.backend else {
         panic!("expected local backend")
     };
-    for poison_versions in [true, false] {
-        let local = Arc::clone(local);
-        assert!(
-            std::thread::spawn(move || {
-                if poison_versions {
-                    let _guard = local.versions.lock().unwrap();
-                    panic!("poison version lock");
-                } else {
-                    let _guard = local.locks.lock().unwrap();
-                    panic!("poison lease lock");
-                }
-            })
-            .join()
-            .is_err()
-        );
-    }
-    assert_eq!(
-        cache.get("ns", "key").await.unwrap_err().code(),
-        INTERNAL_UNEXPECTED
-    );
-    assert_eq!(
-        cache.invalidate("ns").await.unwrap_err().code(),
-        INTERNAL_UNEXPECTED
+    let local = Arc::clone(local);
+    assert!(
+        std::thread::spawn(move || {
+            let _guard = local.locks.lock().unwrap();
+            panic!("poison lease lock");
+        })
+        .join()
+        .is_err()
     );
     assert_eq!(
         cache.try_lock("next", TTL).await.unwrap_err().code(),

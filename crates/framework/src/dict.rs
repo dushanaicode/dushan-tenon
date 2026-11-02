@@ -62,24 +62,10 @@ fn valid_segment(value: &str) -> bool {
             .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'_')
 }
 
-#[cfg_attr(
-    not(test),
-    expect(
-        dead_code,
-        reason = "字典值校验供参数声明和模块注册使用，两者按计划单独迁入"
-    )
-)]
 pub(crate) fn valid_value(value: &str) -> bool {
     value.len() <= 64 && valid_segment(value)
 }
 
-#[cfg_attr(
-    not(test),
-    expect(
-        dead_code,
-        reason = "字典代码校验供参数声明和模块注册使用，两者按计划单独迁入"
-    )
-)]
 pub(crate) fn valid_code(code: &str, module: &str) -> bool {
     code.len() <= 96
         && code

@@ -52,6 +52,7 @@ pub const INPUT_INVALID: ErrorCode = ErrorCode::new("app.input.invalid");
 pub const DATA_NOT_FOUND: ErrorCode = ErrorCode::new("app.data.not_found");
 pub const DATA_VERSION_CONFLICT: ErrorCode = ErrorCode::new("app.data.version_conflict");
 pub const PERMISSION_DENIED: ErrorCode = ErrorCode::new("app.permission.denied");
+pub const JOB_CANCELLED: ErrorCode = ErrorCode::new("app.job.cancelled");
 
 #[derive(Debug, thiserror::Error)]
 #[error("{code}")]
