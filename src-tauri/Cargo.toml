@@ -1,0 +1,21 @@
+[package]
+name = "dushan-tenon"
+description = "Dushan Tenon（渡山榫卯）桌面应用底座"
+default-run = "dushan-tenon"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "dushan_tenon_lib"
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+tauri.workspace = true
+
+[lints]
+workspace = true

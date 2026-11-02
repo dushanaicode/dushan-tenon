@@ -1,0 +1,4 @@
+pmOnFail: error
+saveExact: true
+verifyDepsBeforeRun: false
+minimumReleaseAgeStrict: true

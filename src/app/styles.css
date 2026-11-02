@@ -1,0 +1,11 @@
+@layer theme,
+  base,
+  components,
+  utilities,
+  appearance-defaults,
+  appearance-themes,
+  appearance-system,
+  appearance-overrides,
+  appearance-a11y;
+
+@import "tailwindcss";

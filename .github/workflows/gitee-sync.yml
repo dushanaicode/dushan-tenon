@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   sync:
-    if: github.repository == 'dushanaicode/duzo' && github.event.deleted != true
+    if: github.repository == 'dushanaicode/dushan-tenon' && github.event.deleted != true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -36,10 +36,10 @@ jobs:
           printf '%s\n' "$GITEE_SSH_PRIVATE_KEY" > "$TMPDIR/key"
           printf '%s\n' 'gitee.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEKxHSJ7084RmkJ4YdEi5tngynE8aZe2uEoVVsB/OvYN' > "$TMPDIR/known_hosts"
           export GIT_SSH_COMMAND="ssh -i $TMPDIR/key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$TMPDIR/known_hosts -o ServerAliveInterval=15 -o ServerAliveCountMax=3"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)" clone --bare https://github.com/dushanaicode/duzo.git "$TMPDIR/repository.git"
-          git -C "$TMPDIR/repository.git" push git@gitee.com:dushan-ai/duzo.git 'refs/heads/main:refs/heads/main' 'refs/tags/v*:refs/tags/v*'
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)" clone --bare https://github.com/dushanaicode/dushan-tenon.git "$TMPDIR/repository.git"
+          git -C "$TMPDIR/repository.git" push git@gitee.com:dushan-ai/dushan-tenon.git 'refs/heads/main:refs/heads/main' 'refs/tags/v*:refs/tags/v*'
           expected_main="$(git -C "$TMPDIR/repository.git" rev-parse refs/heads/main)"
-          actual_main="$(git ls-remote git@gitee.com:dushan-ai/duzo.git refs/heads/main | cut -f1)"
+          actual_main="$(git ls-remote git@gitee.com:dushan-ai/dushan-tenon.git refs/heads/main | cut -f1)"
           test "$actual_main" = "$expected_main"
           printf 'Verified Gitee main: %s\n' "$actual_main"
-          git ls-remote --symref git@gitee.com:dushan-ai/duzo.git HEAD
+          git ls-remote --symref git@gitee.com:dushan-ai/dushan-tenon.git HEAD
