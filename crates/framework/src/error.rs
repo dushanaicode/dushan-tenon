@@ -69,6 +69,10 @@ impl AppError {
         self.code
     }
 
+    pub fn params(&self) -> &BTreeMap<&'static str, String> {
+        &self.params
+    }
+
     pub fn new(code: ErrorCode) -> Self {
         Self {
             code,
@@ -102,6 +106,14 @@ mod tests {
     use super::*;
 
     const VALID: ErrorCode = ErrorCode::new("app.input.invalid_2");
+
+    #[test]
+    fn error_parameters_are_available_without_mutating_the_error() {
+        let error = AppError::new(INPUT_INVALID).with_param("path", "ui.theme");
+        assert_eq!(error.params()["path"], "ui.theme");
+        assert_eq!(error.code(), INPUT_INVALID);
+        assert!(AppError::new(INPUT_INVALID).params().is_empty());
+    }
 
     #[test]
     fn error_code_accepts_three_nonempty_lowercase_segments() {

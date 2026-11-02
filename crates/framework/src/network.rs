@@ -41,6 +41,18 @@ pub struct ProxyConfig {
 }
 
 impl ProxyConfig {
+    pub fn mode(&self) -> ProxyMode {
+        self.mode
+    }
+
+    pub fn endpoint(&self) -> &str {
+        &self.endpoint
+    }
+
+    pub fn auth(&self) -> bool {
+        self.auth
+    }
+
     pub fn new(mode: ProxyMode, endpoint: String, auth: bool) -> Result<Self, AppError> {
         if mode != ProxyMode::Direct || !endpoint.is_empty() {
             validate_endpoint(&endpoint)?;
@@ -347,6 +359,22 @@ mod tests {
             ProxySnapshot::Direct
         ));
     }
+    #[test]
+    fn proxy_config_accessors_preserve_configured_values_in_both_modes() {
+        for mode in [ProxyMode::Direct, ProxyMode::Manual] {
+            for auth in [false, true] {
+                let config =
+                    ProxyConfig::new(mode, "https://proxy.example:443".into(), auth).unwrap();
+                assert_eq!(config.mode(), mode);
+                assert_eq!(config.endpoint(), "https://proxy.example:443");
+                assert_eq!(config.auth(), auth);
+            }
+        }
+        let direct = ProxyConfig::new(ProxyMode::Direct, String::new(), false).unwrap();
+        assert_eq!(direct.endpoint(), "");
+        assert!(!direct.auth());
+    }
+
     #[test]
     fn proxy_config_validates_even_in_direct_mode() {
         assert!(ProxyConfig::new(ProxyMode::Direct, String::new(), false).is_ok());

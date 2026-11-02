@@ -1,0 +1,48 @@
+# 新状态目录的配置种子，复制为 <状态目录>/config.toml。
+# pnpm preset minimal；已有配置文件时 pnpm preset 会拒绝。
+[auth]
+mode = "none"
+
+[window]
+restore_state = true
+titlebar = "native"
+close_action = "exit"
+
+[tray]
+enabled = false
+
+[modules.account]
+enabled = true
+
+[modules.notify]
+enabled = false
+
+[modules.files]
+enabled = false
+
+[modules.devtools]
+enabled = false
+
+[ui]
+language = "zh-CN"
+theme = "system"
+developer_mode = false
+
+[modules.ai]
+enabled = false
+
+[autostart]
+enabled = false
+
+[shortcuts]
+show_main = ""
+
+[network]
+proxy_mode = "direct"
+proxy_endpoint = ""
+proxy_auth = false
+
+[modules.demo]
+enabled = false
+[updater]
+check_on_start = false

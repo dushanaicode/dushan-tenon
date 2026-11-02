@@ -5,7 +5,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const configPath = "src-tauri/tauri.conf.json";
 const cargoPath = "src-tauri/Cargo.toml";
-const sources = [configPath, cargoPath, "package.json", "index.html"];
+const desktopIdentityPath = "crates/desktop/src/identity.rs";
+const sources = [
+  configPath,
+  cargoPath,
+  desktopIdentityPath,
+  "package.json",
+  "index.html",
+];
 
 // files uses repository-relative POSIX paths; scanning never imports or
 // executes inspected files.
@@ -140,6 +147,27 @@ export function scanIdentity(files) {
     slugSource,
   );
 
+  for (const [rule, name, expected, source] of [
+    ["I3", "CREDENTIAL_SERVICE", identifier?.value, `${configPath} identifier`],
+    ["I4", "DEFAULT_CACHE_KEY_PREFIX", slug?.value, slugSource],
+  ]) {
+    equal(
+      rule,
+      desktopIdentityPath,
+      capture(
+        rule,
+        desktopIdentityPath,
+        new RegExp(
+          `^[ \\t]*pub const ${name}\\s*:\\s*&str\\s*=\\s*"([^"\\r\\n]*)";[ \\t]*(?://.*)?\\r?$`,
+          "m",
+        ),
+        name,
+      ),
+      expected,
+      source,
+    );
+  }
+
   equal(
     "I5",
     "index.html",
@@ -179,7 +207,7 @@ export async function checkIdentity() {
   if (violations.length > 0) {
     throw new Error(`身份检查失败：${violations.length} 项违规`);
   }
-  console.log("I1、I2、I5 身份检查通过");
+  console.log("I1–I5 身份检查通过");
 }
 
 if (
