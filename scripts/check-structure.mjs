@@ -14,6 +14,9 @@ const rules = [
   "crate-dependency",
   "legacy-brand",
   "agents-size",
+  "framework-layer",
+  "module-doc",
+  "framework-identity",
 ];
 const allowedLayers = {
   lib: [],
@@ -324,6 +327,353 @@ export function scanAgentsSize(content) {
   return violations;
 }
 
+export const frameworkModules = [
+  "error",
+  "id",
+  "time",
+  "actor",
+  "dict",
+  "i18n",
+  "secret",
+  "network",
+  "maintenance",
+  "bootstrap",
+  "instance",
+  "logging",
+  "db",
+  "migrations",
+  "cache",
+  "param",
+  "file",
+  "stream",
+  "job",
+  "exchange",
+  "backup",
+  "ipc",
+  "module",
+];
+
+// ponytail: inspect written tokens; macro expansion and name binding need compiler analysis.
+function rustTokens(text) {
+  const tokens = [];
+  const pattern =
+    /\/\/[^\r\n]*|\/\*|(?:br|cr|r)(#*)"|(?:b|c)?"|b?'(?:\\(?:u\{[\da-fA-F_]+\}|x[\da-fA-F]{2}|[^\r\n])|[^\\'\r\n])'|\$crate\b|(?:r#)?[_\p{ID_Start}][_\p{ID_Continue}]*|::|[^\s]/gu;
+  while (pattern.lastIndex < text.length) {
+    const match = pattern.exec(text);
+    if (!match) break;
+    const value = match[0];
+    if (value.startsWith("//")) continue;
+    if (value === "/*") {
+      const comments = /\/\*|\*\//g;
+      comments.lastIndex = pattern.lastIndex;
+      let depth = 1;
+      while (depth) {
+        const marker = comments.exec(text);
+        if (!marker) break;
+        depth += marker[0] === "/*" ? 1 : -1;
+      }
+      pattern.lastIndex = depth ? text.length : comments.lastIndex;
+      continue;
+    }
+    if (value.endsWith('"')) {
+      if (match[1] !== undefined) {
+        const closing = `"${match[1]}`;
+        const end = text.indexOf(closing, pattern.lastIndex);
+        pattern.lastIndex = end === -1 ? text.length : end + closing.length;
+      } else {
+        let end = pattern.lastIndex;
+        while (end < text.length) {
+          const character = text[end++];
+          if (character === "\\") end += 1;
+          else if (character === '"') break;
+        }
+        pattern.lastIndex = end;
+      }
+    }
+    // Keep a boundary token so literal contents cannot become paths or lib.rs items.
+    const literal = value.endsWith('"') || value.endsWith("'");
+    tokens.push({
+      value: literal ? "<literal>" : value.replace(/^r#/, ""),
+      index: match.index,
+    });
+  }
+  return tokens;
+}
+
+function rustGroupEnd(tokens, start) {
+  const opening = tokens[start].value;
+  const closing = { "(": ")", "[": "]", "{": "}" }[opening];
+  let depth = 1;
+  let end = start + 1;
+  while (end < tokens.length && depth) {
+    if (tokens[end].value === opening) depth += 1;
+    else if (tokens[end].value === closing) depth -= 1;
+    end += 1;
+  }
+  return end;
+}
+
+function exportedRustMacros(tokens) {
+  const names = [];
+  let exported = false;
+  for (let index = 0; index < tokens.length; index += 1) {
+    if (tokens[index].value === "#" && tokens[index + 1]?.value === "[") {
+      exported ||= tokens[index + 2]?.value === "macro_export";
+      index = rustGroupEnd(tokens, index + 1) - 1;
+      continue;
+    }
+    if (
+      exported &&
+      tokens[index].value === "macro_rules" &&
+      tokens[index + 1]?.value === "!"
+    ) {
+      names.push(tokens[index + 2].value);
+    }
+    exported = false;
+  }
+  return names;
+}
+
+function scanFrameworkRoot(tokens, report) {
+  for (let index = 0; index < tokens.length; ) {
+    const start = index;
+    if (
+      tokens[index].value === "#" &&
+      tokens[index + 1]?.value === "!" &&
+      tokens[index + 2]?.value === "["
+    ) {
+      index = rustGroupEnd(tokens, index + 2);
+      continue;
+    }
+    if (tokens[index].value === "pub") index += 1;
+    if (
+      tokens[index]?.value === "mod" &&
+      frameworkModules.includes(tokens[index + 1]?.value) &&
+      tokens[index + 2]?.value === ";"
+    ) {
+      index += 3;
+      continue;
+    }
+    report(
+      tokens[start].index,
+      "lib.rs 只允许内部属性、注释与已登记模块的 mod / pub mod 声明",
+    );
+    // Reject one item at a time, without counting its body as additional items.
+    index = start;
+    while (index < tokens.length) {
+      const value = tokens[index].value;
+      if (["(", "[", "{"].includes(value)) {
+        index = rustGroupEnd(tokens, index);
+        if (value !== "{") continue;
+        if (tokens[index]?.value === ";") index += 1;
+        break;
+      }
+      index += 1;
+      if (value === ";") break;
+    }
+  }
+}
+
+function scanRustReferences(tokens, fileModules, macros, report) {
+  const modulePath = [...fileModules];
+  const blocks = [];
+  const checked = new Set();
+  const source = fileModules[0];
+
+  function reference(parts, kind = "path") {
+    const root = parts[0]?.value;
+    if (!["crate", "$crate", "super"].includes(root)) return;
+    let targetIndex = 1;
+    if (root === "super") {
+      while (parts[targetIndex]?.value === "super") targetIndex += 1;
+      if (targetIndex > modulePath.length) {
+        const index = parts[modulePath.length].index;
+        if (!checked.has(index)) {
+          checked.add(index);
+          report(index, `${source}：super 超出 crate 根`);
+        }
+        return;
+      }
+      if (targetIndex < modulePath.length) return;
+    }
+    const target = parts[targetIndex];
+    if (!target || ["self", "*"].includes(target.value)) return;
+    if (checked.has(target.index)) return;
+    checked.add(target.index);
+    const name = target.value;
+    const owners = macros.get(name);
+    const terminal = parts.length === targetIndex + 1;
+    const destinations = new Set();
+    if (owners && terminal && ["macro", "use"].includes(kind)) {
+      for (const owner of owners) destinations.add(owner);
+    }
+    if (kind !== "macro" && frameworkModules.includes(name))
+      destinations.add(name);
+    if (destinations.size === 0) {
+      for (const destination of owners ?? [name]) destinations.add(destination);
+    }
+    for (const destination of destinations) {
+      const rank = frameworkModules.indexOf(destination);
+      if (rank === -1 || rank > frameworkModules.indexOf(source)) {
+        report(
+          target.index,
+          `${source} → ${destination}：${rank === -1 ? "未登记的顶层模块或导出宏" : "不得引用后序模块"}`,
+        );
+      }
+    }
+  }
+
+  function readUseTree(start, prefix = []) {
+    const parts = [...prefix];
+    let index = start;
+    while (index < tokens.length) {
+      const token = tokens[index];
+      if ([",", ";", "}"].includes(token.value)) break;
+      if (token.value === "as") {
+        index += 2;
+        break;
+      }
+      if (token.value === "{") {
+        reference(parts);
+        index += 1;
+        while (
+          index < tokens.length &&
+          !["}", ";"].includes(tokens[index].value)
+        ) {
+          index = readUseTree(index, parts);
+          if (tokens[index]?.value === ",") index += 1;
+        }
+        return index + 1;
+      }
+      if (token.value !== "::") parts.push(token);
+      index += 1;
+    }
+    reference(parts, "use");
+    return index;
+  }
+
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token.value === "{") {
+      const module = tokens[index - 2]?.value === "mod";
+      blocks.push(module);
+      if (module) modulePath.push(tokens[index - 1].value);
+    } else if (token.value === "}") {
+      if (blocks.pop()) modulePath.pop();
+    } else if (token.value === "use" && tokens[index + 1]?.value !== "<") {
+      index = readUseTree(index + 1) - 1;
+    } else if (
+      ["crate", "$crate", "super"].includes(token.value) &&
+      tokens[index + 1]?.value === "::" &&
+      tokens[index - 1]?.value !== "::"
+    ) {
+      const parts = [token];
+      let end = index + 1;
+      while (
+        tokens[end]?.value === "::" &&
+        /^[_\p{ID_Start}][_\p{ID_Continue}]*$/u.test(
+          tokens[end + 1]?.value ?? "",
+        )
+      ) {
+        parts.push(tokens[end + 1]);
+        end += 2;
+      }
+      reference(parts, tokens[end]?.value === "!" ? "macro" : "path");
+      index = end - 1;
+    } else if (
+      macros.has(token.value) &&
+      tokens[index + 1]?.value === "!" &&
+      !["::", "$"].includes(tokens[index - 1]?.value)
+    ) {
+      reference([{ value: "crate", index: token.index }, token], "macro");
+    }
+  }
+}
+
+export function scanFrameworkLayers(files) {
+  const sources = [];
+  const macros = new Map();
+  for (const [path, content] of files) {
+    const match = path.match(/^crates\/framework\/src\/(.+)\.rs$/);
+    if (!match) continue;
+    const modules = match[1] === "lib" ? [] : match[1].split("/");
+    if (modules.length > 1 && modules.at(-1) === "mod") modules.pop();
+    const text = content.toString("utf8");
+    const tokens = rustTokens(text);
+    sources.push({ path, modules, text, tokens });
+    for (const name of exportedRustMacros(tokens)) {
+      if (!macros.has(name)) macros.set(name, new Set());
+      macros.get(name).add(modules[0]);
+    }
+  }
+  const violations = [];
+  for (const { path, modules, text, tokens } of sources) {
+    function report(index, message) {
+      violations.push({
+        rule: "framework-layer",
+        path,
+        line: lineAt(text, index),
+        message,
+      });
+    }
+    if (path === "crates/framework/src/lib.rs") {
+      scanFrameworkRoot(tokens, report);
+    } else if (!frameworkModules.includes(modules[0])) {
+      report(0, `未登记的 framework 顶层模块：${modules[0]}`);
+    } else {
+      scanRustReferences(tokens, modules, macros, report);
+    }
+  }
+  return violations;
+}
+
+export function scanModuleDocs(files) {
+  const violations = [];
+  for (const [path, content] of files) {
+    if (!/^crates\/framework\/src\/(?:[^/]+\.rs|[^/]+\/mod\.rs)$/.test(path))
+      continue;
+    const text = content.toString("utf8");
+    const first = text.split(/\r\n|\r|\n/).findIndex((line) => line.trim());
+    const documented =
+      path === "crates/framework/src/lib.rs"
+        ? text.startsWith("//!")
+        : text
+            .split(/\r\n|\r|\n/)
+            [first]?.trimStart()
+            .startsWith("//!");
+    if (!documented) {
+      violations.push({
+        rule: "module-doc",
+        path,
+        line: path.endsWith("/lib.rs") || first === -1 ? 1 : first + 1,
+        message: "crate 与顶层模块的根文件必须以 //! 模块说明开头",
+      });
+    }
+  }
+  return violations;
+}
+
+export function scanFrameworkIdentity(files) {
+  const violations = [];
+  for (const [path, content] of files) {
+    if (
+      !path.startsWith("crates/framework/") ||
+      content.subarray(0, 8192).includes(0)
+    )
+      continue;
+    const text = content.toString("utf8");
+    for (const match of text.matchAll(/dushan/gi)) {
+      violations.push({
+        rule: "framework-identity",
+        path,
+        line: lineAt(text, match.index),
+        message: `内核不得包含品牌拼音：${match[0]}`,
+      });
+    }
+  }
+  return violations;
+}
+
 export async function scan(env, root = repositoryRoot) {
   const options = { cwd: root, env, encoding: "utf8", windowsHide: true };
   const paths = execFileSync(
@@ -361,6 +711,9 @@ export async function scan(env, root = repositoryRoot) {
       scanLegacyBrand(path, content, identity),
     ),
     ...scanAgentsSize(files.get("AGENTS.md")),
+    ...scanFrameworkLayers(files),
+    ...scanModuleDocs(files),
+    ...scanFrameworkIdentity(files),
   ];
   const counts = Object.fromEntries(rules.map((rule) => [rule, 0]));
   for (const violation of violations) counts[violation.rule] += 1;

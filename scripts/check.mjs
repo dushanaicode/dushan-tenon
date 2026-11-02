@@ -1,4 +1,5 @@
 import { checkIdentity } from "./check-identity.mjs";
+import { checkLicenses } from "./check-licenses.mjs";
 import { checkStructure } from "./check-structure.mjs";
 import { run, runBin, task } from "./common.mjs";
 
@@ -11,6 +12,7 @@ await task("check", async (env) => {
       "clippy",
       "--workspace",
       "--all-targets",
+      "--all-features",
       "--locked",
       "--",
       "-D",
@@ -21,5 +23,6 @@ await task("check", async (env) => {
   await runBin("TypeScript 类型", "typescript", "tsc", ["--noEmit"], env);
   await checkStructure(env);
   await checkIdentity();
+  await checkLicenses();
   await runBin("Biome", "@biomejs/biome", "biome", ["check", "."], env);
 });

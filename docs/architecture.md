@@ -13,6 +13,7 @@
 ```text
 crates/
   framework/        tenon-framework：内核，不依赖 Tauri 和任何模块
+  desktop/          tenon-desktop：桌面应用层，配置文件模型与设置合同，不依赖 Tauri
   module-<id>/      tenon-module-<id>：业务模块
 src-tauri/          宿主 dushan-tenon：只做装配和 Tauri 适配
 src/
@@ -65,18 +66,63 @@ Temp/               构建产物与临时文件（Git 忽略）
 - `crates/` 下每个 package 的名字都是代号加 `-` 再加目录名，即 `tenon-<目录>`。
 - 宿主只做装配与 Tauri 适配；与 Tauri 无关的服务放在 framework 子模块或宿主之外的 crate，便于脱离 Tauri 测试和复用。
 - 启动流程用分阶段的类型化构建表达先后顺序，不靠 `Option` 字段加运行时 `unwrap` 维持。
+- framework 只放通用内核。产品语义放在上层：配置文件模型、设置合同、外观轴、窗口与托盘等原生设置在 desktop；文件选择令牌在宿主的命令入口解析；通知渠道与免打扰在 notify 模块。
+- framework 不含产品身份（identifier、程序名、产品名），需要时由上层传入，例如凭据库服务名、缓存键前缀；可以使用代号 `tenon`，例如环境变量前缀与备份格式名。
+
+### framework 内部分层
+
+framework 的顶层模块自下而上排列如下，每个模块只能引用排在它前面的模块（模块内部的引用不受限）：
+
+| 序 | 模块 | 职责 |
+|---|---|---|
+| 1 | error | 错误码与错误类型 |
+| 2 | id | UUIDv7 标识 |
+| 3 | time | 时间戳 |
+| 4 | actor | 执行主体与执行上下文 |
+| 5 | dict | 字典声明与 `dict_enum!` |
+| 6 | i18n | 翻译端口与语言 |
+| 7 | secret | 秘密存储 |
+| 8 | network | 代理与 TLS 校验策略 |
+| 9 | maintenance | 操作准入、维护独占与关闭排空 |
+| 10 | bootstrap | 启动步骤与逆序关闭 |
+| 11 | instance | 实例标识 |
+| 12 | logging | 日志 |
+| 13 | db | 数据库连接、查询、事务与迁移执行 |
+| 14 | migrations | framework 自己的数据库迁移 |
+| 15 | cache | 缓存与锁 |
+| 16 | param | 声明式参数 |
+| 17 | file | 本机文件存储 |
+| 18 | stream | 有序事件流 |
+| 19 | job | 持久任务与计划 |
+| 20 | exchange | 导入导出 |
+| 21 | backup | 备份、恢复与诊断包 |
+| 22 | ipc | 命令入口：身份、权限与准入 |
+| 23 | module | 模块声明、注册与生命周期 |
+
+- `crate::<模块>` 路径、跨出本模块的 `super::`、`#[macro_export]` 宏的使用都算引用；测试代码同样遵守。
+- `lib.rs` 只声明表中的模块；每个模块的根文件以 `//!` 模块说明开头。
+- 汇总只在 module 做，例如全部错误码、内置字典；底层模块只定义自己的项。
+- 错误码一律三段：`<所属>.<领域>.<名称>`；framework 与宿主的错误码以 `app.` 开头。
+
+## Rust 代码约束
+
+- 生产代码不用 `unwrap`、`expect`、`panic!`、`unreachable!`、`todo!`、`unimplemented!`，由 Clippy 拦截；测试代码可以用 `unwrap`、`expect`、`panic!`。确属不变量、又无法用类型表达的，用 `#[expect(clippy::<lint>, reason = "…")]` 写明理由，不用 `#[allow]`。
+- 锁中毒按内部错误返回；析构函数里不 panic。
+- 公开接口只暴露有外部消费者的项，其余用 `pub(crate)` 或更窄的可见性；没有消费者的代码删除。
+- 迁移 SQL 一经发布不再改动：结构变化只新增迁移，已锁定的快照字节不重写。
 
 ## 规模护栏
 
-- 单个函数不超过 300 行，测试代码除外。Rust 由 Clippy 的 `too_many_lines` 检查，TypeScript 由 Biome 的 `noExcessiveLinesPerFunction` 检查。
+- 单个函数不超过 300 行，测试代码除外。Rust 由 Clippy 的 `too_many_lines` 检查，TypeScript 由 Biome 的 `noExcessiveLinesPerFunction` 检查。Clippy 也检查测试目标，超长的测试用 `#[expect(clippy::too_many_lines, reason = "…")]` 标明。
 - AGENTS.md 总量不超过 30KB，单行不超过 300 字。
 
 ## 检查一览
 
 | 检查 | 位置 | 内容 |
 |---|---|---|
-| check-structure | `scripts/check-structure.mjs` | 前端分层、Rust 依赖方向与 crate 命名、全局变量访问点、DOM 查询、品牌拼音的出现形式、AGENTS.md 体量 |
-| check-identity | `scripts/check-identity.mjs` | 产品身份与包名、库名、页面标题一致 |
-| Clippy、Biome | `clippy.toml`、`biome.json` | 函数长度与常规 lint |
+| check-structure | `scripts/check-structure.mjs` | 前端分层、Rust 依赖方向与 crate 命名、framework 内部分层与模块说明、framework 不含产品身份、全局变量访问点、DOM 查询、品牌拼音的出现形式、AGENTS.md 体量 |
+| check-identity | `scripts/check-identity.mjs` | 产品身份与包名、库名、页面标题、凭据库服务名、缓存键前缀默认值一致 |
+| check-licenses | `scripts/check-licenses.mjs` | 依赖许可在白名单内或有登记的例外；vendor 目录有许可文件并在 `THIRD_PARTY_NOTICES.md` 声明 |
+| Clippy、Biome | `Cargo.toml`、`clippy.toml`、`biome.json` | 函数长度、生产代码不 panic 与常规 lint |
 
 所有检查都接入 `pnpm check`，违规数必须为零。

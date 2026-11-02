@@ -15,6 +15,14 @@ unsafe_code = "forbid"
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
 too_many_lines = "warn"
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+unreachable = "warn"
+todo = "warn"
+unimplemented = "warn"
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
 
 [workspace.dependencies]
 tauri = { version = "2.12", default-features = false, features = ["wry", "compression", "common-controls-v6"] }

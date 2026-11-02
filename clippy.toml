@@ -1,1 +1,4 @@
 too-many-lines-threshold = 300
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
