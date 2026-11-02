@@ -3,7 +3,6 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
 };
 use std::time::Duration;
-
 use tokio::sync::Barrier;
 
 use super::*;
@@ -11,41 +10,40 @@ use crate::error::{INPUT_INVALID, INTERNAL_UNEXPECTED};
 
 type Events = Arc<Mutex<Vec<String>>>;
 
-fn step(name: &'static str, fail_open: bool, fail_close: bool) -> Step<Events> {
-    Step::new(
-        name,
-        move |events: &mut Events| {
-            Box::pin(async move {
-                events.lock().unwrap().push(format!("open:{name}"));
-                if fail_open {
-                    Err(AppError::new(INPUT_INVALID).with_param("step", name))
-                } else {
-                    Ok(())
-                }
-            })
-        },
-        move |events| {
-            Box::pin(async move {
-                events.lock().unwrap().push(format!("close:{name}"));
-                if fail_close {
-                    Err(AppError::new(INTERNAL_UNEXPECTED))
-                } else {
-                    Ok(())
-                }
-            })
-        },
-    )
+async fn open(
+    stack: &mut ShutdownStack,
+    events: &Events,
+    name: &'static str,
+    fail_open: bool,
+    fail_close: bool,
+) -> Result<(), AppError> {
+    step(name, async {
+        events.lock().unwrap().push(format!("open:{name}"));
+        if fail_open {
+            return Err(AppError::new(INPUT_INVALID).with_param("step", name));
+        }
+        let events = events.clone();
+        stack.push(name, move || async move {
+            events.lock().unwrap().push(format!("close:{name}"));
+            if fail_close {
+                Err(AppError::new(INTERNAL_UNEXPECTED))
+            } else {
+                Ok(())
+            }
+        });
+        Ok(())
+    })
+    .await
 }
 
 #[tokio::test]
 async fn opens_in_order_and_closes_in_reverse() {
     let events = Events::default();
-    let started = Pipeline::new(vec![step("a", false, false), step("b", false, false)])
-        .start(events.clone())
-        .await
-        .unwrap();
+    let mut stack = ShutdownStack::default();
+    open(&mut stack, &events, "a", false, false).await.unwrap();
+    open(&mut stack, &events, "b", false, false).await.unwrap();
     assert_eq!(*events.lock().unwrap(), ["open:a", "open:b"]);
-    started.shutdown().await;
+    stack.into_started().shutdown().await;
     assert_eq!(
         *events.lock().unwrap(),
         ["open:a", "open:b", "close:b", "close:a"]
@@ -57,18 +55,15 @@ async fn each_failure_closes_only_successful_steps_and_preserves_the_error() {
     let names = ["a", "b", "c", "d"];
     for failed in 0..names.len() {
         let events = Events::default();
-        let result = Pipeline::new(
-            names
-                .iter()
-                .enumerate()
-                .map(|(index, &name)| step(name, index == failed, false))
-                .collect(),
-        )
-        .start(events.clone())
-        .await;
-        let error = result.err().unwrap();
-        assert_eq!(error.code(), INPUT_INVALID);
-        assert_eq!(error.params["step"], names[failed]);
+        let mut stack = ShutdownStack::default();
+        for (index, name) in names.iter().copied().enumerate() {
+            if let Err(error) = open(&mut stack, &events, name, index == failed, false).await {
+                stack.rollback().await;
+                assert_eq!(error.code(), INPUT_INVALID);
+                assert_eq!(error.params["step"], name);
+                break;
+            }
+        }
         let expected: Vec<_> = names[..=failed]
             .iter()
             .map(|name| format!("open:{name}"))
@@ -85,36 +80,28 @@ async fn each_failure_closes_only_successful_steps_and_preserves_the_error() {
 
 #[tokio::test]
 async fn failing_step_releases_its_partial_resource_before_returning() {
-    let occupied = Arc::new(AtomicBool::new(false));
-    let failed = Step::new(
-        "partial",
-        |occupied: &mut Arc<AtomicBool>| {
-            Box::pin(async move {
-                occupied.store(true, Ordering::SeqCst);
-                // 模拟 open 自己释放已占用的半个资源。
-                occupied.store(false, Ordering::SeqCst);
-                Err(AppError::new(INPUT_INVALID))
-            })
-        },
-        |_| Box::pin(async { panic!("失败步骤不得进入关闭栈") }),
-    );
-    let result = Pipeline::new(vec![failed]).start(occupied.clone()).await;
-    assert_eq!(result.err().unwrap().code(), INPUT_INVALID);
+    let occupied = AtomicBool::new(false);
+    let result: Result<(), AppError> = step("partial", async {
+        occupied.store(true, Ordering::SeqCst);
+        occupied.store(false, Ordering::SeqCst);
+        Err(AppError::new(INPUT_INVALID))
+    })
+    .await;
+    ShutdownStack::default().rollback().await;
+    assert_eq!(result.unwrap_err().code(), INPUT_INVALID);
     assert!(!occupied.load(Ordering::SeqCst));
 }
 
 #[tokio::test]
 async fn cleanup_error_does_not_replace_startup_error_or_stop_cleanup() {
     let events = Events::default();
-    let error = Pipeline::new(vec![
-        step("a", false, false),
-        step("b", false, true),
-        step("c", true, false),
-    ])
-    .start(events.clone())
-    .await
-    .err()
-    .unwrap();
+    let mut stack = ShutdownStack::default();
+    open(&mut stack, &events, "a", false, false).await.unwrap();
+    open(&mut stack, &events, "b", false, true).await.unwrap();
+    let error = open(&mut stack, &events, "c", true, false)
+        .await
+        .unwrap_err();
+    stack.rollback().await;
     assert_eq!(error.code(), INPUT_INVALID);
     assert_eq!(error.params["step"], "c");
     assert_eq!(
@@ -126,11 +113,10 @@ async fn cleanup_error_does_not_replace_startup_error_or_stop_cleanup() {
 #[tokio::test]
 async fn shutdown_continues_after_close_error() {
     let events = Events::default();
-    let started = Pipeline::new(vec![step("a", false, false), step("b", false, true)])
-        .start(events.clone())
-        .await
-        .unwrap();
-    started.shutdown().await;
+    let mut stack = ShutdownStack::default();
+    open(&mut stack, &events, "a", false, false).await.unwrap();
+    open(&mut stack, &events, "b", false, true).await.unwrap();
+    stack.into_started().shutdown().await;
     assert_eq!(
         *events.lock().unwrap(),
         ["open:a", "open:b", "close:b", "close:a"]
@@ -140,16 +126,12 @@ async fn shutdown_continues_after_close_error() {
 #[tokio::test]
 async fn shutdown_is_idempotent() {
     let events = Events::default();
-    let started = Pipeline::new(vec![step("a", false, false), step("b", false, false)])
-        .start(events.clone())
-        .await
-        .unwrap();
+    let mut stack = ShutdownStack::default();
+    open(&mut stack, &events, "a", false, false).await.unwrap();
+    let started = stack.into_started();
     started.shutdown().await;
     started.shutdown().await;
-    assert_eq!(
-        *events.lock().unwrap(),
-        ["open:a", "open:b", "close:b", "close:a"]
-    );
+    assert_eq!(*events.lock().unwrap(), ["open:a", "close:a"]);
 }
 
 #[tokio::test]
@@ -157,25 +139,18 @@ async fn concurrent_shutdowns_both_wait_for_all_closes() {
     let events = Events::default();
     let complete = Arc::new(AtomicBool::new(false));
     let completion = complete.clone();
-    let slow = Step::new(
-        "slow",
-        |_| Box::pin(async { Ok(()) }),
-        move |events: &mut Events| {
-            let complete = completion.clone();
-            Box::pin(async move {
-                events.lock().unwrap().push("close:slow".into());
-                tokio::time::sleep(Duration::from_millis(40)).await;
-                complete.store(true, Ordering::SeqCst);
-                Ok(())
-            })
-        },
-    );
-    let started = Arc::new(
-        Pipeline::new(vec![slow, step("last", false, false)])
-            .start(events.clone())
-            .await
-            .unwrap(),
-    );
+    let log = events.clone();
+    let mut stack = ShutdownStack::default();
+    stack.push("slow", move || async move {
+        log.lock().unwrap().push("close:slow".into());
+        tokio::time::sleep(Duration::from_millis(40)).await;
+        completion.store(true, Ordering::SeqCst);
+        Ok(())
+    });
+    open(&mut stack, &events, "last", false, false)
+        .await
+        .unwrap();
+    let started = Arc::new(stack.into_started());
     let barrier = Arc::new(Barrier::new(3));
     let callers: Vec<_> = (0..2)
         .map(|_| {
@@ -200,24 +175,20 @@ async fn concurrent_shutdowns_both_wait_for_all_closes() {
 }
 
 #[tokio::test]
-async fn empty_pipeline_is_valid() {
-    let started = Pipeline::new(Vec::new()).start(()).await.unwrap();
+async fn empty_stack_is_valid() {
+    let started = ShutdownStack::default().into_started();
     started.shutdown().await;
     started.shutdown().await;
 }
 
 #[tokio::test]
-async fn open_only_needs_no_cleanup() {
-    let events = Events::default();
-    let started = Pipeline::new(vec![Step::open_only("open", |events: &mut Events| {
-        Box::pin(async move {
-            events.lock().unwrap().push("open".into());
-            Ok(())
-        })
-    })])
-    .start(events.clone())
-    .await
-    .unwrap();
-    started.shutdown().await;
-    assert_eq!(*events.lock().unwrap(), ["open"]);
+async fn steps_return_distinct_concrete_types_without_cleanup() {
+    struct Configured(u32);
+    struct Ready(String);
+    let configured = step("config", async { Ok(Configured(42)) }).await.unwrap();
+    let ready = step("ready", async move { Ok(Ready(configured.0.to_string())) })
+        .await
+        .unwrap();
+    ShutdownStack::default().into_started().shutdown().await;
+    assert_eq!(ready.0, "42");
 }

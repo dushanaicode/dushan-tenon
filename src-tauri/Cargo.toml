@@ -15,7 +15,27 @@ name = "dushan_tenon_lib"
 tauri-build.workspace = true
 
 [dependencies]
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 tauri.workspace = true
+tauri-plugin-notification.workspace = true
+tauri-plugin-single-instance.workspace = true
+tenon-desktop.workspace = true
+tenon-framework.workspace = true
+tenon-module-account.workspace = true
+tenon-module-ai.workspace = true
+tenon-module-demo.workspace = true
+tenon-module-devtools.workspace = true
+tenon-module-files.workspace = true
+tenon-module-notify.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tauri = { workspace = true, features = ["test"] }
+tempfile.workspace = true
+tenon-framework = { workspace = true, features = ["test-support"] }
 
 [lints]
 workspace = true

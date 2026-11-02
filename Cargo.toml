@@ -30,6 +30,7 @@ ab_glyph = "0.2.32"
 argon2 = { version = "0.6.0", default-features = false, features = ["alloc", "password-hash", "getrandom"] }
 base64 = "0.22"
 calamine = { path = "vendor/calamine", version = "0.36.1", default-features = false }
+clap = { version = "4.6", features = ["derive"] }
 croner = { version = "4.0.1", default-features = false, features = ["jiff"] }
 csv = "1.4.0"
 getrandom = "0.4"
@@ -50,10 +51,17 @@ sha2 = "0.10"
 sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "sqlite", "mysql", "mysql-rsa", "postgres", "derive", "tls-rustls-ring-native-roots"] }
 tauri = { version = "2.12", default-features = false, features = ["wry", "compression", "common-controls-v6"] }
 tauri-build = "2.7"
+tauri-plugin-notification = "2.5.1"
+tauri-plugin-single-instance = "2"
 tempfile = "3.23"
+tenon-desktop = { path = "crates/desktop" }
 tenon-framework = { path = "crates/framework" }
 tenon-module-account = { path = "crates/module-account" }
 tenon-module-ai = { path = "crates/module-ai" }
+tenon-module-demo = { path = "crates/module-demo" }
+tenon-module-devtools = { path = "crates/module-devtools" }
+tenon-module-files = { path = "crates/module-files" }
+tenon-module-notify = { path = "crates/module-notify" }
 thiserror = "2.0"
 tokio = { version = "1", default-features = false, features = ["macros", "rt"] }
 tokio-util = "0.7"

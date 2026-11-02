@@ -110,7 +110,8 @@ struct Journal {
     phase: Phase,
 }
 
-pub(crate) fn valid_id(id: &str) -> bool {
+/// 校验宿主 --restore-prepared 的只读输入；与恢复日志使用同一标识合同。
+pub fn valid_id(id: &str) -> bool {
     id.len() == 32
         && id
             .bytes()

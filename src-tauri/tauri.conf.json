@@ -14,6 +14,8 @@
     "windows": [
       {
         "label": "main",
+        "create": false,
+        "visible": false,
         "title": "Dushan Tenon",
         "width": 1200,
         "height": 800,

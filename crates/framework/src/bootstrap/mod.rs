@@ -1,7 +1,5 @@
-//! 宿主声明步骤与类型明确的资源集合，内核负责启动及共享收尾，仅依赖 error。
-//!
-//! 关闭顺序就是成功步骤栈的逆序；“先关入口、再排空、再释放资源”由步骤排列表达。
-//! 同一个可等待的 [`Started::shutdown`] 服务正常退出和更新器的退出前钩子。
+//! 类型化启动值由宿主持有；内核只记录步骤耗时和成功资源的有名关闭栈。
+//! 失败阶段自行释放半成品，调用方显式等待 rollback，不依靠 Drop 执行异步清理。
 
 use std::{future::Future, pin::Pin, time::Instant};
 
@@ -9,102 +7,86 @@ use tokio::sync::Mutex;
 
 use crate::error::AppError;
 
-pub type StepFuture<'a> = Pin<Box<dyn Future<Output = Result<(), AppError>> + Send + 'a>>;
-type Action<R> = Box<dyn for<'a> Fn(&'a mut R) -> StepFuture<'a> + Send + Sync>;
+type CloseFuture = Pin<Box<dyn Future<Output = Result<(), AppError>> + Send>>;
 
-/// 一个启动步骤；`R` 是宿主定义的资源集合，不是任意类型容器。
-/// 只有 open 成功才入栈；失败步骤必须在 open 内自行释放半启动的资源。
-pub struct Step<R> {
-    pub name: &'static str,
-    open: Action<R>,
-    close: Action<R>,
+struct CloseAction {
+    name: &'static str,
+    close: Box<dyn FnOnce() -> CloseFuture + Send>,
 }
 
-impl<R> Step<R> {
-    pub fn new(
+/// 记录一个具体产物的构造；不限制各阶段返回相同类型。
+pub async fn step<T>(
+    name: &'static str,
+    action: impl Future<Output = Result<T, AppError>>,
+) -> Result<T, AppError> {
+    timed(name, "open", action).await
+}
+
+async fn timed<T>(
+    name: &'static str,
+    phase: &'static str,
+    action: impl Future<Output = Result<T, AppError>>,
+) -> Result<T, AppError> {
+    let started = Instant::now();
+    let result = action.await;
+    let elapsed_ms = started.elapsed().as_millis();
+    match &result {
+        Ok(_) => tracing::info!(step = name, phase, elapsed_ms, "启动步骤完成"),
+        Err(error) => {
+            tracing::error!(step = name, phase, elapsed_ms, code = %error.code(), "启动步骤失败");
+        }
+    }
+    result
+}
+
+/// 获得资源后立即登记捕获实际句柄的动作；关闭顺序是登记顺序的逆序。
+#[derive(Default)]
+pub struct ShutdownStack {
+    actions: Vec<CloseAction>,
+}
+
+impl ShutdownStack {
+    pub fn push<F: Future<Output = Result<(), AppError>> + Send + 'static>(
+        &mut self,
         name: &'static str,
-        open: impl for<'a> Fn(&'a mut R) -> StepFuture<'a> + Send + Sync + 'static,
-        close: impl for<'a> Fn(&'a mut R) -> StepFuture<'a> + Send + Sync + 'static,
-    ) -> Self {
-        Self {
+        close: impl FnOnce() -> F + Send + 'static,
+    ) {
+        self.actions.push(CloseAction {
             name,
-            open: Box::new(open),
-            close: Box::new(close),
+            close: Box::new(move || Box::pin(close())),
+        });
+    }
+
+    /// 必须显式等待。关闭失败只记日志，不能覆盖调用方保留的启动错误。
+    pub async fn rollback(self) {
+        close_all(self.actions).await;
+    }
+
+    pub fn into_started(self) -> Started {
+        Started {
+            actions: Mutex::new(Some(self.actions)),
         }
     }
-
-    /// 没有需要释放的资源时使用；close 为空操作。
-    pub fn open_only(
-        name: &'static str,
-        open: impl for<'a> Fn(&'a mut R) -> StepFuture<'a> + Send + Sync + 'static,
-    ) -> Self {
-        Self::new(name, open, |_| Box::pin(async { Ok(()) }))
-    }
-
-    async fn run(
-        &self,
-        resources: &mut R,
-        phase: &'static str,
-        action: &Action<R>,
-    ) -> Result<(), AppError> {
-        let started = Instant::now();
-        let result = action(resources).await;
-        let elapsed_ms = started.elapsed().as_millis();
-        match &result {
-            Ok(()) => tracing::info!(step = self.name, phase, elapsed_ms, "启动步骤完成"),
-            Err(error) => {
-                tracing::error!(step = self.name, phase, elapsed_ms, code = %error.code(), "启动步骤失败")
-            }
-        }
-        result
-    }
 }
 
-pub struct Pipeline<R> {
-    steps: Vec<Step<R>>,
+/// 与运行状态分离的一次性关闭所有权；所有调用者等待同一次收尾。
+pub struct Started {
+    actions: Mutex<Option<Vec<CloseAction>>>,
 }
 
-impl<R: Send + 'static> Pipeline<R> {
-    pub fn new(steps: Vec<Step<R>>) -> Self {
-        Self { steps }
-    }
-
-    /// 依次 open；失败时逆序 close 已成功步骤，清理错误不覆盖最初的启动错误。
-    pub async fn start(self, mut resources: R) -> Result<Started<R>, AppError> {
-        let mut opened = Vec::new();
-        for step in self.steps {
-            if let Err(error) = step.run(&mut resources, "open", &step.open).await {
-                close_all(&mut resources, opened).await;
-                return Err(error);
-            }
-            opened.push(step);
-        }
-        Ok(Started {
-            state: Mutex::new(Some((resources, opened))),
-        })
-    }
-}
-
-/// 启动成功的资源与步骤栈；宿主将其托管至退出。
-pub struct Started<R> {
-    state: Mutex<Option<(R, Vec<Step<R>>)>>,
-}
-
-impl<R: Send + 'static> Started<R> {
-    /// 幂等、共享且可等待。并发及后续调用等待同一次逆序收尾，不重复 close。
-    /// 单步关闭失败已记录错误码，仍继续关闭其余步骤。
+impl Started {
     pub async fn shutdown(&self) {
-        // 锁持续持有至所有 close 完成，不能在取出状态后提前释放。
-        let mut state = self.state.lock().await;
-        if let Some((mut resources, steps)) = state.take() {
-            close_all(&mut resources, steps).await;
+        // 持锁至全部动作完成，不能在 take 后提前放行并发调用者。
+        let mut actions = self.actions.lock().await;
+        if let Some(actions) = actions.take() {
+            close_all(actions).await;
         }
     }
 }
 
-async fn close_all<R>(resources: &mut R, steps: Vec<Step<R>>) {
-    for step in steps.into_iter().rev() {
-        let _ = step.run(resources, "close", &step.close).await;
+async fn close_all(actions: Vec<CloseAction>) {
+    for action in actions.into_iter().rev() {
+        let _ = timed(action.name, "close", (action.close)()).await;
     }
 }
 
