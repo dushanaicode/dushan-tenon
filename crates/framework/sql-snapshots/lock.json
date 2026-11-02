@@ -1,0 +1,17 @@
+{
+  "mysql/framework/0001_create_jobs.sql": "e215d718f335d6908baf1ebc4654cc9b401a9ada6d971fffc875969eff88676c",
+  "mysql/framework/0002_create_job_schedules.sql": "b724a6a8cf31085ff23d02f868348622a411c62f0749de79b120602b681efd9a",
+  "mysql/framework/0003_job_instance.sql": "c285dd7ba47f051527caa94f6903c8d5795ae95e15df9aee4838949e17a043c3",
+  "mysql/framework/0004_create_params.sql": "9529cbe0b160341bae62f7056fdd900b909e1c5966583930a9cff95782bf2ba1",
+  "mysql/framework/0005_create_files.sql": "0b0d279ecdee6ed9ef420e09ccee4622d464750a2418a0c369f1e3e10b0e1f35",
+  "postgres/framework/0001_create_jobs.sql": "bb6d9d78b3acf0363a8359dff2d6c06acc0b1da43b1e1d85cad345fe453c7237",
+  "postgres/framework/0002_create_job_schedules.sql": "4011446060545361775bf5faf1e9366bba4f9bf06699fe2ef5bfd1707a805f51",
+  "postgres/framework/0003_job_instance.sql": "0444867a98f1b9640a483bc30f8ca56196e493790376431ab308d5754a1b7473",
+  "postgres/framework/0004_create_params.sql": "1225bafba4b45fc708e0e2a6cd376c4bc977b10546c70827c8e555b857291e2b",
+  "postgres/framework/0005_create_files.sql": "1b3b16a052cb49e6fae47a9046283ee7d6b9d9545c850e16cd5cb61c210ac6e9",
+  "sqlite/framework/0001_create_jobs.sql": "7ae436d426911033225189bf329a2e85ddc406d3d22cb0dbd8429b0ba935f26b",
+  "sqlite/framework/0002_create_job_schedules.sql": "7c5f57c9239c6ac1979e8d208f09d1d05602f397a4b80507aa61f71f7ff7b0cd",
+  "sqlite/framework/0003_job_instance.sql": "0444867a98f1b9640a483bc30f8ca56196e493790376431ab308d5754a1b7473",
+  "sqlite/framework/0004_create_params.sql": "1a4c590bd4643fa73cbc4c77283b74fcba08b97cc4054b7841186be5d76dd229",
+  "sqlite/framework/0005_create_files.sql": "0f31bd1041e2665b6265f189a13d02159f74bde802a485521814c61f7bdc8418"
+}

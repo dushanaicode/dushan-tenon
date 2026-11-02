@@ -1,0 +1,3 @@
+CREATE TABLE "fw_file" ( "id" varchar(36) NOT NULL PRIMARY KEY, "instance_id" varchar(36) NOT NULL, "purpose" varchar(96) NOT NULL, "original_name" varchar(255) NOT NULL, "extension" varchar(16) NOT NULL, "sha256" varchar(64) NOT NULL, "stored_path" varchar(128) NOT NULL, "created_by" varchar(36) NOT NULL, "updated_by" varchar(36) NOT NULL, "size_bytes" integer NOT NULL, "created_at" integer NOT NULL, "updated_at" integer NOT NULL, "row_version" integer NOT NULL );
+CREATE INDEX "ix_fw_file_instance_created" ON "fw_file" ("instance_id", "created_at");
+CREATE INDEX "ix_fw_file_purpose" ON "fw_file" ("purpose");

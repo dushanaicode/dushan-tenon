@@ -5,6 +5,7 @@
 pub mod actor;
 pub mod bootstrap;
 pub mod cache;
+pub mod db;
 pub mod dict;
 pub mod error;
 pub mod i18n;
@@ -12,6 +13,7 @@ pub mod id;
 pub mod instance;
 pub mod logging;
 pub mod maintenance;
+pub mod migrations;
 pub mod network;
 pub mod secret;
 pub mod time;

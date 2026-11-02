@@ -43,3 +43,5 @@ tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "json", "registry", "ansi"] }
 ts-rs = "12"
 uuid = { version = "1", default-features = false, features = ["std", "v4", "v7"] }
+sea-query = { version = "1.0", default-features = false, features = ["backend-sqlite", "backend-mysql", "backend-postgres", "thread-safe"] }
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "sqlite", "mysql", "mysql-rsa", "postgres", "derive", "tls-rustls-ring-native-roots"] }

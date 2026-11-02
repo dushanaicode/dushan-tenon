@@ -1,0 +1,4 @@
+CREATE TABLE "fw_job" ( "id" varchar(36) NOT NULL PRIMARY KEY, "kind" varchar(128) NOT NULL, "module" varchar(64) NOT NULL, "status" varchar(16) NOT NULL, "payload" text NOT NULL, "priority" integer NOT NULL, "attempts" integer NOT NULL, "max_attempts" integer NOT NULL, "retry_safe" boolean NOT NULL, "cancel_requested" boolean NOT NULL, "run_after" integer NOT NULL, "created_at" integer NOT NULL, "updated_at" integer NOT NULL, "row_version" integer NOT NULL, "lease_expires_at" integer, "progress_current" integer, "progress_total" integer, "started_at" integer, "finished_at" integer, "lease_owner" varchar(64), "progress_message" varchar(128), "error_code" varchar(128), "submitted_by" varchar(36), "progress_params" text, "result" text, "error_params" text );
+CREATE INDEX "ix_fw_job_queue" ON "fw_job" ("status", "run_after", "priority");
+CREATE INDEX "ix_fw_job_kind" ON "fw_job" ("kind");
+CREATE INDEX "ix_fw_job_created_at" ON "fw_job" ("created_at");

@@ -10,16 +10,20 @@ publish.workspace = true
 name = "tenon_framework"
 
 [features]
-test-support = []
+migration-tools = []
+test-support = ["dep:tempfile"]
 
 [dependencies]
 jiff.workspace = true
 moka.workspace = true
 redis.workspace = true
+sea-query.workspace = true
 secrecy.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
+sqlx.workspace = true
+tempfile = { workspace = true, optional = true }
 thiserror.workspace = true
 tokio = { workspace = true, features = ["time", "sync"] }
 tracing.workspace = true

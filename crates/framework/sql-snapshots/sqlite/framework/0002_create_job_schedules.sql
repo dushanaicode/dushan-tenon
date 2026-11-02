@@ -1,0 +1,3 @@
+CREATE TABLE "fw_job_schedule" ( "id" varchar(36) NOT NULL PRIMARY KEY, "key" varchar(128) NOT NULL, "kind" varchar(128) NOT NULL, "cron" varchar(128) NOT NULL, "timezone" varchar(64) NOT NULL, "payload" text NOT NULL, "enabled" boolean NOT NULL, "next_run_at" integer, "last_run_at" integer, "last_job_id" varchar(36), "updated_by" varchar(36), "created_at" integer NOT NULL, "updated_at" integer NOT NULL, "row_version" integer NOT NULL );
+CREATE UNIQUE INDEX "ux_fw_job_schedule_key" ON "fw_job_schedule" ("key");
+CREATE INDEX "ix_fw_job_schedule_due" ON "fw_job_schedule" ("enabled", "next_run_at");

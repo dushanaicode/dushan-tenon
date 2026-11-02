@@ -9,10 +9,6 @@ pub enum Actor {
 }
 
 impl Actor {
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "审计序列化供数据库层使用，数据库按计划单独迁入")
-    )]
     pub(crate) fn audit_value(self) -> String {
         match self {
             Self::System => "system".to_owned(),

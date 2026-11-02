@@ -1,0 +1,2 @@
+CREATE TABLE `fw_param` ( `id` varchar(36) NOT NULL PRIMARY KEY, `param_key` varchar(96) NOT NULL, `value` varchar(1024), `secret_set` bool NOT NULL DEFAULT FALSE, `created_at` bigint NOT NULL, `updated_at` bigint NOT NULL, `row_version` bigint NOT NULL, `created_by` varchar(36) NOT NULL, `updated_by` varchar(36) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE UNIQUE INDEX `ux_fw_param_key` ON `fw_param` (`param_key`);
