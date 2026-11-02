@@ -12,7 +12,10 @@ name = "tenon_desktop"
 [dependencies]
 tenon-framework = { path = "../framework" }
 serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
 ts-rs.workspace = true
+uuid.workspace = true
 thiserror.workspace = true
 tempfile.workspace = true
 toml = "1.1"
@@ -20,7 +23,7 @@ toml_edit = "0.25"
 serde_path_to_error = "0.1"
 
 [dev-dependencies]
-serde_json.workspace = true
+tokio.workspace = true
 
 [lints]
 workspace = true

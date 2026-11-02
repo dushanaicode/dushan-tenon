@@ -4974,12 +4974,15 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_path_to_error",
+ "sha2 0.10.9",
  "tempfile",
  "tenon-framework",
  "thiserror 2.0.21",
+ "tokio",
  "toml 1.1.8+spec-1.1.0",
  "toml_edit 0.25.17+spec-1.1.0",
  "ts-rs",
+ "uuid",
 ]
 
 [[package]]
