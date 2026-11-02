@@ -9,3 +9,6 @@
   appearance-a11y;
 
 @import "tailwindcss";
+@import "../kit/styles/index.css";
+
+@source "../../node_modules/streamdown/dist/*.js";

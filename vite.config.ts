@@ -18,6 +18,7 @@ export default defineConfig({
   },
   build: { outDir: "Temp/web-dist" },
   test: {
+    css: { include: [/\/src\/kit\/.*\.css\?raw$/] },
     environment: "happy-dom",
     fsModuleCachePath: "Temp/vitest-cache",
     include: ["src/**/*.test.{ts,tsx}"],

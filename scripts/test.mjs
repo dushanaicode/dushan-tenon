@@ -42,6 +42,7 @@ if (targets.includes("--help") || targets.includes("-h")) {
               "--test-timeout=15000",
               "--test",
               "scripts/db.test.mjs",
+              "scripts/check-kit.test.mjs",
               "scripts/check-identity.test.mjs",
               "scripts/check-licenses.test.mjs",
               "scripts/check-structure.test.mjs",
