@@ -1,0 +1,125 @@
+@layer components {
+  [data-kit="scroll-area"] {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  [data-kit="scroll-area"][data-axis="y"] {
+    overflow-y: auto;
+    overflow-x: clip;
+  }
+
+  [data-kit="scroll-area"][data-axis="x"] {
+    overflow-x: auto;
+    overflow-y: clip;
+  }
+
+  [data-kit="scroll-area"][data-axis="both"] {
+    overflow: auto;
+  }
+
+  [data-kit="scroll-area"][data-region="content"] {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  [data-kit="scroll-area"][data-region="content"]:is(
+    :hover,
+    :focus-within,
+    [data-scrolling]
+  ) {
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  /* inline-size (from @container/content) keeps block size content-driven.
+   * Paint containment clips effects without another scrollport; sticky
+   * descendants still follow the outer scroll element. */
+  [data-kit="scroll-area"][data-region="content"] > [data-slot="scroll-plate"] {
+    contain: paint;
+    min-height: 100%;
+  }
+
+  [data-kit="scroll-area"][data-region="auxiliary"] {
+    scrollbar-width: none;
+    --scroll-area-x-start: 0px;
+    --scroll-area-x-end: 0px;
+    --scroll-area-y-start: 0px;
+    --scroll-area-y-end: 0px;
+  }
+
+  [data-kit="scroll-area"][data-region="auxiliary"]:is(
+    [data-scroll-start~="x"],
+    [data-scroll-end~="x"],
+    [data-scroll-start~="y"],
+    [data-scroll-end~="y"]
+  ) {
+    mask-image:
+      linear-gradient(
+        to right,
+        transparent,
+        #000 var(--scroll-area-x-start),
+        #000 calc(100% - var(--scroll-area-x-end)),
+        transparent
+      ),
+      linear-gradient(
+        to bottom,
+        transparent,
+        #000 var(--scroll-area-y-start),
+        #000 calc(100% - var(--scroll-area-y-end)),
+        transparent
+      );
+    mask-composite: intersect;
+  }
+
+  [data-kit="scroll-area"][data-region="auxiliary"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [data-kit="scroll-area"][data-scroll-start~="x"] {
+    --scroll-area-x-start: 16px;
+  }
+
+  [data-kit="scroll-area"][data-scroll-end~="x"] {
+    --scroll-area-x-end: 16px;
+  }
+
+  [data-kit="scroll-area"][data-scroll-start~="y"] {
+    --scroll-area-y-start: 16px;
+  }
+
+  [data-kit="scroll-area"][data-scroll-end~="y"] {
+    --scroll-area-y-end: 16px;
+  }
+
+  [data-slot="textarea"] {
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  [data-slot="textarea"]::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer appearance-a11y {
+  @media (forced-colors: active) {
+    :is(
+        [data-kit="scroll-area"],
+        [data-slot="textarea"],
+        [data-radix-select-viewport]
+      ) {
+      scrollbar-width: auto;
+      scrollbar-color: auto;
+      mask-image: none;
+    }
+
+    :is(
+        [data-kit="scroll-area"],
+        [data-slot="textarea"],
+        [data-radix-select-viewport]
+      )::-webkit-scrollbar {
+      display: block;
+    }
+  }
+}

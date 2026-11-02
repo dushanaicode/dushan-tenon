@@ -1,0 +1,183 @@
+@layer appearance-defaults {
+  @keyframes kit-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes kit-exit {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+    }
+  }
+
+  @keyframes kit-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes kit-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes kit-slide-in {
+    from {
+      opacity: 0;
+      transform: translate(var(--kit-dx), var(--kit-dy));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes kit-slide-out {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: translate(var(--kit-dx), var(--kit-dy));
+    }
+  }
+
+  @keyframes kit-collapse-in {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--kit-content-height);
+    }
+  }
+
+  @keyframes kit-collapse-out {
+    from {
+      height: var(--kit-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  @keyframes kit-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes kit-pulse {
+    from {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* 表格首批行只淡入，不使用编排索引或时延。 */
+  .kit-enter {
+    animation: kit-fade-in var(--motion-base) var(--ease-standard) both;
+  }
+
+  .kit-pop:is(
+    [data-state="open"],
+    [data-state="delayed-open"],
+    [data-state="instant-open"]
+  ) {
+    animation: kit-enter var(--motion-base) var(--ease-standard) both;
+  }
+
+  .kit-pop[data-state="closed"] {
+    animation: kit-exit var(--motion-fast) var(--ease-standard) both;
+  }
+
+  .kit-overlay[data-state="open"] {
+    animation: kit-fade-in var(--motion-base) var(--ease-standard) both;
+  }
+
+  .kit-overlay[data-state="closed"] {
+    animation: kit-fade-out var(--motion-fast) var(--ease-standard) both;
+  }
+
+  .kit-slide[data-state="open"] {
+    animation: kit-slide-in var(--motion-base) var(--ease-standard) both;
+  }
+
+  .kit-slide[data-state="closed"] {
+    animation: kit-slide-out var(--motion-fast) var(--ease-standard) both;
+  }
+
+  .kit-slide[data-side="right"] {
+    --kit-dx: 6px;
+    --kit-dy: 0px;
+  }
+  .kit-slide[data-side="left"] {
+    --kit-dx: -6px;
+    --kit-dy: 0px;
+  }
+  .kit-slide[data-side="top"] {
+    --kit-dx: 0px;
+    --kit-dy: -6px;
+  }
+  .kit-slide[data-side="bottom"] {
+    --kit-dx: 0px;
+    --kit-dy: 6px;
+  }
+
+  .kit-collapse[data-state="open"] {
+    animation: kit-collapse-in var(--motion-base) var(--ease-standard) both;
+  }
+
+  .kit-collapse[data-state="closed"] {
+    animation: kit-collapse-out var(--motion-fast) var(--ease-standard) both;
+  }
+
+  .kit-spin {
+    animation: kit-spin 1s linear infinite;
+  }
+
+  .kit-pulse {
+    animation: kit-pulse calc(var(--motion-slow) * 5) ease-in-out infinite;
+  }
+}
+
+@layer appearance-a11y {
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      /* biome-ignore lint/complexity/noImportantStyles: 系统减动须覆盖供应商动画与内联动画。 */
+      animation: none !important;
+      /* biome-ignore lint/complexity/noImportantStyles: 同时停止控件、伪元素及 Sonner 的过渡。 */
+      transition: none !important;
+      /* biome-ignore lint/complexity/noImportantStyles: 用户系统偏好优先于组件平滑滚动。 */
+      scroll-behavior: auto !important;
+    }
+  }
+}
