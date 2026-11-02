@@ -13,6 +13,7 @@
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs",
     "test": "node scripts/test.mjs",
+    "resources": "node scripts/resources.mjs",
     "db": "node scripts/db.mjs"
   },
   "dependencies": {
