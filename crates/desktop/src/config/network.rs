@@ -20,6 +20,23 @@ pub struct NetworkConfigSettings {
 }
 
 impl LoadedConfig {
+    pub(crate) fn validate_network_settings(
+        &self,
+        mode: ProxyMode,
+        endpoint: &str,
+        auth: bool,
+    ) -> Result<(), AppError> {
+        for key in [
+            "network.proxy_mode",
+            "network.proxy_endpoint",
+            "network.proxy_auth",
+        ] {
+            self.sources.check_writable(key)?;
+        }
+        ProxyConfig::new(mode, endpoint.into(), auth)?;
+        Ok(())
+    }
+
     pub fn network_settings(&self) -> NetworkConfigSettings {
         NetworkConfigSettings {
             mode: self.setting("network.proxy_mode", self.values.network.mode()),
