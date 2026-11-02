@@ -8,6 +8,7 @@ pub mod cache;
 pub mod db;
 pub mod dict;
 pub mod error;
+pub mod exchange;
 pub mod file;
 pub mod i18n;
 pub mod id;

@@ -36,3 +36,39 @@ node scripts/check-licenses.mjs --notices Temp/check/THIRD_PARTY_LICENSES.md
 清单包含 Windows x86_64-pc-windows-msvc 的 Rust 运行时依赖和 pnpm 生产依赖，排除构建、开发和过程宏依赖。生成器保留包内许可正文、合并相同正文，并列出 MPL-2.0 包的同版本源码链接。
 
 分发前检查清单中的“缺许可正文”表并补齐所列内容，将清单和本文件随二进制一同提供，保留适用的版权与 NOTICE 声明。若修改 MPL-2.0 文件，还须提供对应的修改源码及获取方式。
+
+## vendor/calamine
+
+`vendor/calamine` 来自 calamine **0.36.1** 的 crates.io 发布包，采用 **MIT** 许可。
+上游：[tafia/calamine](https://github.com/tafia/calamine)，发布包记录 commit
+`0a24c2a9f1e38c0932c1299e633270dc730db505`，发布包 SHA-256 为
+`5fa68281b1a76b54a62156474adb06bb380a67e07dd60656e3217152b42183f3`。
+
+源码补丁移除了按不可信共享字符串 `uniqueCount` 预分配内存的提示；独立 manifest
+去除示例、基准及开发依赖，并禁止发布、独立于 workspace。补丁、来源和逐字节对照办法见
+[PATCHES.md](vendor/calamine/PATCHES.md)。没有升级版本或更改既有源码补丁。
+原始 [LICENSE-MIT.md](vendor/calamine/LICENSE-MIT.md) 逐字节保留，正文如下：
+
+The MIT License (MIT)
+
+Copyright (c) 2016 Johann Tuffe
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
