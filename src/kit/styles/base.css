@@ -1,0 +1,237 @@
+@layer base {
+  html,
+  body {
+    overflow: clip;
+  }
+
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  [data-radix-select-viewport] {
+    scrollbar-width: none;
+  }
+
+  [data-radix-select-viewport]::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer appearance-defaults {
+  [data-part="setting-rows"] > * {
+    padding: 12px 16px;
+  }
+
+  [data-part="setting-rows"] > * + * {
+    border-top: 1px solid var(--border);
+  }
+
+  [data-part="setting-control"] {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .kit-setting-row
+    > [data-slot="field-description"]:has(
+      > [data-part="setting-hint"]:only-child:empty
+    ) {
+    display: none;
+  }
+
+  [data-part="setting-control"]
+    > :is([data-slot="select-trigger"], [data-slot="number-input"]) {
+    width: 100%;
+  }
+
+  @container (min-width: 720px) {
+    .kit-setting-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      column-gap: 24px;
+      row-gap: 4px;
+      align-items: center;
+    }
+
+    .kit-setting-row > [data-slot="field-label"] {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .kit-setting-row > [data-slot="field-description"] {
+      display: contents;
+    }
+
+    [data-part="setting-description"] {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .kit-setting-row [data-part="setting-hint"] {
+      grid-column: 2;
+      grid-row: 2;
+      text-align: end;
+    }
+
+    .kit-setting-row > [data-slot="field-error"] {
+      grid-column: 1 / -1;
+    }
+
+    .kit-setting-row > [data-part="setting-control"] {
+      grid-column: 2;
+      grid-row: 1;
+      justify-content: flex-end;
+    }
+
+    [data-part="setting-control"] > [data-slot="select-trigger"] {
+      width: 14rem;
+      max-width: 100%;
+    }
+
+    [data-part="setting-control"] [data-slot="number-input"] {
+      width: 8rem;
+      max-width: 100%;
+    }
+  }
+}
+
+@layer appearance-defaults {
+  body[data-scroll-locked] {
+    overflow: hidden;
+  }
+
+  .workbench-content {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+    padding: var(--page-padding);
+  }
+
+  [data-shell-tier="compact"] .workbench-content {
+    padding: 16px;
+  }
+
+  /* 首尾可见内容继承容器圆角，不裁切浮层。 */
+  .kit-edge-stack
+  > :where(:nth-child(1 of :not([hidden], [aria-hidden="true"], .sr-only))) {
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+  }
+
+  .kit-edge-stack
+    > :where(
+      :nth-last-child(1 of :not([hidden], [aria-hidden="true"], .sr-only))
+    ) {
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+  }
+
+  /* 进度填充限制在轨道内。 */
+  [data-slot="progress"] {
+    overflow: clip;
+  }
+
+  /* 高于工具类，保证使用 outline-none 的控件也有键盘焦点。 */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-ring-offset-shadow: 0 0 #0000;
+  }
+
+  [data-part="table-scroll"] :focus-visible,
+  [data-part="table-scroll"]:focus-visible,
+  [data-kit="setting-group"] [data-slot="collapsible-trigger"]:focus-visible {
+    outline-offset: -3px;
+  }
+
+  ::selection {
+    background-color: var(--selection);
+    color: var(--selection-foreground);
+  }
+
+  :is(input, textarea) {
+    caret-color: currentColor;
+  }
+}
+
+@layer appearance-a11y {
+  @media (forced-colors: active) {
+    :root,
+    .dark {
+      --background: Canvas;
+      --foreground: CanvasText;
+      --card: Canvas;
+      --card-foreground: CanvasText;
+      --popover: Canvas;
+      --popover-foreground: CanvasText;
+      --secondary: ButtonFace;
+      --secondary-foreground: ButtonText;
+      --muted: Canvas;
+      --muted-foreground: CanvasText;
+      --accent: Highlight;
+      --accent-foreground: HighlightText;
+      --chrome: Canvas;
+      --border: ButtonText;
+      --input: ButtonText;
+      --primary: Highlight;
+      --primary-foreground: HighlightText;
+      --primary-hover: Highlight;
+      --primary-active: Highlight;
+      --brand: LinkText;
+      --ring: Highlight;
+      --selection: Highlight;
+      --selection-foreground: HighlightText;
+      --destructive: CanvasText;
+      --destructive-foreground: Canvas;
+      --destructive-soft: Canvas;
+      --destructive-hover: CanvasText;
+      --success: CanvasText;
+      --success-foreground: Canvas;
+      --success-soft: Canvas;
+      --warning: CanvasText;
+      --warning-foreground: Canvas;
+      --warning-soft: Canvas;
+      --info: CanvasText;
+      --info-foreground: Canvas;
+      --info-soft: Canvas;
+      --sidebar: Canvas;
+      --sidebar-foreground: CanvasText;
+      --sidebar-accent: Highlight;
+      --sidebar-accent-foreground: HighlightText;
+      --sidebar-border: CanvasText;
+      --sidebar-primary: CanvasText;
+      --scrollbar-thumb: CanvasText;
+      --elev-card: none;
+      --elev-popover: none;
+    }
+
+    :focus-visible {
+      outline: 3px solid Highlight;
+    }
+
+    :is(button, input, textarea, select, [role="button"], [role="combobox"]) {
+      border: 1px solid ButtonText;
+    }
+
+    ::selection {
+      background-color: Highlight;
+      color: HighlightText;
+    }
+  }
+}

@@ -1,0 +1,52 @@
+@layer appearance-system {
+  [data-window-drag] {
+    app-region: drag;
+    --window-drag-allowed: 1;
+  }
+
+  [data-window-drag]
+    :is(
+      a,
+      button,
+      input,
+      select,
+      textarea,
+      label,
+      summary,
+      [contenteditable]:not([contenteditable="false"]),
+      [tabindex]:not([tabindex="-1"]),
+      [role="button"],
+      [role="link"],
+      [role="menuitem"],
+      [role="tab"],
+      [role="checkbox"],
+      [role="radio"],
+      [role="switch"],
+      [role="option"],
+      [role="separator"],
+      [data-separator],
+      [data-window-no-drag]
+    ) {
+    app-region: no-drag;
+    --window-drag-allowed: 0;
+  }
+
+  /* Cocoa owns the real traffic lights. The shell leaves their top strip clear. */
+  html[data-mac-titlebar="overlay"] [data-shell="root"] {
+    padding-top: 28px;
+  }
+
+  /* Disabled kit controls must remain hit-testable instead of exposing the drag surface. */
+  html[data-mac-titlebar="overlay"]
+    [data-window-drag]
+    :is(:disabled, [aria-disabled="true"], [data-disabled]) {
+    pointer-events: auto;
+  }
+
+  html[data-mac-titlebar="overlay"]
+    #root
+    header[data-window-drag]:not([data-shell]) {
+    padding-top: 28px;
+    height: 80px;
+  }
+}

@@ -1,0 +1,132 @@
+@layer appearance-defaults {
+  :root {
+    color-scheme: light;
+    --background: #f6f6f7;
+    --foreground: #17181b;
+    --card: #ffffff;
+    --card-foreground: var(--foreground);
+    --popover: #ffffff;
+    --popover-foreground: var(--foreground);
+    --secondary: #f0f0f2;
+    --secondary-foreground: var(--foreground);
+    --muted: #f0f0f2;
+    --muted-foreground: #5b5e66;
+    --accent: #e8e8ec;
+    --accent-foreground: var(--foreground);
+    --chrome: #ececee;
+    --border: #dcdce1;
+    --input: #838388;
+    --scrim: rgb(15 28 45 / 35%);
+    --primary: #17181b;
+    --primary-foreground: #ffffff;
+    --primary-hover: #2c2d32;
+    --primary-active: #3e4047;
+    --brand: var(--primary);
+    --ring: var(--primary);
+    --selection: var(--foreground);
+    --selection-foreground: var(--background);
+    --destructive: #c4263c;
+    --destructive-foreground: #ffffff;
+    --destructive-soft: #f9e9ec;
+    --destructive-hover: #b02236;
+    --success: #0b7a52;
+    --success-foreground: #ffffff;
+    --success-soft: #e7f2ee;
+    --warning: #a0600a;
+    --warning-foreground: #ffffff;
+    --warning-soft: #f7f2eb;
+    --info: #1d4ed8;
+    --info-foreground: #ffffff;
+    --info-soft: #e8edfb;
+    --sidebar: #f9f9fa;
+    --sidebar-foreground: var(--foreground);
+    --sidebar-accent: #e8e8ec;
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: #dcdce1;
+    --sidebar-primary: var(--primary);
+    --scrollbar-thumb: color-mix(
+      in oklab,
+      var(--muted-foreground) 55%,
+      transparent
+    );
+    --elev-card: 0 1px 2px rgb(15 28 45 / 6%), 0 10px 28px rgb(15 28 45 / 7%);
+    --elev-popover: var(--elev-card);
+    --r-sm: 6px;
+    --r-md: 9px;
+    --r-lg: 12px;
+    --r-xl: calc(var(--r-lg) + 4px);
+    --r-control: var(--r-md);
+    --r-pill: var(--r-sm);
+    --control-h: 36px;
+    --row-h: 46px;
+    --panel-pad: 18px;
+    --stack-gap: 16px;
+    --page-padding: 24px;
+    --content-max-width: none;
+    --font-body:
+      "Segoe UI", "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif;
+    --text-body: 14px;
+    --leading-body: 1.5;
+    --icon-size: 18px;
+    --icon-stroke: 2;
+    --motion-fast: 120ms;
+    --motion-base: 200ms;
+    --motion-slow: 320ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .dark {
+    color-scheme: dark;
+    --background: #0f1012;
+    --foreground: #e9eaee;
+    --card: #181a1e;
+    --card-foreground: var(--foreground);
+    --popover: #181a1e;
+    --popover-foreground: var(--foreground);
+    --secondary: #1f2227;
+    --secondary-foreground: var(--foreground);
+    --muted: #1f2227;
+    --muted-foreground: #9599a3;
+    --accent: #23262c;
+    --accent-foreground: var(--foreground);
+    --chrome: #0b0c0d;
+    --border: #272a30;
+    --input: #6d7075;
+    --scrim: rgb(0 0 0 / 55%);
+    --primary: #e9eaee;
+    --primary-foreground: #17181b;
+    --primary-hover: #d4d6dc;
+    --primary-active: #bec1c9;
+    --brand: var(--primary);
+    --ring: var(--primary);
+    --selection: var(--foreground);
+    --selection-foreground: var(--background);
+    --destructive: #ff6b7a;
+    --destructive-foreground: #0b1220;
+    --destructive-soft: #331518;
+    --destructive-hover: #ff7a87;
+    --success: #3ccf91;
+    --success-foreground: #0b1220;
+    --success-soft: #0c291d;
+    --warning: #f0b44c;
+    --warning-foreground: #0b1220;
+    --warning-soft: #30240f;
+    --info: #8ab4ff;
+    --info-foreground: #0b1220;
+    --info-soft: #1c2433;
+    --sidebar: #131417;
+    --sidebar-foreground: var(--foreground);
+    --sidebar-accent: #23262c;
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: #272a30;
+    --sidebar-primary: var(--primary);
+    --scrollbar-thumb: color-mix(
+      in oklab,
+      var(--muted-foreground) 55%,
+      transparent
+    );
+    --elev-card:
+      0 1px rgb(255 255 255 / 3%) inset, 0 10px 28px rgb(0 0 0 / 38%);
+    --elev-popover: var(--elev-card);
+  }
+}

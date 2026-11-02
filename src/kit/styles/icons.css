@@ -1,0 +1,14 @@
+@layer appearance-defaults {
+  .kit-icon,
+  .kit-icon-control svg.lucide {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    stroke-width: var(--icon-stroke);
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+
+  [data-nav-icon] {
+    color: var(--muted-foreground);
+  }
+}

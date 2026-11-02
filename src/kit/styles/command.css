@@ -1,0 +1,183 @@
+@layer appearance-defaults {
+  [data-command-dialog] {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 48px);
+    max-width: 36rem;
+    max-height: calc(100dvh - 64px);
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    background: var(--popover);
+    color: var(--popover-foreground);
+    box-shadow: var(--elev-popover);
+  }
+
+  [data-command-dialog] > [data-slot="command"] {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    padding: 0;
+    border: 0;
+    border-radius: inherit;
+  }
+
+  [data-command-dialog] [data-slot="command-input-wrapper"] {
+    flex: 0 0 auto;
+    min-height: 48px;
+    margin: 16px 16px 10px;
+    padding: 0 14px;
+    gap: 12px;
+    border: 1px solid var(--input);
+    border-radius: var(--r-control);
+    background: var(--muted);
+    color: var(--muted-foreground);
+  }
+
+  /* 整个搜索框承载焦点环，避免被弹层滚动边界裁切。 */
+  [data-command-dialog] [data-slot="command-input"]:focus-visible {
+    outline: none;
+  }
+
+  [data-command-dialog]
+    [data-slot="command-input-wrapper"]:has(:focus-visible) {
+    outline: 2px solid var(--ring);
+    outline-offset: 0;
+  }
+
+  [data-command-dialog] [data-slot="command-input"] {
+    min-width: 0;
+    height: 46px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--popover-foreground);
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+  }
+
+  [data-command-dialog] [data-slot="command-input"]::placeholder {
+    color: var(--muted-foreground);
+    opacity: 1;
+  }
+
+  [data-command-dialog] [data-slot="command-list"] {
+    min-height: 0;
+    max-height: 24rem;
+    padding: 2px 16px 16px;
+    scroll-padding: 10px;
+    overscroll-behavior: contain;
+  }
+
+  [data-command-dialog] [data-slot="command-group"] {
+    padding: 0;
+    color: var(--popover-foreground);
+  }
+
+  [data-command-dialog]
+    [data-slot="command-group"]
+    + [data-slot="command-group"] {
+    margin-top: 10px;
+  }
+
+  [data-command-dialog] [cmdk-group-heading] {
+    padding: 10px 12px 8px;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  [data-command-dialog] [data-slot="command-item"] {
+    min-height: 44px;
+    margin-block: 4px;
+    padding: 10px 14px;
+    gap: 12px;
+    border: 1px solid transparent;
+    border-radius: var(--r-control);
+    background: transparent;
+    color: var(--popover-foreground);
+    font-weight: 500;
+    line-height: var(--leading-body);
+  }
+
+  /* cmdk 的可用行也有 data-disabled="false"，不能按属性存在性判断。 */
+  [data-command-dialog]
+  [data-slot="command-item"][data-disabled="false"]:hover {
+    background: var(--muted);
+  }
+
+  [data-command-dialog]
+    [data-slot="command-item"][data-disabled="false"][data-selected="true"] {
+    background: var(--accent);
+    color: var(--accent-foreground);
+    border-color: var(--ring);
+    box-shadow: inset 3px 0 0 var(--ring);
+  }
+
+  [data-command-dialog] [data-slot="command-item"][data-disabled="true"] {
+    color: var(--muted-foreground);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  [data-command-dialog] [data-slot="command-item"] > svg {
+    flex: 0 0 auto;
+    width: var(--icon-size);
+    height: var(--icon-size);
+    color: currentColor;
+  }
+
+  [data-command-dialog]
+    [data-slot="command-item"]
+    > span:not([data-slot="command-shortcut"]) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  [data-command-dialog] [data-slot="command-shortcut"] {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: inherit;
+    font-size: 11px;
+  }
+
+  [data-command-dialog] [data-slot="command-empty"] {
+    padding: 32px 16px 40px;
+    color: var(--muted-foreground);
+  }
+
+  [data-command-dialog] [data-slot="command-separator"] {
+    margin: 8px 12px;
+    background: var(--border);
+  }
+}
+
+@layer appearance-a11y {
+  @media (forced-colors: active) {
+    [data-command-dialog] [data-slot="command-input"]:focus-visible {
+      border: 0;
+      outline: none;
+    }
+
+    [data-command-dialog]
+      [data-slot="command-input-wrapper"]:has(:focus-visible) {
+      outline: 3px solid Highlight;
+    }
+
+    [data-command-dialog]
+      [data-slot="command-item"][data-disabled="false"][data-selected="true"] {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+      background: Canvas;
+      color: CanvasText;
+      box-shadow: none;
+    }
+  }
+}
