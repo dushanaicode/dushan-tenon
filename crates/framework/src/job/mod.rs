@@ -165,7 +165,7 @@ fn declaration_module(kind: &'static str) -> Result<&'static str, AppError> {
     Ok(module)
 }
 
-fn valid_key(key: &str, module: &str) -> bool {
+pub(crate) fn valid_key(key: &str, module: &str) -> bool {
     key.len() <= 128
         && key.split_once('.').is_some_and(|(prefix, name)| {
             prefix == module
