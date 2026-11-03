@@ -1,4 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" aria-hidden="true">
-  <rect x="32" y="32" width="448" height="448" rx="112" fill="#164e63"/>
-  <path d="M152 132h88c106 0 160 48 160 124s-54 124-160 124h-88zm64 60v128h24c64 0 94-24 94-64s-30-64-94-64z" fill="#ecfeff" fill-rule="evenodd"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" aria-hidden="true">
+  <rect width="1024" height="1024" rx="224" fill="#2F6664" />
+  <path d="M152 312L368 432L224 512L152 472Z" fill="#E8B77B" />
+  <path d="M296 232L368 272V432L152 312Z" fill="#F3EFE6" />
+  <path d="M872 312V472L800 512L656 432Z" fill="#E8B77B" />
+  <path d="M728 232L872 312L656 432V272Z" fill="#F3EFE6" />
+  <path d="M512 672L656 752V832L512 912Z" fill="#E8B77B" />
+  <path d="M512 672V912L368 832V752Z" fill="#E8B77B" />
+  <path d="M872 712L728 792V632L872 552Z" fill="#E8B77B" />
+  <path d="M512 672L728 792V632L512 512Z" fill="#E8B77B" />
+  <path d="M656 432L872 552L728 632L512 512Z" fill="#F3EFE6" />
+  <path d="M512 672L296 792V632L512 512Z" fill="#E8B77B" />
+  <path d="M152 712L296 792V632L152 552Z" fill="#E8B77B" />
+  <path d="M368 432L512 512L296 632L152 552Z" fill="#F3EFE6" />
+  <path d="M656 432L512 512V272L656 192Z" fill="#E8B77B" />
+  <path d="M368 432L512 512V272L368 192Z" fill="#E8B77B" />
+  <path d="M512 112L656 192L512 272L368 192Z" fill="#F3EFE6" />
+  <path d="M506 272H518V916H506ZM290 632H302V796H290ZM722 632H734V796H722Z" fill="#2F6664" />
 </svg>
