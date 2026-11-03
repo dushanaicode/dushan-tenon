@@ -1,6 +1,7 @@
 // Original kit component.
 import { createContext, type ReactNode, useContext } from "react";
 import { cn } from "@/lib/utils";
+import { usePageTitleRef } from "../page-title-focus";
 
 export type PageHeadingLevelProviderProps = {
   level: 2 | 3 | 4 | 5 | 6;
@@ -36,6 +37,7 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   const Heading = `h${useContext(PageHeadingLevelContext)}` as const;
+  const titleRef = usePageTitleRef(Heading === "h1");
   return (
     <header
       data-slot="page-header"
@@ -48,6 +50,7 @@ export function PageHeader({
         {leading}
         <div className="flex min-w-0 flex-col gap-2">
           <Heading
+            ref={titleRef}
             data-part="title"
             className="text-2xl font-semibold tracking-tight"
           >

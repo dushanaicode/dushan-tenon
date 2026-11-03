@@ -17,6 +17,7 @@ it("公共出口覆盖当前组件、模板、props 与纯视图类型，不暴�
         "../templates/*.tsx",
         "!../templates/*.test.tsx",
         "../icons.ts",
+        "../page-title-focus.tsx",
         "../responsive.ts",
       ],
       { query: "?raw", import: "default", eager: true },
