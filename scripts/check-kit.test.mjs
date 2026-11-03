@@ -18,6 +18,22 @@ const zero = {
   "raw-scroll": 0,
   "viewport-breakpoint": 0,
 };
+const translations = {
+  "zh-CN": { "settings.reset": "重置", "settings.reload": "重新载入" },
+  "en-US": { "settings.reset": "Reset", "settings.reload": "Reload" },
+};
+
+async function writeTranslations(root, resources = translations) {
+  const directory = join(root, "src/core/i18n");
+  await mkdir(directory, { recursive: true });
+  for (const [language, messages] of Object.entries(resources)) {
+    await writeFile(
+      join(directory, `${language}.json`),
+      JSON.stringify(messages),
+    );
+  }
+}
+
 let errorSpy;
 let warnSpy;
 
@@ -448,7 +464,7 @@ describe("scanSource", () => {
     "function example({ globalThis }) { globalThis.prompt(); }",
     'import { ConfirmDialog } from "./local"; const view = <ConfirmDialog />;',
     'import { ConfirmDialog } from "@/kit"; const view = <ConfirmDialog confirmLabel="删除记录" />;',
-    'import * as Kit from "@/kit"; const view = <Kit.ConfirmDialog confirmLabel={t("delete")} />;',
+    'import * as Kit from "@/kit"; const view = <Kit.ConfirmDialog confirmLabel={t(key)} />;',
     'export { ConfirmDialog as Confirm } from "@/kit";',
   ]) {
     it(
@@ -493,6 +509,83 @@ describe("scanSource", () => {
       );
     });
   }
+
+  for (const translate of ["t", "i18n.t", "i18next.t"]) {
+    it(format("confirm-label 解析 %s 的双语字面量翻译键", translate), () => {
+      assert.deepEqual(
+        scanSource(
+          sourcePath,
+          `import { ConfirmDialog as C } from "@/kit";
+          const view = <C confirmLabel={${translate}("settings.reset")} />;`,
+          translations,
+        ),
+        [],
+      );
+    });
+  }
+
+  it("confirm-label 缺键或任一语言不是非空字符串时违规包含键名", () => {
+    const source = `import { ConfirmDialog as C } from "@/kit";
+      const view = <C confirmLabel={t("settings.reset")} />;`;
+    for (const language of ["zh-CN", "en-US"]) {
+      for (const value of [undefined, "", " \n ", null, false, 1]) {
+        assert.deepEqual(
+          scanSource(sourcePath, source, {
+            ...translations,
+            [language]: { "settings.reset": value },
+          }),
+          [
+            {
+              rule: "confirm-label",
+              path: sourcePath,
+              line: 2,
+              key: "settings.reset",
+            },
+          ],
+        );
+      }
+    }
+    assert.deepEqual(scanSource(sourcePath, source), [
+      {
+        rule: "confirm-label",
+        path: sourcePath,
+        line: 2,
+        key: "settings.reset",
+      },
+    ]);
+  });
+
+  for (const kind of ["Dialog", "Sheet"]) {
+    it(format("%s 标题的字面量翻译键必须双语合格，违规包含键名", kind), () => {
+      const imports = `import { ${kind}Content as Content, ${kind}Title as Title } from "@/kit";`;
+      for (const view of [
+        '<Title>{t("settings.reset")}</Title>',
+        '<Title><span>{i18n.t("settings.reset")}</span></Title>',
+        '<Title children={i18next.t("settings.reset")} />',
+      ]) {
+        const source = `${imports}\nconst view = <Content>${view}</Content>;`;
+        assert.deepEqual(scanSource(sourcePath, source, translations), []);
+        for (const language of ["zh-CN", "en-US"]) {
+          for (const messages of [{}, { "settings.reset": " \n " }]) {
+            assert.deepEqual(
+              scanSource(sourcePath, source, {
+                ...translations,
+                [language]: messages,
+              }),
+              [
+                {
+                  rule: "dialog-title",
+                  path: sourcePath,
+                  line: 2,
+                  key: "settings.reset",
+                },
+              ],
+            );
+          }
+        }
+      }
+    });
+  }
 });
 
 it("raw-scroll 覆盖 TSX，原生标签与引擎只豁免实现、生成物和测试", async () => {
@@ -500,6 +593,7 @@ it("raw-scroll 覆盖 TSX，原生标签与引擎只豁免实现、生成物和�
   await mkdir(temporary, { recursive: true });
   const fixture = await mkdtemp(join(temporary, "kit-scan-"));
   try {
+    await writeTranslations(fixture);
     const files = {
       "src/modules/view.tsx": "const view = <table />;",
       "src/app/outer.tsx": [
@@ -564,7 +658,7 @@ it("check-kit 零基线拒绝任一违规", async () => {
   const fixture = await mkdtemp(join(temporary, "kit-zero-"));
   const output = mock.method(console, "log", () => {});
   try {
-    await mkdir(join(fixture, "src"));
+    await writeTranslations(fixture);
     await mkdir(join(fixture, "src/shell"));
     const path = join(fixture, "src/shell/view.tsx");
     await writeFile(path, "const view = <div />;", "utf8");
@@ -601,6 +695,7 @@ it("标题/确认文案未知项独立计数且阻止自动通过，已知标签
   const fixture = await mkdtemp(join(temporary, "kit-manual-"));
   const output = mock.method(console, "log", () => {});
   try {
+    await writeTranslations(fixture);
     await mkdir(join(fixture, "src/kit/templates"), { recursive: true });
     const path = join(fixture, "src/kit/templates/form.tsx");
     for (const [rule, source] of [
@@ -616,13 +711,24 @@ it("标题/确认文案未知项独立计数且阻止自动通过，已知标签
         "dialog-title",
         'import { SheetContent as C } from "../ui/sheet"; const v = <C {...props} />;',
       ],
-      [
+      ...[
+        "label",
+        "t(key)",
+        "i18n.t(key)",
+        "t(`settings.reset`)",
+        `t(\`settings.\${action}\`)`,
+        't("settings." + action)',
+      ].map((expression) => [
         "confirm-label",
-        'import { ConfirmDialog as C } from "../ui/confirm-dialog"; const v = <C confirmLabel={t("delete")} />;',
-      ],
+        `import { ConfirmDialog as C } from "../ui/confirm-dialog"; const v = <C confirmLabel={${expression}} />;`,
+      ]),
       [
         "confirm-label",
         'import { ConfirmDialog as C } from "../ui/confirm-dialog"; const v = <C confirmLabel="删除" {...props} />;',
+      ],
+      [
+        "confirm-label",
+        'import { ConfirmDialog as C } from "../ui/confirm-dialog"; const v = <C confirmLabel={t("settings.reset")} {...props} />;',
       ],
     ]) {
       await writeFile(path, source);
@@ -639,6 +745,69 @@ it("标题/确认文案未知项独立计数且阻止自动通过，已知标签
       'import { DialogContent as C, DialogTitle as T } from "../ui/dialog"; const v = <C><T>编辑</T></C>;',
     );
     assert.equal(await checkKit(process.env, fixture), undefined);
+  } finally {
+    output.mock.restore();
+    const actual = await realpath(fixture);
+    assert.equal(dirname(actual), await realpath(temporary));
+    await rm(actual, { recursive: true });
+  }
+});
+
+it("scan 按扫描根目录读取双语资源，缺键或不合格文案阻止门禁且输出键名", async () => {
+  const temporary = join(process.cwd(), "Temp/test/check-kit");
+  await mkdir(temporary, { recursive: true });
+  const fixture = await mkdtemp(join(temporary, "kit-translations-"));
+  const output = mock.method(console, "log", () => {});
+  try {
+    await writeTranslations(fixture);
+    await writeFile(
+      join(fixture, "src/view.tsx"),
+      `import { ConfirmDialog as C } from "@/kit";
+      import { useTranslation } from "react-i18next";
+      import { i18n } from "@/core/i18n";
+      function View() {
+        const { t } = useTranslation();
+        return <><C confirmLabel={t("settings.reset")} /><C confirmLabel={i18n.t('settings.reload')} /></>;
+      }`,
+    );
+    assert.deepEqual(await scan(fixture), {
+      counts: zero,
+      violations: [],
+      manualReviews: [],
+    });
+    assert.equal(await checkKit(process.env, fixture), undefined);
+
+    for (const language of ["zh-CN", "en-US"]) {
+      for (const messages of [
+        { "settings.reload": translations[language]["settings.reload"] },
+        { ...translations[language], "settings.reset": " " },
+      ]) {
+        await writeTranslations(fixture, {
+          ...translations,
+          [language]: messages,
+        });
+        const report = await scan(fixture);
+        assert.deepEqual(report.counts, { ...zero, "confirm-label": 1 });
+        assert.deepEqual(report.manualReviews, []);
+        assert.deepEqual(report.violations, [
+          {
+            rule: "confirm-label",
+            path: "src/view.tsx",
+            line: 6,
+            key: "settings.reset",
+          },
+        ]);
+        await assert.rejects(
+          checkKit(process.env, fixture),
+          /Kit 约束要求所有规则为零/,
+        );
+        assert.ok(
+          output.mock.calls.some((call) =>
+            call.arguments[0].includes("翻译键：settings.reset"),
+          ),
+        );
+      }
+    }
   } finally {
     output.mock.restore();
     const actual = await realpath(fixture);

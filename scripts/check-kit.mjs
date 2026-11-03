@@ -5,6 +5,7 @@ import { parseAst } from "vite";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(here, "..");
+const languages = ["zh-CN", "en-US"];
 const rules = [
   "native-table",
   "native-dialog",
@@ -102,7 +103,27 @@ function isKitEngine(name) {
   );
 }
 
-function analyzeSource(path, text) {
+function literalTranslationKey(node) {
+  if (node?.type !== "CallExpression") return undefined;
+  const { callee, arguments: args } = node;
+  if (
+    ((callee.type === "Identifier" && callee.name === "t") ||
+      (callee.type === "MemberExpression" &&
+        !callee.computed &&
+        callee.property.name === "t")) &&
+    args[0]?.type === "Literal" &&
+    typeof args[0].value === "string"
+  ) {
+    return args[0].value;
+  }
+  return undefined;
+}
+
+function isLabel(value) {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+function analyzeSource(path, text, translations) {
   const sourcePath = posix.normalize(path.replaceAll("\\", "/"));
   const inKit = sourcePath.startsWith("src/kit/");
   const source = parseAst(text, {
@@ -225,11 +246,12 @@ function analyzeSource(path, text) {
     }
     return "missing";
   }
-  function report(rule, node, destination = violations) {
+  function report(rule, node, destination = violations, key) {
     destination.push({
       rule,
       path: sourcePath,
       line: text.slice(0, node.start).split("\n").length,
+      ...(key === undefined ? {} : { key }),
     });
   }
   walkAst(source, (node) => {
@@ -291,21 +313,49 @@ function analyzeSource(path, text) {
           label?.value?.type === "JSXExpressionContainer"
             ? label.value.expression
             : label?.value;
+        const key = literalTranslationKey(value);
         if (
           !value ||
-          (value.type === "Literal" &&
-            (typeof value.value !== "string" || value.value.trim() === "")) ||
+          (key !== undefined &&
+            !languages.every((language) =>
+              isLabel(translations[language]?.[key]),
+            )) ||
+          (value.type === "Literal" && !isLabel(value.value)) ||
           (value.type === "Identifier" && value.name === "undefined")
         ) {
-          report("confirm-label", opening);
+          report("confirm-label", opening, violations, key);
         } else if (
-          value.type !== "Literal" ||
+          (value.type !== "Literal" && key === undefined) ||
           opening.attributes
             .slice(opening.attributes.indexOf(label) + 1)
             .some((attribute) => attribute.type === "JSXSpreadAttribute")
         ) {
           report("confirm-label", opening, manualReviews);
         }
+      }
+      if (component === "DialogTitle" || component === "SheetTitle") {
+        walkAst(
+          [
+            node.children,
+            opening.attributes.filter(
+              (attribute) =>
+                attribute.type === "JSXAttribute" &&
+                attribute.name.name === "children",
+            ),
+          ],
+          (child) => {
+            if (child.type !== "JSXExpressionContainer") return;
+            const key = literalTranslationKey(child.expression);
+            if (
+              key !== undefined &&
+              !languages.every((language) =>
+                isLabel(translations[language]?.[key]),
+              )
+            ) {
+              report("dialog-title", opening, violations, key);
+            }
+          },
+        );
       }
       if (component === "DialogContent" || component === "SheetContent") {
         const state = childrenTitleState(
@@ -375,13 +425,23 @@ function analyzeSource(path, text) {
 }
 
 // path is repository-relative, as returned by scan; no filesystem access here.
-export function scanSource(path, text) {
-  return analyzeSource(path, text).violations;
+export function scanSource(path, text, translations = {}) {
+  return analyzeSource(path, text, translations).violations;
 }
 
 export async function scan(root = repositoryRoot) {
   const violations = [];
   const manualReviews = [];
+  const translations = Object.fromEntries(
+    await Promise.all(
+      languages.map(async (language) => [
+        language,
+        JSON.parse(
+          await readFile(join(root, `src/core/i18n/${language}.json`), "utf8"),
+        ),
+      ]),
+    ),
+  );
   async function walk(directory) {
     const entries = await readdir(directory, { withFileTypes: true });
     entries.sort((a, b) => a.name.localeCompare(b.name));
@@ -396,7 +456,11 @@ export async function scan(root = repositoryRoot) {
         (!path.startsWith("src/lib/generated/") || path.endsWith(".tsx")) &&
         !path.endsWith(".test.ts")
       ) {
-        const result = analyzeSource(path, await readFile(absolute, "utf8"));
+        const result = analyzeSource(
+          path,
+          await readFile(absolute, "utf8"),
+          translations,
+        );
         violations.push(...result.violations);
         manualReviews.push(...result.manualReviews);
       }
@@ -416,7 +480,7 @@ export async function checkKit(_env, root = repositoryRoot) {
     if (counts[rule] > 0) {
       for (const violation of violations.filter((item) => item.rule === rule)) {
         console.log(
-          `  ${violation.path}:${violation.line} ${descriptions[rule]}`,
+          `  ${violation.path}:${violation.line} ${descriptions[rule]}${violation.key === undefined ? "" : `（翻译键：${violation.key}）`}`,
         );
       }
     }
