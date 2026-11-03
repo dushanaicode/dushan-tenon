@@ -16,6 +16,7 @@ test("通知分节保留桌面总开关并嵌入全部偏好参数", async () =>
     name: i18n.t("settings.desktopNotifications"),
   });
   expect(control.getAttribute("aria-checked")).toBe("true");
+  expect(screen.getByText("测试桌面通知")).toBeTruthy();
   fireEvent.click(control);
   await waitFor(() =>
     expect(calls).toHaveBeenCalledWith("app_settings_update", {
@@ -44,9 +45,7 @@ test.each(["sent", "disabled", "failed"] as const)(
       }
     });
     renderNotify("/settings/notify");
-    fireEvent.click(
-      await screen.findByRole("button", { name: "发送测试通知" }),
-    );
+    fireEvent.click(await screen.findByRole("button", { name: "发送" }));
     const status = await screen.findByText(
       i18n.t(`notify.settings.testResult.${desktop}`),
     );
@@ -107,7 +106,7 @@ test("测试发送 pending 时禁止重复提交，失败显示错误", async ()
     name === "notify_test_send" ? pending : undefined,
   );
   renderNotify("/settings/notify");
-  const button = await screen.findByRole("button", { name: "发送测试通知" });
+  const button = await screen.findByRole("button", { name: "发送" });
   fireEvent.click(button);
   await waitFor(() => expect(button.hasAttribute("disabled")).toBe(true));
   fireEvent.click(button);
@@ -130,13 +129,13 @@ test("身份锁定清除测试通知结果与设置表单", async () => {
     name === "notify_test_send" ? { desktop: "sent" } : undefined,
   );
   const view = renderNotify("/settings/notify");
-  fireEvent.click(await screen.findByRole("button", { name: "发送测试通知" }));
+  fireEvent.click(await screen.findByRole("button", { name: "发送" }));
   await screen.findByText(i18n.t("notify.settings.testResult.sent"));
   await act(async () => {
     view.client.setQueryData(authKey, { ...activeAuth, state: "locked" });
   });
   await waitFor(() =>
-    expect(screen.queryByRole("button", { name: "发送测试通知" })).toBeNull(),
+    expect(screen.queryByRole("button", { name: "发送" })).toBeNull(),
   );
   expect(
     screen.queryByText(i18n.t("notify.settings.testResult.sent")),

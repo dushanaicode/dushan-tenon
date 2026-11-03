@@ -69,7 +69,9 @@ test("真实 hash 启动使用宿主语言和设置，StrictMode 不重复窗口
   await act(async () => {
     await startApp(root, settings);
   });
-  await screen.findByRole("combobox", { name: i18n.t("theme.label") });
+  await screen.findByRole("combobox", {
+    name: i18n.t("settings.appearance.colorMode"),
+  });
   expect(document.documentElement.lang).toBe("en-US");
   expect(changed).toHaveBeenCalledTimes(1);
   expect(routers).toHaveLength(1);

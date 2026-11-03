@@ -112,7 +112,9 @@ test("设置首项在 Shell 内呈现，共享窗口和工作台实例", async (
   await act(async () => {
     await router.navigate("/settings/appearance");
   });
-  await screen.findByRole("combobox", { name: i18n.t("theme.label") });
+  await screen.findByRole("combobox", {
+    name: i18n.t("settings.appearance.colorMode"),
+  });
   expect(screen.getByRole("navigation", { name: "主导航" })).toBeTruthy();
   await waitFor(() =>
     expect(
