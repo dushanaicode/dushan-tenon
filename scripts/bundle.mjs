@@ -8,8 +8,9 @@ import {
 } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { checkLicenses } from "./check-licenses.mjs";
 import { checkRelease } from "./check-release.mjs";
-import { root, run, runBin, task } from "./common.mjs";
+import { root, runBin, task } from "./common.mjs";
 import { hostPackage } from "./product.mjs";
 
 export function bundleConfig() {
@@ -48,12 +49,13 @@ if (
     );
     const directory = join(root, "Temp/release");
     const notices = join(directory, "THIRD_PARTY_LICENSES.md");
-    await run(
-      "第三方许可清单",
-      process.execPath,
-      ["scripts/check-licenses.mjs", "--notices", notices],
-      env,
-    );
+    const { missing } = await checkLicenses(notices);
+    if (missing.length > 0)
+      throw new Error(
+        `缺许可正文，无法打包：\n${missing
+          .map((pkg) => `${pkg.ecosystem}: ${pkg.name}@${pkg.version}`)
+          .join("\n")}`,
+      );
     await writeFile(join(directory, "tenon-installed.marker"), "installed\n");
     const config = join(directory, "tauri.bundle.json");
     await writeFile(config, `${JSON.stringify(bundleConfig(), null, 2)}\n`);

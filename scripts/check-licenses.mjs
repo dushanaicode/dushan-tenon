@@ -648,6 +648,7 @@ export async function checkLicenses(noticesPath) {
     console.log(
       `许可清单：${destination}（${result.packages} 包，${result.groups} 组正文，${result.mpl.length} 个 MPL 包，${result.missing.length} 个缺许可正文，${result.covered.length} 个由仓库声明覆盖）`,
     );
+    return result;
   }
 }
 
