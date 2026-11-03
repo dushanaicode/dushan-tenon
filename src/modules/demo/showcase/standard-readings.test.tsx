@@ -36,9 +36,7 @@ test("contrast reads actual root colors, keeps unavailable values distinct, and 
     .closest("tr") as HTMLElement;
   expect(within(row).getByText("21.00:1")).toBeTruthy();
   expect(within(row).getByText("通过")).toBeTruthy();
-  expect(
-    screen.getAllByText("showcase.readings.unavailable").length,
-  ).toBeGreaterThan(0);
+  expect(screen.getAllByText("未读取到值").length).toBeGreaterThan(0);
   root.style.setProperty("--foreground", "rgb(255, 255, 255)");
   act(() => applyMode("dark"));
   expect(within(row).getByText("1.00:1")).toBeTruthy();

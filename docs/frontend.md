@@ -72,4 +72,23 @@ demo 的演示中心由 [manifest.ts](../src/modules/demo/manifest.ts)贡献开�
 
 ## app 组合根
 
-待整合完成后补写。
+入口必须使用宿主初值，不生成默认设置。[src/main.tsx](../src/main.tsx)经外观桥的 `getInitialSettings()` 读取设置；缺失时抛出 `Host initial settings are required`，显示启动错误而不启动路由。实现见 [appearance-bridge.ts](../src/core/appearance-bridge.ts)。[bootstrap.tsx](../src/app/bootstrap.tsx)的 `startApp()` 初始化语言、设置查询缓存和 hash 路由；[index.html](../index.html)在入口模块前同步加载 [public/appearance.js](../public/appearance.js)，校验宿主明暗模式、应用首屏明暗并建立外观桥。
+
+模块只在唯一注册表 [module-registry.ts](../src/app/module-registry.ts)的 `manifests` 数组登记；新增模块时，app 内只需在此导入并加入清单，其路由、导航、设置及其他贡献从清单派生。组合根经 [ModuleDirectoryProvider](../src/core/module-directory.tsx)向 core 下发目录，并在 [app.tsx](../src/app/app.tsx)通过 props 向 Shell 传入清单、启用表、可见性上下文、导航树和设置目录；下层不反向导入注册表。
+
+外层按 `QueryClientProvider` → `ModuleDirectoryProvider` → `RouterProvider` 嵌套，分别提供查询缓存、模块目录和路由，见 `bootstrap.tsx`。正常应用树在 `app.tsx` 中由外到内如下，认证门控通过且有活动用户后才挂载编辑与业务界面：
+
+| 组件 | 职责与实现 |
+|---|---|
+| `WindowChromeProvider` | 窗口外观、控件状态、窗口事件订阅与关闭握手，见 [window-chrome.tsx](../src/shell/window/window-chrome.tsx) |
+| `AuthGate` | 初始化、登录、解锁及恢复流程，认证通过后放行子树，见 [auth-gate.tsx](../src/modules/account/auth-gate.tsx) |
+| `EditSessionsProvider` | 按身份管理编辑会话，协调未保存编辑的导航阻止与原生关闭，见 [edit-sessions.tsx](../src/core/edit-sessions.tsx) |
+| `SettingsDraftProvider` | 跨分节草稿、应用与丢弃，并登记设置编辑会话，见 [drafts.tsx](../src/core/settings/drafts.tsx) |
+| `FileIngressProvider` | 待接入文件、可见目标筛选、领取与页面交接，见 [file-ingress/index.tsx](../src/core/file-ingress/index.tsx) |
+| `Shell` | 承接组合根输入，装配布局、导航、命令与工作台，正文挂载应用路由，见 [shell.tsx](../src/shell/shell.tsx) |
+
+应用使用 hash 路由：`/` 为首页，`/settings/:section?` 为设置页，省略分节时转到首个可见分节。清单路由与开发页由 `moduleRoutes()` 展开，全部经 `ModuleGate` 后才加载组件；未匹配路径显示 404。实现见 [routes.tsx](../src/app/routes.tsx)与 [settings.tsx](../src/app/settings.tsx)。
+
+门控必须区分不存在、禁止、等待与失败。[ModuleGate](../src/app/module-gate.tsx)先检查模块启用，再检查认证；开发路由还等待设置。所需查询 pending 时显示加载状态，error 时显示 IPC 错误；模块禁用或开发入口关闭显示 404，无活动认证、认证模式不符或权限不足显示 403。只有可见时才调用懒加载工厂，后端鉴权仍是最终边界。
+
+根错误页仅公开固定恢复标识、`app.ui.failed` 和随机追踪 ID；复制失败时显示同一安全摘要，不回显原始异常，并提供显式重载，见 [RootError](../src/app/root-error.tsx)。错误页重新挂载窗口外观 provider 接管订阅与关闭，旧通道回调失效；无编辑会话接管 `close_edit` 时，以 `app_window_edit_decide` 确认请求，但不发布虚假的 clean 状态，宿主仍按已知未保存或保存中状态拒绝退出。关闭握手见 `window-chrome.tsx`。

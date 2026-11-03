@@ -148,7 +148,7 @@ test("T6 is a new composition, retains no draft after unmount, and the outer tab
   const settings = within(tablist).getByRole("tab", { name: "T6 设置组合" });
   fireEvent.mouseDown(settings, { button: 0, ctrlKey: false });
   const preview = screen.getByRole("region", { name: "模板预览容器" });
-  expect(within(preview).getByText("新增示例 · T6 组合范例")).toBeTruthy();
+  expect(within(preview).getByText("设置表单组合示例")).toBeTruthy();
   expect(
     within(preview).getByText(/当前没有可导入的 SettingsPage 内核导出/),
   ).toBeTruthy();
