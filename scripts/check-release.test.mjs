@@ -215,6 +215,7 @@ test("null release still requires consistent valid versions", () => {
 });
 
 test("release generation and checking use file identity and versions without a brand module", async (t) => {
+  t.mock.method(console, "log", () => {});
   const temporary = resolve(process.env.TEMP, "release-test");
   await mkdir(temporary, { recursive: true });
   const parent = await realpath(temporary);
