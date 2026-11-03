@@ -12,7 +12,7 @@ import { PERMISSION_KEYS } from "@/lib/generated/permissions";
 import type { SettingSetInput } from "@/lib/generated/SettingSetInput";
 import {
   accountName,
-  aiName,
+  demoName,
   edit,
   listKey,
   mount,
@@ -37,23 +37,23 @@ test("parameter list honours read and write grants", async () => {
   });
   const { client } = mount(true);
   await screen.findByRole("form", { name: accountName });
-  expect(screen.queryByRole("form", { name: aiName })).toBeNull();
+  expect(screen.queryByRole("form", { name: demoName })).toBeNull();
   expect(row(accountName).getByRole("textbox")).toHaveProperty(
     "disabled",
     true,
   );
   expect(row(accountName).getByText(/需要“管理账号安全设置”权限/)).toBeTruthy();
-  permissions = ["ai.service.manage"];
+  permissions = ["demo.settings.manage"];
   await act(async () => {
     await client.invalidateQueries({ queryKey: authKey });
   });
-  await screen.findByRole("form", { name: aiName });
-  expect(row(aiName).getByRole("textbox")).toHaveProperty("disabled", false);
+  await screen.findByRole("form", { name: demoName });
+  expect(row(demoName).getByRole("textbox")).toHaveProperty("disabled", false);
   permissions = [...PERMISSION_KEYS];
   modules = {
     modules: appModules.modules.map((module) => ({
       ...module,
-      enabled: module.id !== "ai",
+      enabled: module.id !== "demo",
     })),
   };
   await act(async () => {
@@ -61,10 +61,10 @@ test("parameter list honours read and write grants", async () => {
     await client.invalidateQueries({ queryKey: authKey });
   });
   await waitFor(() =>
-    expect(row(aiName).getByRole("textbox")).toHaveProperty("disabled", true),
+    expect(row(demoName).getByRole("textbox")).toHaveProperty("disabled", true),
   );
   expect(
-    await row(aiName).findByText("所属模块已停用，此设置只读。"),
+    await row(demoName).findByText("所属模块已停用，此设置只读。"),
   ).toBeTruthy();
   expect(row(accountName).getByRole("textbox")).toHaveProperty(
     "disabled",
@@ -77,7 +77,7 @@ test("parameter list honours read and write grants", async () => {
   });
   await waitFor(() => {
     expect(row(accountName).getByRole("textbox")).toHaveProperty("value", "15");
-    expect(screen.queryByRole("form", { name: aiName })).toBeNull();
+    expect(screen.queryByRole("form", { name: demoName })).toBeNull();
   });
   expect(calls).toHaveBeenCalledWith("app_setting_list", {
     input: { includeDisabled: true },
@@ -127,9 +127,7 @@ test("identity changes clear drafts and isolate queries", async () => {
 
 test("apply saves keys sequentially and invalidates user lists", async () => {
   const entries = structuredClone(paramEntries);
-  const aiIndex = entries.findIndex(
-    ({ key }) => key === "ai.connect_timeout_seconds",
-  );
+  const demoIndex = entries.findIndex(({ key }) => key === "demo.batch_size");
   let finish!: (entry: ParamEntry) => void;
   const pending = new Promise<ParamEntry>((resolve) => {
     finish = resolve;
@@ -139,8 +137,8 @@ test("apply saves keys sequentially and invalidates user lists", async () => {
     if (command === "app_setting_set") {
       const { input } = payload as { input: SettingSetInput };
       if (input.key === entries[0].key) return pending;
-      entries[aiIndex] = stored(entries[aiIndex], input.value, 1);
-      return structuredClone(entries[aiIndex]);
+      entries[demoIndex] = stored(entries[demoIndex], input.value, 1);
+      return structuredClone(entries[demoIndex]);
     }
   });
   const { client } = mount();
@@ -148,7 +146,7 @@ test("apply saves keys sequentially and invalidates user lists", async () => {
   const inspectKey = ["app", "setting", currentUser.id, true];
   client.setQueryData(inspectKey, structuredClone(entries));
   edit(accountName, "20");
-  edit(aiName, "50");
+  edit(demoName, "50");
   fireEvent.click(screen.getByRole("button", { name: "应用" }));
   await screen.findByText("正在保存…");
   expect(screen.getByRole("button", { name: "应用" })).toHaveProperty(
@@ -178,7 +176,7 @@ test("apply saves keys sequentially and invalidates user lists", async () => {
   await waitFor(() =>
     expect(screen.queryByRole("region", { name: "设置操作" })).toBeNull(),
   );
-  expect(client.getQueryData<ParamEntry[]>(inspectKey)?.[aiIndex].value).toBe(
+  expect(client.getQueryData<ParamEntry[]>(inspectKey)?.[demoIndex].value).toBe(
     "50",
   );
   expect(client.getQueryState(inspectKey)?.isInvalidated).toBe(true);

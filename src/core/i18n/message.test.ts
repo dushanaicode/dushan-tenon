@@ -24,9 +24,9 @@ test("插值、数字、引用与错误参数使用和 Rust 相同的规则", as
       kind: { $t: "kind" },
       count: 2.5,
       error: { $t: "error" },
-      permission: "ai.service.manage",
+      permission: "demo.settings.manage",
     }),
-  ).toBe("清理: 2.5 — 无权限 ai.service.manage / 清理");
+  ).toBe("清理: 2.5 — 无权限 demo.settings.manage / 清理");
   expect(renderMessage(i18n, "literal", { value: "{{raw}} <&>" })).toBe(
     "{{raw}} <&>",
   );

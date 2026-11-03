@@ -7,10 +7,11 @@ import {
 } from "@testing-library/react";
 import { expect, test } from "vitest";
 import { appModules, mockAppIpc, paramEntries } from "@/core/core.test-support";
+import { i18n } from "@/core/i18n";
 import type { ParamEntry } from "@/lib/generated/ParamEntry";
 import {
   accountName,
-  aiName,
+  demoName,
   edit,
   listKey,
   mount,
@@ -26,7 +27,7 @@ test.each([false, true])(
         ? {
             modules: appModules.modules.map((module) => ({
               ...module,
-              enabled: module.id === "ai" ? !includeDisabled : module.enabled,
+              enabled: module.id === "demo" ? !includeDisabled : module.enabled,
             })),
           }
         : undefined,
@@ -35,7 +36,8 @@ test.each([false, true])(
     await screen.findByRole("form", { name: accountName });
     for (const [title, name] of [
       ["账号安全", accountName],
-      ["AI 服务", aiName],
+      ["样板任务", demoName],
+      ["通知偏好", "提示位置"],
     ]) {
       expect(screen.getAllByText(title)).toHaveLength(1);
       expect(
@@ -127,77 +129,72 @@ test("parameter reset uses row existence", async () => {
   );
 });
 
-test.each([
-  [{ type: "text", maxChars: 4 }, "a", "next"],
-  [{ type: "boolean" }, "false", "true"],
-  [{ type: "choice", values: ["one", "two"] }, "one", "two"],
-  [{ type: "secret" }, null, "synthetic-password"],
-] satisfies [ParamEntry["kind"], string | null, string][])(
-  "parameter scalar editor handles %j",
-  async (kind, value, next) => {
-    let entry: ParamEntry = {
-      ...paramEntries[0],
-      kind,
-      value,
-      default: value,
-    };
-    let finish!: (entry: ParamEntry) => void;
-    const pending = new Promise<ParamEntry>((resolve) => {
-      finish = resolve;
+test.each(
+  [
+    ["demo.test_text", "next"],
+    ["notify.quiet_enabled", "true"],
+    ["notify.toast_position", "bottom-left"],
+    ["demo.test_secret", "synthetic-password"],
+  ].map(([key, next]) => {
+    const [entry] = paramEntries.filter((entry) => entry.key === key);
+    return [entry.kind, entry, next] as const;
+  }),
+)("parameter scalar editor handles %j", async (kind, fixture, next) => {
+  let entry = structuredClone(fixture);
+  const name = i18n.t(`param.${entry.key}.name`);
+  let finish!: (entry: ParamEntry) => void;
+  const pending = new Promise<ParamEntry>((resolve) => {
+    finish = resolve;
+  });
+  const calls = mockAppIpc((command) => {
+    if (command === "app_setting_list") return [structuredClone(entry)];
+    if (command === "app_setting_set") return pending;
+  });
+  const { client, unmount } = mount();
+  await screen.findByRole("form", { name });
+  if (kind.type === "boolean") {
+    fireEvent.click(row(name).getByRole("switch"));
+  } else if (kind.type === "choice") {
+    fireEvent.pointerDown(row(name).getByRole("combobox"), {
+      button: 0,
+      pointerType: "mouse",
+      ctrlKey: false,
     });
-    const calls = mockAppIpc((command) => {
-      if (command === "app_setting_list") return [structuredClone(entry)];
-      if (command === "app_setting_set") return pending;
-    });
-    const { client, unmount } = mount();
-    await screen.findByRole("form", { name: accountName });
-    if (kind.type === "boolean") {
-      fireEvent.click(row(accountName).getByRole("switch"));
-    } else if (kind.type === "choice") {
-      fireEvent.pointerDown(row(accountName).getByRole("combobox"), {
-        button: 0,
-        pointerType: "mouse",
-        ctrlKey: false,
-      });
-      fireEvent.click(
-        await screen.findByRole("option", {
-          name: "param.account.idle_lock_minutes.choice.two",
-        }),
-      );
-    } else {
-      fireEvent.change(row(accountName).getByLabelText(accountName), {
-        target: { value: next },
-      });
-    }
-    fireEvent.click(screen.getByRole("button", { name: "应用" }));
-    await screen.findByText("正在保存…");
-    expect(calls).toHaveBeenCalledWith("app_setting_set", {
-      input: { key: entry.key, value: next, rowVersion: null },
-    });
-    if (kind.type === "secret") {
-      const states = client
-        .getMutationCache()
-        .getAll()
-        .map((m) => m.state);
-      expect(JSON.stringify(states)).not.toContain(next);
-      expect(JSON.stringify(client.getQueryData(listKey))).not.toContain(next);
-    }
-    entry = {
-      ...stored(entry, next, 1),
-      value: kind.type === "secret" ? null : next,
-      secretSet: kind.type === "secret",
-      isDefault: false,
-    };
-    await act(async () => finish(structuredClone(entry)));
-    await waitFor(() =>
-      expect(screen.queryByRole("region", { name: "设置操作" })).toBeNull(),
+    fireEvent.click(
+      await screen.findByRole("option", {
+        name: i18n.t(`param.${entry.key}.choice.${next}`),
+      }),
     );
-    if (kind.type === "secret") {
-      expect(row(accountName).getByLabelText(accountName)).toHaveProperty(
-        "value",
-        "",
-      );
-    }
-    unmount();
-  },
-);
+  } else {
+    fireEvent.change(row(name).getByLabelText(name), {
+      target: { value: next },
+    });
+  }
+  fireEvent.click(screen.getByRole("button", { name: "应用" }));
+  await screen.findByText("正在保存…");
+  expect(calls).toHaveBeenCalledWith("app_setting_set", {
+    input: { key: entry.key, value: next, rowVersion: null },
+  });
+  if (kind.type === "secret") {
+    const states = client
+      .getMutationCache()
+      .getAll()
+      .map((m) => m.state);
+    expect(JSON.stringify(states)).not.toContain(next);
+    expect(JSON.stringify(client.getQueryData(listKey))).not.toContain(next);
+  }
+  entry = {
+    ...stored(entry, next, 1),
+    value: kind.type === "secret" ? null : next,
+    secretSet: kind.type === "secret",
+    isDefault: false,
+  };
+  await act(async () => finish(structuredClone(entry)));
+  await waitFor(() =>
+    expect(screen.queryByRole("region", { name: "设置操作" })).toBeNull(),
+  );
+  if (kind.type === "secret") {
+    expect(row(name).getByLabelText(name)).toHaveProperty("value", "");
+  }
+  unmount();
+});

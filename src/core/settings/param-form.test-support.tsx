@@ -12,7 +12,7 @@ import { ParamForm } from "./param-form";
 import { SettingsActionBar } from "./settings-action-bar";
 
 const accountName = "空闲自动锁定（分钟）";
-const aiName = "连接超时（秒）";
+const demoName = "测量批次大小";
 const listKey = ["app", "setting", currentUser.id, false];
 const clients: QueryClient[] = [];
 
@@ -79,4 +79,4 @@ function conflict(): IpcError {
   };
 }
 
-export { accountName, aiName, conflict, edit, listKey, mount, row, stored };
+export { accountName, conflict, demoName, edit, listKey, mount, row, stored };

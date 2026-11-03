@@ -39,8 +39,8 @@ function Settings() {
       ) : (
         <ParamForm
           group={
-            location.pathname === "/settings/ai"
-              ? "ai.service"
+            location.pathname === "/settings/demo"
+              ? "demo.work"
               : "account.security"
           }
           includeDisabled={false}
