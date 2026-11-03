@@ -1,8 +1,7 @@
-import { act, fireEvent, screen, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { expect, test } from "vitest";
-import { refreshAuth } from "@/core/auth";
+import { authKey } from "@/core/auth";
 import { mockAppIpc } from "@/core/core.test-support";
-import { appSettingSet } from "@/lib/generated/commands";
 import {
   codes,
   fillPassword,
@@ -72,26 +71,24 @@ test("设置页启用登录后保留恢复码并启动会话控件", async () =>
   await screen.findByRole("button", { name: "启用登录" });
 });
 
-test("安全区域复用认证读数，参数保存后刷新空闲时限", async () => {
+test("安全分节编辑自动锁定时长，通过统一操作栏保存并刷新认证时限", async () => {
   const calls = mockAppIpc();
   const { client } = renderAccount("/settings/security");
   const security = within(await screen.findByRole("region", { name: "安全" }));
-  expect(
-    security.getByText("当前自动锁定时限：15 分钟（登录模式下生效）"),
-  ).toBeTruthy();
-  expect(security.queryByLabelText("空闲自动锁定（分钟）")).toBeNull();
-  await act(async () => {
-    await appSettingSet({
-      key: "account.idle_lock_minutes",
-      value: "21",
-      rowVersion: null,
-    });
-    await refreshAuth(client);
+  const editor = await security.findByRole("textbox", {
+    name: "空闲自动锁定（分钟）",
   });
-  expect(
-    await security.findByText("当前自动锁定时限：21 分钟（登录模式下生效）"),
-  ).toBeTruthy();
-  expect(security.queryByLabelText("空闲自动锁定（分钟）")).toBeNull();
+  expect(editor).toHaveProperty("value", "15");
+  expect(security.getByText(/登录模式下生效/)).toBeTruthy();
+  expect(calls).toHaveBeenCalledWith("app_setting_list", {
+    input: { includeDisabled: false },
+  });
+  fireEvent.change(editor, { target: { value: "21" } });
+  fireEvent.click(screen.getByRole("button", { name: "应用" }));
+  await waitFor(() =>
+    expect(client.getQueryData(authKey)).toMatchObject({ idleLockMinutes: 21 }),
+  );
+  expect(editor).toHaveProperty("value", "21");
   expect(calls).toHaveBeenCalledWith("app_setting_set", {
     input: { key: "account.idle_lock_minutes", value: "21", rowVersion: null },
   });

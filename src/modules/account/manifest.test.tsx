@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 import { mockAppIpc, queryWrapper } from "@/core/core.test-support";
+import { renderAccount } from "./account.test-support";
 import { accountManifest } from "./manifest";
 
 test("清单提供无额外权限的资料路由和安全分节，工厂加载实际界面", async () => {
@@ -19,6 +20,7 @@ test("清单提供无额外权限的资料路由和安全分节，工厂加载�
     id: "security",
     labelKey: "account.settings.title",
     order: 40,
+    paramGroups: ["account.security"],
   });
   mockAppIpc();
   const { wrapper } = queryWrapper();
@@ -27,6 +29,6 @@ test("清单提供无额外权限的资料路由和安全分节，工厂加载�
   await screen.findByRole("heading", { name: "个人设置" });
   profile.unmount();
   const { default: Security } = await setting.Component();
-  render(<Security />, { wrapper });
-  await screen.findByRole("region", { name: "安全" });
+  renderAccount("/settings/security", <Security />);
+  await screen.findByRole("textbox", { name: "空闲自动锁定（分钟）" });
 }, 20_000);

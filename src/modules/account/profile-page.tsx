@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { refreshAuth, useAuthStatus } from "@/core/auth";
 import { IpcErrorMessage } from "@/core/ipc-error";
+import { PageHeader } from "@/kit";
 import {
   accountUserPasswordChange,
   accountUserProfileUpdate,
@@ -23,7 +24,7 @@ export function ProfilePage() {
   if (!auth.data?.user) return null;
   return (
     <section className="mx-auto max-w-3xl space-y-8 py-10">
-      <h1 className="text-2xl font-semibold">{t("account.profile.title")}</h1>
+      <PageHeader title={t("account.profile.title")} />
       <section className="space-y-4" aria-labelledby="profile-name">
         <h2 id="profile-name" className="text-lg font-semibold">
           {t("account.profile.editName")}

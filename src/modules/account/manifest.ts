@@ -17,6 +17,7 @@ export const accountManifest: ModuleManifest = {
       id: "security",
       labelKey: "account.settings.title",
       order: 40,
+      paramGroups: ["account.security"],
       Component: () =>
         import("./security-settings").then((m) => ({
           default: m.SecuritySettings,

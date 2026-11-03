@@ -10,6 +10,7 @@ import { IpcErrorMessage } from "@/core/ipc-error";
 import { useJobPath } from "@/core/jobs/job-link";
 import {
   Button,
+  PageHeader,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -329,29 +330,31 @@ function ActiveNotificationsPage() {
   if (!mark.active) return null;
   return (
     <section className="mx-auto max-w-4xl space-y-6 py-10">
-      <h1 className="text-2xl font-semibold">{t("notify.title")}</h1>
-      <div className="flex items-center justify-between gap-4">
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={unreadOnly}
-            onChange={(event) => {
-              setUnreadOnly(event.target.checked);
-              setPage(1);
-            }}
-          />
-          {t("notify.unreadOnly")}
-        </label>
-        <Button
-          variant="ghost"
-          disabled={mark.isPending}
-          onClick={() =>
-            mark.mutate(undefined, { onSuccess: () => setPage(1) })
-          }
-        >
-          {t("notify.markAllRead")}
-        </Button>
-      </div>
+      <PageHeader
+        title={t("notify.title")}
+        actions={
+          <Button
+            variant="ghost"
+            disabled={mark.isPending}
+            onClick={() =>
+              mark.mutate(undefined, { onSuccess: () => setPage(1) })
+            }
+          >
+            {t("notify.markAllRead")}
+          </Button>
+        }
+      />
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={unreadOnly}
+          onChange={(event) => {
+            setUnreadOnly(event.target.checked);
+            setPage(1);
+          }}
+        />
+        {t("notify.unreadOnly")}
+      </label>
       {list.isPending && <p role="status">{t("notify.loading")}</p>}
       {list.isError && <IpcErrorMessage error={list.error} />}
       {mark.error && <IpcErrorMessage error={mark.error} />}

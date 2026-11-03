@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { refreshAuth, useAuthStatus } from "@/core/auth";
 import { IpcErrorMessage } from "@/core/ipc-error";
+import { ParamForm } from "@/core/settings/param-form";
 import { SettingGroup } from "@/kit";
 import {
   accountAuthDisableLogin,
@@ -34,11 +35,7 @@ export function SecuritySettings() {
       <h2 id="security-title" className="text-xl font-semibold">
         {t("account.auth.security")}
       </h2>
-      <p className="text-body text-muted-foreground">
-        {t("account.auth.idleLockMinutes", {
-          minutes: auth.data.idleLockMinutes,
-        })}
-      </p>
+      <ParamForm group="account.security" includeDisabled={false} />
       {codes ? (
         <SettingGroup>
           <RecoveryCodes
