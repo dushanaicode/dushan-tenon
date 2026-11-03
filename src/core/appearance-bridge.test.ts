@@ -5,6 +5,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { Theme } from "@/lib/generated/Theme";
 import {
   applyMode,
+  getInitialSettings,
   getSnapshot,
   subscribe,
   useAppearanceSnapshot,
@@ -12,6 +13,16 @@ import {
 import { defaultSettings } from "./core.test-support";
 
 const script = readFileSync(resolve("public/appearance.js"), "utf8");
+
+it("returns the host settings without copying or changing them", () => {
+  window.__TENON_INITIAL_SETTINGS__ = { settings: defaultSettings };
+  expect(getInitialSettings()).toBe(defaultSettings);
+});
+
+it("reports missing host settings explicitly", () => {
+  delete window.__TENON_INITIAL_SETTINGS__;
+  expect(getInitialSettings).toThrow("Host initial settings are required");
+});
 function boot(mode: Theme, dark = false) {
   const media = new EventTarget();
   let matches = dark;
