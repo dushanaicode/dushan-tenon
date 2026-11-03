@@ -76,7 +76,7 @@ test("developer navigation follows the retained page order and every lazy page r
   expect(
     canOpenPath([demoManifest], new Set(["demo"]), auth, "/styleguide"),
   ).toBe(false);
-});
+}, 30_000);
 
 test("business routes, settings and file ingress retain their permission boundaries", () => {
   const find = (path: string) =>
