@@ -28,6 +28,7 @@ export const notifyManifest: ModuleManifest = {
   ],
   workbenchObjects: [],
   workbenchPanels: [],
+  fileTargets: [],
   headerWidgets: [
     {
       id: "notify.bell",
