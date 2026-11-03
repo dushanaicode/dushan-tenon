@@ -21,7 +21,7 @@ async function dirtySettings() {
 
 test("草稿跨设置子路由和外壳转场保留，离开时可继续或放弃", async () => {
   mockAppIpc();
-  const { router } = renderApp("/settings/param.account.security");
+  const { router } = renderApp("/settings/security");
   await dirtySettings();
   const actions = screen.getByRole("region", { name: "设置操作" });
   await act(async () => {
@@ -29,7 +29,7 @@ test("草稿跨设置子路由和外壳转场保留，离开时可继续或放�
   });
   expect(screen.getByRole("region", { name: "设置操作" })).toBe(actions);
   await act(async () => {
-    await router.navigate("/settings/param.account.security");
+    await router.navigate("/settings/security");
   });
   expect(
     await screen.findByRole("textbox", { name: "空闲自动锁定（分钟）" }),
@@ -42,9 +42,7 @@ test("草稿跨设置子路由和外壳转场保留，离开时可继续或放�
       name: "继续编辑",
     }),
   );
-  expect(router.state.location.pathname).toBe(
-    "/settings/param.account.security",
-  );
+  expect(router.state.location.pathname).toBe("/settings/security");
   await act(async () => {
     await router.navigate("/");
   });
@@ -64,7 +62,7 @@ test("原生关闭经过草稿确认，clean 成功发布后才批准 requestId"
       return null;
     }
   });
-  renderApp("/settings/param.account.security");
+  renderApp("/settings/security");
   await dirtySettings();
   await waitFor(() =>
     expect(calls).toHaveBeenCalledWith("app_window_edit_state", {
@@ -114,7 +112,7 @@ test("原生关闭经过草稿确认，clean 成功发布后才批准 requestId"
 
 test("锁定卸载草稿，重新认证不能恢复旧身份输入", async () => {
   mockAppIpc();
-  const { client } = renderApp("/settings/param.account.security");
+  const { client } = renderApp("/settings/security");
   await dirtySettings();
   act(() =>
     client.setQueryData(["account", "auth"], {
@@ -150,7 +148,7 @@ test("clean 发布失败不批准原生关闭，可在错误提示后重试", as
         traceId: "clean-failed",
       };
   });
-  renderApp("/settings/param.account.security");
+  renderApp("/settings/security");
   await dirtySettings();
   await waitFor(() =>
     expect(calls).toHaveBeenCalledWith("app_window_edit_state", {

@@ -27,7 +27,7 @@ test("路由崩溃后错误页接管关闭，旧通道失效且不清掉未保�
       return null;
     }
   });
-  const { router, container } = renderApp("/settings/param.account.security", {
+  const { router, container } = renderApp("/settings/security", {
     titlebar: { value: "hidden", source: "file" },
   });
   fireEvent.change(
