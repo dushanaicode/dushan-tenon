@@ -27,6 +27,57 @@ function frontend(path, text, allowlist = []) {
   );
 }
 
+test("scan: skips Git-deleted paths while checking tracked and untracked files", async (context) => {
+  const root = resolve(".");
+  const deleted = "src/lib/generated/Removed.ts";
+  const files = new Map(
+    [
+      ["AGENTS.md", "# Rules"],
+      [
+        "src-tauri/tauri.conf.json",
+        JSON.stringify({
+          identifier: identity.identifier,
+          mainBinaryName: identity.binary,
+          productName: identity.product,
+        }),
+      ],
+      ["src/main.tsx", 'document.getElementById("root");'],
+      ["src/core/tracked.ts", 'import "@/app/example";'],
+      ["src/core/未跟踪 file.ts", 'import "@/app/example";'],
+    ].map(([path, text]) => [resolve(root, path), Buffer.from(text)]),
+  );
+  context.mock.module("node:child_process", {
+    namedExports: {
+      execFileSync(command, args, options) {
+        assert.equal(options.cwd, root);
+        if (command === "cargo") return JSON.stringify({ packages: [] });
+        assert.equal(command, "git");
+        if (args.includes("--deleted")) {
+          assert.ok(args.includes("-z"));
+          return `${deleted}\0`;
+        }
+        assert.deepEqual(args, ["ls-files", "-co", "--exclude-standard", "-z"]);
+        return `${[...files.keys()].map((path) => path.slice(root.length + 1).replaceAll("\\", "/")).join("\0")}\0${deleted}\0`;
+      },
+    },
+  });
+  context.mock.module("node:fs/promises", {
+    namedExports: {
+      async readFile(path) {
+        assert.ok(files.has(path), `Unexpected file read: ${path}`);
+        return files.get(path);
+      },
+    },
+  });
+  const { scan } = await import("./check-structure.mjs?deleted-files");
+  const { counts, violations } = await scan(process.env, root);
+  assert.equal(counts["layer-import"], 2);
+  assert.deepEqual(
+    violations.map(({ path }) => path),
+    ["src/core/tracked.ts", "src/core/未跟踪 file.ts"],
+  );
+});
+
 test("tauri-api-boundary: imports and re-exports outside ipc are rejected", () => {
   for (const source of [
     'import { invoke } from "@tauri-apps/api/core";',

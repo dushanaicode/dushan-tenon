@@ -697,6 +697,9 @@ export function scanFrameworkIdentity(files) {
 
 export async function scan(env, root = repositoryRoot) {
   const options = { cwd: root, env, encoding: "utf8", windowsHide: true };
+  const deleted = new Set(
+    execFileSync("git", ["ls-files", "--deleted", "-z"], options).split("\0"),
+  );
   const paths = execFileSync(
     "git",
     ["ls-files", "-co", "--exclude-standard", "-z"],
@@ -707,6 +710,7 @@ export async function scan(env, root = repositoryRoot) {
   const files = new Map(
     await Promise.all(
       [...new Set(paths)]
+        .filter((path) => !deleted.has(path))
         .sort()
         .map(async (path) => [path, await readFile(join(root, path))]),
     ),
