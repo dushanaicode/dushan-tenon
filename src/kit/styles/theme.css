@@ -1,4 +1,8 @@
+@custom-variant dark (&:is(.dark *));
+
 @theme inline {
+  --container-medium: 720px;
+  --container-expanded: 1100px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

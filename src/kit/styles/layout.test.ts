@@ -169,7 +169,10 @@ it("首尾可见内容继承圆角，进度填充限制在轨道内", () => {
 });
 
 it("焦点环高于工具类，表格与设置组采用内缩焦点避免裁切", () => {
-  const focus = findRule(base, ":focus-visible");
+  const focus = rules(base).find((rule) =>
+    rule.selector.startsWith(":focus-visible:not("),
+  );
+  if (!focus) throw new Error("Missing default focus");
   expect(focus.parent).toMatchObject({
     name: "layer",
     params: "appearance-defaults",
@@ -178,12 +181,33 @@ it("焦点环高于工具类，表格与设置组采用内缩焦点避免裁切"
     outline: "2px solid var(--ring)",
     "outline-offset": "2px",
   });
+  for (const slot of [
+    "input",
+    "textarea",
+    "select-trigger",
+    "combobox",
+    "checkbox",
+    "radio-group-item",
+    "switch",
+  ])
+    expect(focus.selector).toContain(`[data-slot="${slot}"]`);
   const inset = rules(base).find((rule) =>
     rule.selector.includes('[data-part="table-scroll"]'),
   );
   expect(inset).toBeDefined();
   if (!inset) throw new Error("Missing inset focus");
   expect(declarations(inset)["outline-offset"]).toBe("-3px");
+});
+
+it("仅已登记的页面标题取消焦点框，强制色彩下同样生效", () => {
+  const selector = "[data-page-title]:focus-visible";
+  const title = findRule(base, selector);
+  expect(declarations(title)).toEqual({ outline: "none" });
+  expect(title.parent).toMatchObject({
+    name: "layer",
+    params: "appearance-a11y",
+  });
+  // 同处无障碍层时，标题选择器优先于强制色彩通用 :focus-visible。
 });
 
 it("分组标签不交互，导航保留选中、父子缩进和折叠箭头", () => {

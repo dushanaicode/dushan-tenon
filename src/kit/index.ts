@@ -4,6 +4,7 @@ export {
   PageTitleFocusProvider,
   usePageTitleFocus,
   usePageTitleRef,
+  usePageTitleText,
 } from "./page-title-focus";
 export { TIER_BREAKPOINTS, type Tier, tierForWidth } from "./responsive";
 export {

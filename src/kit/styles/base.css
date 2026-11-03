@@ -146,8 +146,18 @@
     overflow: clip;
   }
 
-  /* 高于工具类，保证使用 outline-none 的控件也有键盘焦点。 */
-  :focus-visible {
+  /* 表单控件使用自身的半透明 ring，其余元素保留统一 outline。 */
+  :focus-visible:not(
+    :where(
+      [data-slot="input"],
+      [data-slot="textarea"],
+      [data-slot="select-trigger"],
+      [data-slot="combobox"],
+      [data-slot="checkbox"],
+      [data-slot="radio-group-item"],
+      [data-slot="switch"]
+    )
+  ) {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
     --tw-ring-shadow: 0 0 #0000;
@@ -171,6 +181,10 @@
 }
 
 @layer appearance-a11y {
+  [data-page-title]:focus-visible {
+    outline: none;
+  }
+
   @media (forced-colors: active) {
     :root,
     .dark {

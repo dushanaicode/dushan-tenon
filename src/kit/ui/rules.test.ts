@@ -91,8 +91,13 @@ describe("套件源码规则", () => {
   it.each(Object.entries(sources))(
     "%s 只使用语义样式与统一动效",
     (file, source) => {
+      // 表单焦点使用指定的 shadcn 半透明 ring，其余明暗变体与透明度仍禁止。
+      const checked = source.replace(
+        /\b(?:focus-visible:ring-ring\/50|aria-invalid:ring-destructive\/20|dark:aria-invalid:ring-destructive\/40)\b/g,
+        "",
+      );
       for (const pattern of forbidden) {
-        expect(source, file).not.toMatch(pattern);
+        expect(checked, file).not.toMatch(pattern);
       }
     },
   );

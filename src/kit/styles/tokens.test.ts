@@ -1,5 +1,6 @@
 import { compile } from "tailwindcss";
 import { expect, it } from "vitest";
+import { TIER_BREAKPOINTS } from "../responsive";
 import {
   ancestors,
   atRules,
@@ -24,6 +25,26 @@ destructive-soft destructive-hover success success-foreground success-soft
 warning warning-foreground warning-soft info info-foreground info-soft sidebar
 sidebar-foreground sidebar-accent sidebar-accent-foreground sidebar-border sidebar-primary
 scrollbar-thumb elev-card elev-popover`.split(/\s+/);
+
+it("命名容器断点与响应式档位一致且生成查询规则", async () => {
+  const mapping = declarations(atRules(loadCss("theme.css"), "theme")[0]);
+  const compiler = await compile(
+    `${readCss("theme.css")}\n@tailwind utilities;`,
+  );
+  const css = compiler.build([
+    "@medium/content:block",
+    "@expanded/shell:block",
+    "dark:aria-invalid:ring-destructive/40",
+  ]);
+  expect(css).toContain(':is(.dark *)[aria-invalid="true"]');
+  expect(css).not.toContain("prefers-color-scheme");
+  for (const [tier, width] of Object.entries(TIER_BREAKPOINTS)) {
+    expect(mapping[`--container-${tier}`]).toBe(`${width}px`);
+    expect(css).toContain(
+      `@container ${tier === "medium" ? "content" : "shell"} (width >= ${width}px)`,
+    );
+  }
+});
 
 it.each(["light", "dark"] as const)(
   "%s 明确定义整套颜色与表面，引用均有值",

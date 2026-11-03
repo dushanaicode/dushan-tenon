@@ -25,6 +25,7 @@ import {
   TooltipContent,
   TooltipTrigger,
   usePageTitleFocus,
+  usePageTitleText,
 } from "@/kit";
 import {
   AUXILIARY_LAYOUT_LIMITS,
@@ -133,6 +134,7 @@ export function ConsoleLayout({
   const side = "left";
   const focus = useShellFocus();
   const focusTitle = usePageTitleFocus();
+  const pageTitle = usePageTitleText();
   const navigating = useRef(false);
   const open = panels.sheet === "primary" && !zen;
   const setOpen = (value: boolean) => {
@@ -271,7 +273,7 @@ export function ConsoleLayout({
           </SheetTrigger>
         )}
         <span data-part="title" className="truncate text-body font-semibold">
-          {t(active ? active.item.label : "app.name")}
+          {active ? t(active.item.label) : pageTitle}
         </span>
         <span aria-hidden="true" className="min-w-0 flex-1 self-stretch" />
       </div>
@@ -293,14 +295,15 @@ export function ConsoleLayout({
         <ZenExit />
         {header}
         {objectTabs}
+        {/* 百分比高度撑满子页，内容最小高度允许长页面继续增长。 */}
         <ScrollArea
           role="main"
           region="content"
           data-shell="content"
           ref={focus.content}
           tabIndex={-1}
-          className="grid min-h-0 flex-1"
-          plateClassName="appearance-content workbench-content"
+          className="min-h-0 flex-1"
+          plateClassName="appearance-content workbench-content h-full min-h-max"
         >
           {children}
         </ScrollArea>

@@ -8,7 +8,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
       key={/^\/settings(?:\/|$)/.test(pathname) ? "/settings" : pathname}
       data-slot="page-transition"
       data-motion-item
-      className="kit-enter h-full min-h-0"
+      className="kit-enter h-full min-h-max"
     >
       {children}
     </div>
