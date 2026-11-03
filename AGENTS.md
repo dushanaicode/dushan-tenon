@@ -12,14 +12,14 @@ Dushan Tenon（渡山榫卯）是可装配的单人桌面工具底座：Rust + T
 
 ## 分层（正文见 [docs/architecture.md](docs/architecture.md)）
 
-- 前端按 lib → kit → core → visual / shell / modules → app 单向依赖；`import type` 也算依赖。
-- 模块之间不互相导入；模块注册表只由 app 读取，经 props 或 context 下发。
+- 前端按 lib → kit → core → visual / shell / modules → app 单向依赖；`import type` 也算依赖（[前端合同](docs/frontend.md)）。
+- 模块之间不互相导入；模块注册表只由 app 读取，经 props 或 context 下发（[模块与装配](docs/modules.md)）。
 - `window.__TENON_*__` 在 `src/` 下只出现在外观桥 `src/core/appearance-bridge.ts` 及其同名测试中，其余代码经外观桥读取。
 - shell、app、modules 不用 `document.querySelector` 等 DOM 查询驱动焦点或状态；例外登记在 check-structure 白名单并写明原因。
 - 自定义 DOM 事件经类型化事件通道收发，事件名用 `tenon:` 前缀。
-- Rust：只有宿主 `src-tauri` 依赖 `tauri*`；framework 不依赖任何 `tenon-*`；模块只依赖 framework 与 account。
+- Rust：只有宿主 `src-tauri` 依赖 `tauri*`；framework 不依赖任何 `tenon-*`；模块只依赖 framework 与 account（[模块声明](docs/modules.md#后端声明与扩展合同)）。
 - framework 内部按架构文档的模块顺序单向引用，汇总（错误码、内置字典）只在 module；不含产品身份与应用语义。
-- desktop（tenon-desktop）承载配置文件模型与设置合同，不依赖 Tauri，只被宿主依赖。
+- desktop（tenon-desktop）承载配置文件模型与设置合同，不依赖 Tauri，只被宿主依赖（[配置与设置](docs/settings.md)、[原生能力](docs/native.md)）。
 - 单个函数不超过 300 行，测试代码除外；本文件总量不超过 30KB、单行不超过 300 字。
 
 ## 命名
@@ -31,11 +31,11 @@ Dushan Tenon（渡山榫卯）是可装配的单人桌面工具底座：Rust + T
 ## 工程
 
 - 技术栈：Rust stable ≥ 1.98（edition 2024）、Tauri 2、React 19、TypeScript strict、Vite、Tailwind CSS 4；Node 24，pnpm 固定 11.16.0。
-- 命令：`pnpm dev` 开发窗口，`pnpm build` 构建可执行文件，`pnpm check` 全部检查，`pnpm test [目标...]` 单元测试；PowerShell 用 `pnpm.cmd`。
+- 命令：`pnpm dev` 开发窗口，`pnpm build` 构建可执行文件，`pnpm check` 全部检查，`pnpm test [目标...]` 单元测试，`pnpm preset` 创建预设配置，`pnpm bundle` 打 Windows 安装包（[发布](docs/release.md)）；PowerShell 用 `pnpm.cmd`。
 - 自动化代理先加载 `node scripts/environment.mjs` 输出的隔离环境，再运行 pnpm 或 cargo；不重写 HOME 或 USERPROFILE。
 - 构建输出与缓存放 `Temp/`；Tauri 固定生成的 `src-tauri/gen/` 是唯一例外，已被 Git 忽略。
 - 测试辅助放在能提供它的最低一层，命名为 `*.test-support.ts(x)`。
 - Rust 生产代码不用 `unwrap`、`expect`、`panic!`、`unreachable!`、`todo!`、`unimplemented!`（Clippy 拦截）；确属不变量的用 `#[expect(lint, reason = "…")]`，不用 `#[allow]`。
-- 错误码一律三段 `<所属>.<领域>.<名称>`；迁移 SQL 发布后不改，结构变化只新增迁移。
+- 错误码一律三段 `<所属>.<领域>.<名称>`（[IPC](docs/ipc.md#错误与翻译)）；迁移 SQL 发布后不改，结构变化只新增迁移（[数据](docs/data.md#数据库与迁移)）。
 - 验证默认只跑与改动相关的定向测试和 `pnpm check`；全量测试只在维护者要求时运行。
 - 每轮完成后按改动风险检查结构、import、格式与受影响行为，如实记录验证结果与限制，不以文件存在代替功能完成。

@@ -27,7 +27,7 @@ test("split 选择器切换分节并与侧栏使用相同目录", async () => {
   const selector = await screen.findByRole("combobox", { name: "设置" });
   fireEvent.click(selector);
   fireEvent.click(screen.getByRole("option", { name: "关于" }));
-  await screen.findByText("0.1.0-test");
+  await screen.findByText("0.1.0-alpha.1");
   expect(router.state.location.pathname).toBe("/settings/about");
   expect(
     within(screen.getByRole("navigation", { name: "设置" }))
