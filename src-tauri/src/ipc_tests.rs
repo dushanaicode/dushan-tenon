@@ -12,6 +12,7 @@ use tenon_framework::{actor::Actor, id::Id, ipc::IpcContext};
 
 mod file_data;
 mod window_controls;
+mod workbench;
 
 fn with_host(
     name: &str,

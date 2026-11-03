@@ -1,4 +1,4 @@
-//! Console 工作台布局、身份隔离与 revision 持久化；不保存业务正文。
+//! 工作台对象、辅助面板与 Console 几何的身份隔离和 revision 持久化；不保存业务正文。
 use std::{
     fs,
     io::{Read, Write},
@@ -26,6 +26,7 @@ pub const PRIMARY_MAX: u16 = 360;
 pub const PRIMARY_COLLAPSED: u16 = 64;
 pub const AUXILIARY_MIN: u16 = 240;
 pub const AUXILIARY_MAX: u16 = 480;
+pub const MAX_OBJECTS: usize = 16;
 const MAX_BYTES: u64 = 16 * 1024;
 const DEFAULT_WORKSPACE: &str = "default";
 
@@ -70,7 +71,6 @@ impl AuxiliaryLayout {
 pub struct WorkbenchLayout {
     pub primary_width: u16,
     pub primary_collapsed: bool,
-    pub auxiliary: AuxiliaryLayout,
 }
 
 impl Default for WorkbenchLayout {
@@ -78,7 +78,6 @@ impl Default for WorkbenchLayout {
         Self {
             primary_width: 224,
             primary_collapsed: false,
-            auxiliary: AuxiliaryLayout::default(),
         }
     }
 }
@@ -88,8 +87,21 @@ impl WorkbenchLayout {
         if !(PRIMARY_MIN..=PRIMARY_MAX).contains(&self.primary_width) {
             return Err(AppError::new(INVALID));
         }
-        self.auxiliary.validate()
+        Ok(())
     }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize, TS)]
+#[serde(rename_all = "lowercase")]
+pub enum WorkbenchObjectKind {
+    Job,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct WorkbenchObject {
+    pub kind: WorkbenchObjectKind,
+    pub id: Id,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize, TS)]
@@ -105,6 +117,11 @@ pub struct WorkbenchSnapshot {
     pub revision: u32,
     pub workspace_id: String,
     pub layouts: WorkbenchLayouts,
+    pub objects: Vec<WorkbenchObject>,
+    #[serde(with = "Option")]
+    #[ts(as = "Option<WorkbenchObject>")]
+    pub active_object: Option<WorkbenchObject>,
+    pub auxiliary: AuxiliaryLayout,
 }
 
 impl Default for WorkbenchSnapshot {
@@ -114,21 +131,48 @@ impl Default for WorkbenchSnapshot {
             revision: 0,
             workspace_id: DEFAULT_WORKSPACE.into(),
             layouts: WorkbenchLayouts::default(),
+            objects: Vec::new(),
+            active_object: None,
+            auxiliary: AuxiliaryLayout::default(),
         }
     }
 }
 
-#[derive(Debug, Deserialize, TS)]
-#[serde(rename_all = "kebab-case")]
-pub enum WorkbenchChangeKind {
-    SetLayout,
+impl WorkbenchSnapshot {
+    fn validate(&self) -> Result<(), AppError> {
+        if self.objects.len() > MAX_OBJECTS
+            || self
+                .objects
+                .iter()
+                .enumerate()
+                .any(|(index, object)| self.objects[..index].contains(object))
+            || self
+                .active_object
+                .as_ref()
+                .is_some_and(|object| !self.objects.contains(object))
+        {
+            return Err(AppError::new(INVALID));
+        }
+        self.layouts.console.validate()?;
+        self.auxiliary.validate()
+    }
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct WorkbenchChange {
-    pub kind: WorkbenchChangeKind,
-    pub layout: WorkbenchLayoutChange,
+#[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
+pub enum WorkbenchChange {
+    SetLayout {
+        layout: WorkbenchLayoutChange,
+    },
+    SetObjects {
+        objects: Vec<WorkbenchObject>,
+        #[serde(rename = "activeObject", with = "Option")]
+        #[ts(as = "Option<WorkbenchObject>")]
+        active_object: Option<WorkbenchObject>,
+    },
+    SetAuxiliary {
+        auxiliary: AuxiliaryLayout,
+    },
 }
 
 #[derive(Debug, Deserialize, TS)]
@@ -137,8 +181,8 @@ pub enum WorkbenchLayoutChange {
     Console(WorkbenchLayout),
 }
 
-enum LayoutAction {
-    Set(WorkbenchLayoutChange),
+enum WorkbenchAction {
+    Change(WorkbenchChange),
     Reset,
 }
 
@@ -203,7 +247,7 @@ impl WorkbenchStore {
         if snapshot.workspace_id != workspace {
             return Err(AppError::new(INVALID));
         }
-        snapshot.layouts.console.validate()?;
+        snapshot.validate()?;
         Ok(snapshot)
     }
 
@@ -212,7 +256,7 @@ impl WorkbenchStore {
         subject: Id,
         workspace: &str,
         expected_revision: u32,
-        action: LayoutAction,
+        action: WorkbenchAction,
     ) -> Result<WorkbenchSnapshot, AppError> {
         let _lock = self
             .write_lock
@@ -225,12 +269,29 @@ impl WorkbenchStore {
             );
         }
         match action {
-            LayoutAction::Set(WorkbenchLayoutChange::Console(console)) => {
-                console.validate()?;
+            WorkbenchAction::Change(WorkbenchChange::SetLayout {
+                layout: WorkbenchLayoutChange::Console(console),
+            }) => {
                 snapshot.layouts.console = console;
             }
-            LayoutAction::Reset => snapshot.layouts = WorkbenchLayouts::default(),
+            WorkbenchAction::Change(WorkbenchChange::SetObjects {
+                objects,
+                active_object,
+            }) => {
+                snapshot.objects = objects;
+                snapshot.active_object = active_object;
+            }
+            WorkbenchAction::Change(WorkbenchChange::SetAuxiliary { auxiliary }) => {
+                snapshot.auxiliary = auxiliary;
+            }
+            WorkbenchAction::Reset => {
+                snapshot.layouts = WorkbenchLayouts::default();
+                snapshot.objects.clear();
+                snapshot.active_object = None;
+                snapshot.auxiliary = AuxiliaryLayout::default();
+            }
         }
+        snapshot.validate()?;
         snapshot.revision = snapshot
             .revision
             .checked_add(1)
@@ -272,15 +333,11 @@ impl WorkbenchStore {
         subject: Id,
         input: WorkbenchUpdate,
     ) -> Result<WorkbenchSnapshot, AppError> {
-        let WorkbenchChange {
-            kind: WorkbenchChangeKind::SetLayout,
-            layout,
-        } = input.change;
         self.write(
             subject,
             DEFAULT_WORKSPACE,
             input.expected_revision,
-            LayoutAction::Set(layout),
+            WorkbenchAction::Change(input.change),
         )
     }
 
@@ -293,7 +350,7 @@ impl WorkbenchStore {
             subject,
             DEFAULT_WORKSPACE,
             input.expected_revision,
-            LayoutAction::Reset,
+            WorkbenchAction::Reset,
         )
     }
 }
@@ -309,16 +366,33 @@ mod tests {
         let store = Arc::new(store);
         let subject = Id::new();
         let barrier = Arc::new(Barrier::new(2));
-        let handles: Vec<_> = (0..2)
-            .map(|_| {
+        let changes = [
+            WorkbenchChange::SetObjects {
+                objects: vec![WorkbenchObject {
+                    kind: WorkbenchObjectKind::Job,
+                    id: Id::new(),
+                }],
+                active_object: None,
+            },
+            WorkbenchChange::SetAuxiliary {
+                auxiliary: AuxiliaryLayout {
+                    visible: true,
+                    ..Default::default()
+                },
+            },
+        ];
+        let handles: Vec<_> = changes
+            .into_iter()
+            .map(|change| {
                 let store = store.clone();
                 let barrier = barrier.clone();
                 std::thread::spawn(move || {
                     barrier.wait();
-                    store.reset_layout(
+                    store.update(
                         subject,
-                        WorkbenchResetLayout {
+                        WorkbenchUpdate {
                             expected_revision: 0,
+                            change,
                         },
                     )
                 })
@@ -398,8 +472,7 @@ mod tests {
                 subject,
                 WorkbenchUpdate {
                     expected_revision: 0,
-                    change: WorkbenchChange {
-                        kind: WorkbenchChangeKind::SetLayout,
+                    change: WorkbenchChange::SetLayout {
                         layout: WorkbenchLayoutChange::Console(WorkbenchLayout {
                             primary_width: 300,
                             ..Default::default()
@@ -449,7 +522,7 @@ mod tests {
         assert_eq!(fs::read_dir(destination).unwrap().count(), 0);
     }
 
-    fn store() -> (tempfile::TempDir, WorkbenchStore) {
+    pub(super) fn store() -> (tempfile::TempDir, WorkbenchStore) {
         let root = tempfile::Builder::new()
             .prefix("workbench-")
             .tempdir_in(std::env::temp_dir())
@@ -466,14 +539,15 @@ mod tests {
         let layout = WorkbenchLayout {
             primary_width: 300,
             primary_collapsed: true,
-            auxiliary: AuxiliaryLayout::default(),
         };
         store
             .write(
                 first,
                 "../../one",
                 0,
-                LayoutAction::Set(WorkbenchLayoutChange::Console(layout.clone())),
+                WorkbenchAction::Change(WorkbenchChange::SetLayout {
+                    layout: WorkbenchLayoutChange::Console(layout.clone()),
+                }),
             )
             .unwrap();
         assert_eq!(
@@ -496,18 +570,19 @@ mod tests {
         let (_root, store) = store();
         let subject = Id::new();
         let saved = store
-            .write(subject, "default", 0, LayoutAction::Reset)
+            .write(subject, "default", 0, WorkbenchAction::Reset)
             .unwrap();
         let error = store
             .write(
                 subject,
                 "default",
                 0,
-                LayoutAction::Set(WorkbenchLayoutChange::Console(WorkbenchLayout {
-                    primary_width: 300,
-                    primary_collapsed: false,
-                    auxiliary: AuxiliaryLayout::default(),
-                })),
+                WorkbenchAction::Change(WorkbenchChange::SetLayout {
+                    layout: WorkbenchLayoutChange::Console(WorkbenchLayout {
+                        primary_width: 300,
+                        primary_collapsed: false,
+                    }),
+                }),
             )
             .unwrap_err();
         assert_eq!(error.code(), CONFLICT);
@@ -525,11 +600,12 @@ mod tests {
                         subject,
                         "default",
                         0,
-                        LayoutAction::Set(WorkbenchLayoutChange::Console(WorkbenchLayout {
-                            primary_width: width,
-                            primary_collapsed: false,
-                            auxiliary: AuxiliaryLayout::default(),
-                        }))
+                        WorkbenchAction::Change(WorkbenchChange::SetLayout {
+                            layout: WorkbenchLayoutChange::Console(WorkbenchLayout {
+                                primary_width: width,
+                                primary_collapsed: false,
+                            }),
+                        })
                     )
                     .unwrap_err()
                     .code(),
@@ -538,14 +614,14 @@ mod tests {
         }
         assert!(!store.root.exists());
         let saved = store
-            .write(subject, "default", 0, LayoutAction::Reset)
+            .write(subject, "default", 0, WorkbenchAction::Reset)
             .unwrap();
         let path = store.path(subject, "default");
         fs::write(&path, "broken").unwrap();
         assert_eq!(store.read(subject, "default").unwrap_err().code(), INVALID);
         assert_eq!(
             store
-                .write(subject, "default", 1, LayoutAction::Reset)
+                .write(subject, "default", 1, WorkbenchAction::Reset)
                 .unwrap_err()
                 .code(),
             INVALID
@@ -567,21 +643,22 @@ mod tests {
         let console = WorkbenchLayout {
             primary_width: 300,
             primary_collapsed: true,
-            auxiliary: AuxiliaryLayout::default(),
         };
         store
             .write(
                 subject,
                 "default",
                 0,
-                LayoutAction::Set(WorkbenchLayoutChange::Console(console.clone())),
+                WorkbenchAction::Change(WorkbenchChange::SetLayout {
+                    layout: WorkbenchLayoutChange::Console(console.clone()),
+                }),
             )
             .unwrap();
         let saved = store.read(subject, "default").unwrap();
         assert_eq!(saved.schema_version, 1);
         assert_eq!(saved.layouts.console, console);
         let reset = store
-            .write(subject, "default", 1, LayoutAction::Reset)
+            .write(subject, "default", 1, WorkbenchAction::Reset)
             .unwrap();
         assert_eq!(reset.revision, 2);
         assert_eq!(reset.layouts, WorkbenchLayouts::default());
@@ -604,7 +681,7 @@ mod tests {
         let (_root, store) = store();
         let subject = Id::new();
         let saved = store
-            .write(subject, "default", 0, LayoutAction::Reset)
+            .write(subject, "default", 0, WorkbenchAction::Reset)
             .unwrap();
         let path = store.path(subject, "default");
         let mut old = serde_json::to_value(&saved).unwrap();
@@ -614,7 +691,7 @@ mod tests {
         assert_eq!(store.read(subject, "default").unwrap_err().code(), INVALID);
         assert_eq!(
             store
-                .write(subject, "default", 1, LayoutAction::Reset)
+                .write(subject, "default", 1, WorkbenchAction::Reset)
                 .unwrap_err()
                 .code(),
             INVALID
@@ -629,7 +706,7 @@ mod tests {
     }
 
     #[test]
-    fn auxiliary_slots_validate_persist_and_reset() {
+    fn auxiliary_state_validates_persists_and_resets() {
         let (_root, store) = store();
         let subject = Id::new();
         let auxiliary = AuxiliaryLayout {
@@ -637,32 +714,32 @@ mod tests {
             visible: true,
             panel: Some("downstream-panel-1".into()),
         };
-        let console = WorkbenchLayout {
-            auxiliary: auxiliary.clone(),
-            ..WorkbenchLayout::default()
-        };
         let first = store
             .write(
                 subject,
                 DEFAULT_WORKSPACE,
                 0,
-                LayoutAction::Set(WorkbenchLayoutChange::Console(console.clone())),
+                WorkbenchAction::Change(WorkbenchChange::SetAuxiliary {
+                    auxiliary: auxiliary.clone(),
+                }),
             )
             .unwrap();
-        assert_eq!(first.layouts.console, console);
+        assert_eq!(first.auxiliary, auxiliary);
+        assert_eq!(first.layouts, WorkbenchLayouts::default());
         assert_eq!(store.read(subject, DEFAULT_WORKSPACE).unwrap(), first);
         assert_eq!(
             store.read(Id::new(), DEFAULT_WORKSPACE).unwrap(),
             WorkbenchSnapshot::default()
         );
         assert_eq!(
-            store.read(subject, "another").unwrap().layouts,
-            WorkbenchLayouts::default()
+            store.read(subject, "another").unwrap().auxiliary,
+            AuxiliaryLayout::default()
         );
         let reset = store
-            .write(subject, DEFAULT_WORKSPACE, 1, LayoutAction::Reset)
+            .write(subject, DEFAULT_WORKSPACE, 1, WorkbenchAction::Reset)
             .unwrap();
         assert_eq!(reset.layouts, WorkbenchLayouts::default());
+        assert_eq!(reset.auxiliary, AuxiliaryLayout::default());
     }
 
     #[test]
@@ -670,7 +747,7 @@ mod tests {
         let (_root, store) = store();
         let subject = Id::new();
         let saved = store
-            .write(subject, DEFAULT_WORKSPACE, 0, LayoutAction::Reset)
+            .write(subject, DEFAULT_WORKSPACE, 0, WorkbenchAction::Reset)
             .unwrap();
         let path = store.path(subject, DEFAULT_WORKSPACE);
         let original = fs::read(&path).unwrap();
@@ -688,13 +765,15 @@ mod tests {
             });
         }
         for auxiliary in invalid {
-            let change = WorkbenchLayoutChange::Console(WorkbenchLayout {
-                auxiliary,
-                ..WorkbenchLayout::default()
-            });
+            let change = WorkbenchChange::SetAuxiliary { auxiliary };
             assert_eq!(
                 store
-                    .write(subject, DEFAULT_WORKSPACE, 1, LayoutAction::Set(change))
+                    .write(
+                        subject,
+                        DEFAULT_WORKSPACE,
+                        1,
+                        WorkbenchAction::Change(change)
+                    )
                     .unwrap_err()
                     .code(),
                 INVALID
@@ -704,9 +783,9 @@ mod tests {
         for field in ["auxiliary", "width", "visible", "panel"] {
             let mut old = serde_json::to_value(&saved).unwrap();
             let target = if field == "auxiliary" {
-                &mut old["layouts"]["console"]
+                &mut old
             } else {
-                &mut old["layouts"]["console"]["auxiliary"]
+                &mut old["auxiliary"]
             };
             target.as_object_mut().unwrap().remove(field);
             let bytes = serde_json::to_vec(&old).unwrap();
@@ -717,7 +796,7 @@ mod tests {
             );
             assert_eq!(
                 store
-                    .write(subject, DEFAULT_WORKSPACE, 1, LayoutAction::Reset)
+                    .write(subject, DEFAULT_WORKSPACE, 1, WorkbenchAction::Reset)
                     .unwrap_err()
                     .code(),
                 INVALID
@@ -737,3 +816,6 @@ mod tests {
         assert!(serde_json::from_value::<AuxiliaryLayout>(unknown).is_err());
     }
 }
+
+#[cfg(test)]
+mod objects_tests;

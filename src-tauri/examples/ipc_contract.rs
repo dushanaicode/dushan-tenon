@@ -365,6 +365,7 @@ fn write_appearance(output: &Path) -> Result<(), Box<dyn Error>> {
         "workbench.ts",
         &[
             ("WORKBENCH_DEFAULTS", json!(WorkbenchSnapshot::default())),
+            ("MAX_OBJECTS", json!(workbench::MAX_OBJECTS)),
             (
                 "CONSOLE_LAYOUT_LIMITS",
                 json!({"min":workbench::PRIMARY_MIN,"max":workbench::PRIMARY_MAX,"collapsed":workbench::PRIMARY_COLLAPSED}),
@@ -386,6 +387,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("只接受一个输出目录参数".into());
     }
     fs::create_dir_all(&output)?;
+    // 输出目录由生成器独占，移除不再被 Rust 合同引用的旧文件。
+    for entry in fs::read_dir(&output)? {
+        let path = entry?.path();
+        if path.extension().is_some_and(|extension| extension == "ts") {
+            fs::remove_file(path)?;
+        }
+    }
     let config = Config::default().with_out_dir(&output);
     write_commands(&output, &config)?;
     DictTone::export_all(&config)?;
@@ -399,5 +407,24 @@ fn main() -> Result<(), Box<dyn Error>> {
     write_metadata(&output)?;
     write_dictionaries_and_params(&output)?;
     write_appearance(&output)?;
+    write_constants(
+        &output,
+        "ai-limits.ts",
+        &[
+            (
+                "MAX_MESSAGES",
+                serde_json::json!(tenon_module_ai::MAX_MESSAGES),
+            ),
+            (
+                "MAX_PARTS_PER_MESSAGE",
+                serde_json::json!(tenon_module_ai::MAX_PARTS_PER_MESSAGE),
+            ),
+            (
+                "MAX_REQUEST_BYTES",
+                serde_json::json!(tenon_module_ai::MAX_REQUEST_BYTES),
+            ),
+        ],
+        "",
+    )?;
     Ok(())
 }

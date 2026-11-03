@@ -126,9 +126,12 @@ pub const DECLARATION: ModuleDeclaration = ModuleDeclaration {
 };
 
 const MAX_ACTIVE_REQUESTS: usize = 2;
-const MAX_MESSAGES: usize = 128;
-const MAX_PARTS_PER_MESSAGE: usize = 64;
-const MAX_REQUEST_BYTES: usize = 1_048_576;
+/// 单次聊天请求的消息数量上限。
+pub const MAX_MESSAGES: usize = 128;
+/// 单条消息的内容分片数量上限。
+pub const MAX_PARTS_PER_MESSAGE: usize = 64;
+/// 单次聊天请求的文本及序列化请求体字节数上限。
+pub const MAX_REQUEST_BYTES: usize = 1_048_576;
 const MAX_RESPONSE_BYTES: usize = 8_388_608;
 const MAX_SSE_EVENT_BYTES: usize = 262_144;
 const MAX_SSE_LINE_BYTES: usize = 262_144;
