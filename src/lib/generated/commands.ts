@@ -1,7 +1,8 @@
 // 自动生成，勿手改。运行 pnpm generate 更新。
 
-import type { Channel } from "@tauri-apps/api/core";
-import { invoke } from "@tauri-apps/api/core";
+import type { Channel } from "../ipc/invoke";
+import { invoke } from "../ipc/invoke";
+import type { StreamChannel } from "../ipc/stream";
 import type { AiCancelInput } from "./AiCancelInput";
 import type { AiChatInput } from "./AiChatInput";
 import type { AiConnectionTest } from "./AiConnectionTest";
@@ -10,15 +11,19 @@ import type { AppAbout } from "./AppAbout";
 import type { AppModules } from "./AppModules";
 import type { AppSettings } from "./AppSettings";
 import type { AppSettingsUpdate } from "./AppSettingsUpdate";
+import type { ArchiveOperationInput } from "./ArchiveOperationInput";
 import type { AuthStatus } from "./AuthStatus";
 import type { CaptchaChallenge } from "./CaptchaChallenge";
 import type { CurrentUser } from "./CurrentUser";
+import type { DataStatus } from "./DataStatus";
 import type { DemoAttachmentAdd } from "./DemoAttachmentAdd";
 import type { DemoAttachmentSave } from "./DemoAttachmentSave";
 import type { DemoDraftLease } from "./DemoDraftLease";
 import type { DemoDraftOpen } from "./DemoDraftOpen";
 import type { DemoDraftSaved } from "./DemoDraftSaved";
 import type { DemoDraftWrite } from "./DemoDraftWrite";
+import type { DemoExportInput } from "./DemoExportInput";
+import type { DemoImportInput } from "./DemoImportInput";
 import type { DemoListInput } from "./DemoListInput";
 import type { DemoMeasureInput } from "./DemoMeasureInput";
 import type { DemoOverview } from "./DemoOverview";
@@ -28,10 +33,18 @@ import type { DemoSampleDraft } from "./DemoSampleDraft";
 import type { DemoSampleId } from "./DemoSampleId";
 import type { DemoSampleUpdate } from "./DemoSampleUpdate";
 import type { DemoSampleVersion } from "./DemoSampleVersion";
+import type { DiagnosticExportInput } from "./DiagnosticExportInput";
 import type { FileAddInput } from "./FileAddInput";
+import type { FileArtifact } from "./FileArtifact";
 import type { FileDelete } from "./FileDelete";
 import type { FileId } from "./FileId";
+import type { FileIngressClaim } from "./FileIngressClaim";
+import type { FileIngressDismiss } from "./FileIngressDismiss";
+import type { FileIngressId } from "./FileIngressId";
+import type { FileIngressSnapshot } from "./FileIngressSnapshot";
 import type { FileListInput } from "./FileListInput";
+import type { FilePicked } from "./FilePicked";
+import type { FilePickInput } from "./FilePickInput";
 import type { FilePreview } from "./FilePreview";
 import type { FilePurposes } from "./FilePurposes";
 import type { FileSaveInput } from "./FileSaveInput";
@@ -59,6 +72,7 @@ import type { NotificationReadInput } from "./NotificationReadInput";
 import type { NotifyTestResult } from "./NotifyTestResult";
 import type { OpenKnownTargetInput } from "./OpenKnownTargetInput";
 import type { OperationCancelInput } from "./OperationCancelInput";
+import type { OperationProgress } from "./OperationProgress";
 import type { Page } from "./Page";
 import type { ParamEntry } from "./ParamEntry";
 import type { PasswordInput } from "./PasswordInput";
@@ -68,13 +82,15 @@ import type { RecoverInput } from "./RecoverInput";
 import type { RecoverResult } from "./RecoverResult";
 import type { RecoveryCodes } from "./RecoveryCodes";
 import type { RecoveryRemaining } from "./RecoveryRemaining";
+import type { RestoreAccepted } from "./RestoreAccepted";
+import type { RestoreCommitInput } from "./RestoreCommitInput";
+import type { RestorePlan } from "./RestorePlan";
 import type { ScheduleId } from "./ScheduleId";
 import type { ScheduleSnapshot } from "./ScheduleSnapshot";
 import type { SettingListInput } from "./SettingListInput";
 import type { SettingResetInput } from "./SettingResetInput";
 import type { SettingSetInput } from "./SettingSetInput";
 import type { StreamCancel } from "./StreamCancel";
-import type { StreamEvent } from "./StreamEvent";
 import type { UserPasswordChange } from "./UserPasswordChange";
 import type { UserProfileUpdate } from "./UserProfileUpdate";
 import type { WindowCloseDecision } from "./WindowCloseDecision";
@@ -125,6 +141,18 @@ export function demoSampleUpdate(input: DemoSampleUpdate): Promise<DemoSample> {
 
 export function demoSampleDelete(input: DemoSampleVersion): Promise<null> {
   return invoke<null>("demo_sample_delete", { input });
+}
+
+export function demoSampleExport(
+  input: DemoExportInput,
+): Promise<JobSubmitted> {
+  return invoke<JobSubmitted>("demo_sample_export", { input });
+}
+
+export function demoSampleImport(
+  input: DemoImportInput,
+): Promise<JobSubmitted> {
+  return invoke<JobSubmitted>("demo_sample_import", { input });
 }
 
 export function demoMeasureStart(
@@ -213,7 +241,7 @@ export function appWindowStateReset(): Promise<NativeSettings> {
 
 export function aiChatStream(
   input: AiChatInput,
-  channel: Channel<StreamEvent<AiStreamData>>,
+  channel: StreamChannel<AiStreamData>,
 ): Promise<null> {
   return invoke<null>("ai_chat_stream", { input, channel });
 }
@@ -282,7 +310,7 @@ export function appJobMineGet(input: JobId): Promise<JobSnapshot> {
 
 export function appJobMineWatch(
   input: JobId,
-  channel: Channel<StreamEvent<JobEvent>>,
+  channel: StreamChannel<JobEvent>,
 ): Promise<null> {
   return invoke<null>("app_job_mine_watch", { input, channel });
 }
@@ -293,6 +321,60 @@ export function appJobMineCancel(input: JobId): Promise<null> {
 
 export function appAboutGet(): Promise<AppAbout> {
   return invoke<AppAbout>("app_about_get");
+}
+
+export function appFilePick(input: FilePickInput): Promise<FilePicked | null> {
+  return invoke<FilePicked | null>("app_file_pick", { input });
+}
+
+export function appFileIngressList(): Promise<FileIngressSnapshot> {
+  return invoke<FileIngressSnapshot>("app_file_ingress_list");
+}
+
+export function appFileIngressClaim(
+  input: FileIngressClaim,
+): Promise<FilePicked> {
+  return invoke<FilePicked>("app_file_ingress_claim", { input });
+}
+
+export function appFileIngressDismiss(
+  input: FileIngressDismiss,
+): Promise<null> {
+  return invoke<null>("app_file_ingress_dismiss", { input });
+}
+
+export function appFileRecentOpen(input: FileIngressId): Promise<null> {
+  return invoke<null>("app_file_recent_open", { input });
+}
+
+export function appDataStatus(): Promise<DataStatus> {
+  return invoke<DataStatus>("app_data_status");
+}
+
+export function appBackupExport(
+  input: ArchiveOperationInput,
+  channel: StreamChannel<OperationProgress>,
+): Promise<FileArtifact> {
+  return invoke<FileArtifact>("app_backup_export", { input, channel });
+}
+
+export function appBackupPrepareRestore(
+  input: ArchiveOperationInput,
+  channel: StreamChannel<OperationProgress>,
+): Promise<RestorePlan> {
+  return invoke<RestorePlan>("app_backup_prepare_restore", { input, channel });
+}
+
+export function appBackupRestore(
+  input: RestoreCommitInput,
+): Promise<RestoreAccepted> {
+  return invoke<RestoreAccepted>("app_backup_restore", { input });
+}
+
+export function appDiagnosticsExport(
+  input: DiagnosticExportInput,
+): Promise<FileArtifact> {
+  return invoke<FileArtifact>("app_diagnostics_export", { input });
 }
 
 export function appNetworkSettingsGet(): Promise<NetworkSettings> {
@@ -361,7 +443,7 @@ export function devtoolsJobGet(input: JobId): Promise<JobDetail> {
 
 export function devtoolsJobWatch(
   input: JobId,
-  channel: Channel<StreamEvent<JobEvent>>,
+  channel: StreamChannel<JobEvent>,
 ): Promise<null> {
   return invoke<null>("devtools_job_watch", { input, channel });
 }

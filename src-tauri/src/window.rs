@@ -15,6 +15,7 @@ use tenon_desktop::{
 use tenon_framework::error::{AppError, INTERNAL_UNEXPECTED};
 
 use crate::{boot::internal, lifecycle::Lifecycle, ports, state::AppState};
+use clap::Parser;
 
 const REVEAL_DEADLINE: Duration = Duration::from_secs(10);
 
@@ -98,17 +99,21 @@ pub(crate) fn setup_window<R: Runtime>(
         "tauri://localhost".into()
     };
     let script = initialization_script(&settings, &origin, &lifecycle.notice_json()?)?;
-    let config = app
+    let mut config = app
         .config()
         .app
         .windows
         .iter()
         .find(|window| window.label == "main")
-        .ok_or_else(|| AppError::new(INTERNAL_UNEXPECTED))?;
+        .ok_or_else(|| AppError::new(INTERNAL_UNEXPECTED))?
+        .clone();
+    if state.safe_mode {
+        config.url = tauri::WebviewUrl::App("index.html?recovery=basic".into());
+    }
     let reveal = Arc::new(WindowReveal::default());
     let loaded_reveal = reveal.clone();
     let loaded_lifecycle = lifecycle.clone();
-    let builder = WebviewWindowBuilder::from_config(app, config)
+    let builder = WebviewWindowBuilder::from_config(app, &config)
         .map_err(internal)?
         .decorations(cfg!(target_os = "macos") || settings.titlebar.value == Titlebar::Native)
         .visible(false)
@@ -185,12 +190,42 @@ pub(crate) fn secondary_launch<R: Runtime>(
     cwd: String,
     lifecycle: &Lifecycle,
 ) {
+    if lifecycle.gate.is_closing() {
+        return;
+    }
     match secondary_root(&args, &cwd) {
-        Ok(root) => match lifecycle.window.request_show(root) {
-            Ok(true) => show_main(app),
-            Ok(false) => {}
-            Err(error) => tracing::warn!(code = %error.code(), "忽略二次启动"),
-        },
+        Ok(root) => {
+            if let Some(state) = app.try_state::<AppState>()
+                && let Some(requested) = &root
+            {
+                match state.state_root.canonicalize() {
+                    Ok(current) if requested != &current => return,
+                    Ok(_) => {}
+                    Err(_) => {
+                        tracing::warn!(reason_code = "state_root_unavailable", "忽略二次启动");
+                        return;
+                    }
+                }
+            }
+            let show = lifecycle.window.request_show(root.clone());
+            match crate::boot::Options::try_parse_from(args) {
+                Ok(request) => crate::file_ingress::enqueue_arguments(
+                    app,
+                    lifecycle,
+                    &request.open,
+                    std::path::Path::new(&cwd),
+                    root,
+                ),
+                Err(_) => {
+                    tracing::warn!(reason_code = "invalid_open_arguments", "忽略文件打开请求")
+                }
+            }
+            match show {
+                Ok(true) => show_main(app),
+                Ok(false) => {}
+                Err(error) => tracing::warn!(code = %error.code(), "忽略二次启动"),
+            }
+        }
         Err(reason_code) => tracing::warn!(reason_code, "忽略二次启动"),
     }
 }

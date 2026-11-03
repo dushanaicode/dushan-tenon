@@ -8,6 +8,7 @@ const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const rules = [
   "layer-unassigned",
   "layer-import",
+  "tauri-api-boundary",
   "global-bridge",
   "dom-query",
   "stale-allowlist",
@@ -128,6 +129,26 @@ export function scanFrontend(files, identity, allowlist = domAllowlist) {
           : "js";
     const ast = parseAst(text, { lang });
     walkAst(ast, (node) => {
+      if (
+        [
+          "ImportDeclaration",
+          "ExportNamedDeclaration",
+          "ExportAllDeclaration",
+          "ImportExpression",
+          "TSImportType",
+        ].includes(node.type) &&
+        node.source?.type === "Literal" &&
+        typeof node.source.value === "string" &&
+        (node.source.value === "@tauri-apps/api" ||
+          node.source.value.startsWith("@tauri-apps/api/")) &&
+        !path.startsWith("src/lib/ipc/")
+      ) {
+        report(
+          "tauri-api-boundary",
+          node.start,
+          `只有 src/lib/ipc/** 可以导入 Tauri API：${node.source.value}`,
+        );
+      }
       if (
         [
           "ImportDeclaration",

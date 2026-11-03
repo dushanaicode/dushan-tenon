@@ -50,7 +50,7 @@ fn import_type<T: TS + 'static>(
 macro_rules! command_input {
     ($config:ident, $imports:ident; $event:ty) => {{
         let event_type = import_type::<$event>($config, &mut $imports)?;
-        $imports.insert("import type { Channel } from '@tauri-apps/api/core';\n".into());
+        $imports.insert("import type { Channel } from '../ipc/invoke';\n".into());
         (
             format!("onEvent: Channel<{event_type}>"),
             ", { onEvent }".to_owned(),
@@ -60,10 +60,9 @@ macro_rules! command_input {
         let (parameter, _) = command_input!($config, $imports, $input);
         let event_type = import_type::<$event>($config, &mut $imports)?;
         tenon_framework::stream::StreamEvent::<$event>::export_all($config)?;
-        $imports.insert("import type { Channel } from '@tauri-apps/api/core';\n".into());
-        $imports.insert("import type { StreamEvent } from './StreamEvent';\n".into());
+        $imports.insert("import type { StreamChannel } from '../ipc/stream';\n".into());
         (
-            format!("{parameter}, channel: Channel<StreamEvent<{event_type}>>"),
+            format!("{parameter}, channel: StreamChannel<{event_type}>"),
             ", { input, channel }".to_owned(),
         )
     }};
@@ -97,7 +96,7 @@ macro_rules! app_commands {
                 ));
             )*
             let imports = imports.into_iter().collect::<String>();
-            fs::write(output.join("commands.ts"), format!("{HEADER}import {{ invoke }} from '@tauri-apps/api/core';\n{imports}{functions}"))?;
+            fs::write(output.join("commands.ts"), format!("{HEADER}import {{ invoke }} from '../ipc/invoke';\n{imports}{functions}"))?;
             Ok(())
         }
     };
@@ -219,7 +218,9 @@ fn write_metadata(output: &Path) -> Result<(), Box<dyn Error>> {
         .chain(DECLARATIONS.iter().flat_map(|d| d.error_codes))
         .map(|c| c.as_str())
         .collect();
-    use tenon_desktop::{config, keyboard, native, network, picked_files, workbench};
+    use tenon_desktop::{
+        config, diagnostics, file_ingress, keyboard, native, network, picked_files, workbench,
+    };
     codes.extend(
         [
             IPC_UNEXPECTED,
@@ -238,6 +239,13 @@ fn write_metadata(output: &Path) -> Result<(), Box<dyn Error>> {
             native::updater::UNCONFIGURED,
             config::SETTINGS_OVERRIDDEN,
             picked_files::FILE_TOKEN_INVALID,
+            file_ingress::INVALID,
+            file_ingress::LIMIT,
+            file_ingress::UNAVAILABLE,
+            file_ingress::RECENT_INVALID,
+            file_ingress::IO_FAILED,
+            diagnostics::NEEDS_PROBE,
+            diagnostics::EXPORT_FAILED,
             network::COMPENSATION_FAILED,
             keyboard::INVALID,
             keyboard::UNSUPPORTED,

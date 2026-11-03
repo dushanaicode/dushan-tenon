@@ -4,11 +4,11 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tenon_desktop::picked_files::{FilePurpose, PickedFileStore};
 use tenon_framework::{
-    actor::Actor,
+    actor::{Actor, ExecutionContext},
     error::{AppError, INPUT_INVALID, PERMISSION_DENIED},
     exchange::ExchangeFormat,
     i18n::Language,
-    job::{JobContext, JobFuture, JobHandler, PermissionLookup},
+    job::{JobContext, JobFuture, JobHandler, JobSubmitted, PermissionLookup, SubmitJob},
 };
 use tenon_module_account::AccountService;
 use tenon_module_demo::{DemoExportOptions, DemoImportOptions, DemoService};
@@ -17,7 +17,8 @@ use tenon_module_demo::{DemoExportOptions, DemoImportOptions, DemoService};
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ExchangePayload<T> {
     pub handle: String,
-    pub format: ExchangeFormat,
+    // 导出由用户指定格式；导入使用令牌内原文件的格式。
+    pub format: Option<ExchangeFormat>,
     pub options: T,
     pub language: Language,
 }
@@ -96,13 +97,13 @@ impl JobHandler for ExchangeJob {
                     &payload.handle,
                     context.execution.actor,
                     FilePurpose::Import,
-                    Some(payload.format),
+                    payload.format,
                 )?;
                 self.demo
                     .run_import(
                         &context,
                         &file.path,
-                        payload.format,
+                        file.format.ok_or_else(|| AppError::new(INPUT_INVALID))?,
                         &payload.options,
                         payload.language,
                     )
@@ -113,13 +114,13 @@ impl JobHandler for ExchangeJob {
                     &payload.handle,
                     context.execution.actor,
                     FilePurpose::Export,
-                    Some(payload.format),
+                    payload.format,
                 )?;
                 self.demo
                     .run_export(
                         &context,
                         &file.path,
-                        payload.format,
+                        file.format.ok_or_else(|| AppError::new(INPUT_INVALID))?,
                         &payload.options,
                         payload.language,
                     )
@@ -127,6 +128,97 @@ impl JobHandler for ExchangeJob {
             }
         })
     }
+}
+
+pub(crate) async fn export(
+    state: &crate::state::AppState,
+    execution: &ExecutionContext,
+    input: dushan_tenon_lib::contract::DemoExportInput,
+) -> Result<JobSubmitted, AppError> {
+    let options = DemoExportOptions {
+        keyword: input.keyword,
+        stage: input.stage,
+    };
+    let language = state.demo.prepare_export(execution, &options)?;
+    submit(
+        state,
+        execution,
+        &input.file_token,
+        FilePurpose::Export,
+        Some(input.format),
+        options,
+        language,
+    )
+    .await
+}
+
+pub(crate) async fn import(
+    state: &crate::state::AppState,
+    execution: &ExecutionContext,
+    input: dushan_tenon_lib::contract::DemoImportInput,
+) -> Result<JobSubmitted, AppError> {
+    let language = state.demo.prepare_import(execution)?;
+    submit(
+        state,
+        execution,
+        &input.file_token,
+        FilePurpose::Import,
+        None,
+        DemoImportOptions { mode: input.mode },
+        language,
+    )
+    .await
+}
+
+async fn submit<T: Serialize>(
+    state: &crate::state::AppState,
+    execution: &ExecutionContext,
+    token: &str,
+    purpose: FilePurpose,
+    format: Option<ExchangeFormat>,
+    options: T,
+    language: Language,
+) -> Result<JobSubmitted, AppError> {
+    let Actor::User(owner) = execution.actor else {
+        return Err(AppError::new(PERMISSION_DENIED));
+    };
+    state
+        .picked_files
+        .handoff(
+            token,
+            execution.actor,
+            purpose,
+            format,
+            |handle| async move {
+                let payload = ExchangePayload {
+                    handle,
+                    format,
+                    options,
+                    language,
+                };
+                let id = state
+                    .jobs
+                    .submit(
+                        &state.db,
+                        SubmitJob {
+                            kind: if purpose == FilePurpose::Import {
+                                "demo.sample_import"
+                            } else {
+                                "demo.sample_export"
+                            }
+                            .into(),
+                            payload: serde_json::to_value(payload)
+                                .map_err(crate::boot::internal)?,
+                            priority: 0,
+                            run_after: None,
+                            submitted_by: Some(owner),
+                        },
+                    )
+                    .await?;
+                Ok(JobSubmitted { job_id: id })
+            },
+        )
+        .await
 }
 
 fn decode<T: serde::de::DeserializeOwned>(

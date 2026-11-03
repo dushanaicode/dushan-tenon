@@ -7,12 +7,21 @@ pub async fn app_about_get(state: tauri::State<'_, AppState>) -> Result<AppAbout
         state.inner(),
         stringify!(app_about_get),
         |state| async move {
-            let cache_status = match state.cache.ping().await {
-                Ok(()) => CacheStatus::Connected,
-                Err(error) => CacheStatus::Error {
-                    code: error.code().to_string(),
-                },
+            let (cache_status, probe) = match state.cache.ping().await {
+                Ok(()) => (
+                    CacheStatus::Connected,
+                    tenon_desktop::diagnostics::CacheStatus::Connected,
+                ),
+                Err(error) => (
+                    CacheStatus::Error {
+                        code: error.code().to_string(),
+                    },
+                    tenon_desktop::diagnostics::CacheStatus::Error { code: error.code() },
+                ),
             };
+            *state.diagnostics_probe.lock().map_err(|_| {
+                tenon_framework::error::AppError::new(tenon_framework::error::INTERNAL_UNEXPECTED)
+            })? = Some(probe);
             let config = crate::ports::read(&state.config)?;
             Ok(AppAbout {
                 version: env!("CARGO_PKG_VERSION").into(),

@@ -57,6 +57,12 @@ pub(crate) struct Options {
     pub overrides: Vec<String>,
     #[arg(long, hide = true, value_parser = parse_prepared)]
     pub restore_prepared: Option<String>,
+    /// 仅本次使用基础界面，不写回配置。
+    #[arg(long)]
+    pub safe_mode: bool,
+    /// 系统文件、目录或应用 URI；只进入接入队列。
+    #[arg(value_name = "OPEN")]
+    pub open: Vec<String>,
 }
 
 fn parse_prepared(value: &str) -> Result<String, String> {
@@ -96,6 +102,7 @@ struct Configured {
     overrides: Vec<String>,
     ephemeral_webview: bool,
     explicit_root: bool,
+    safe_mode: bool,
     config: SharedConfig,
     log_level: LogLevelHandle,
     instance: InstanceId,
@@ -270,6 +277,7 @@ async fn configure<R: Runtime>(
         overrides: options.overrides,
         ephemeral_webview,
         explicit_root,
+        safe_mode: options.safe_mode,
     })
 }
 
@@ -525,6 +533,8 @@ impl RuntimeReady {
         let identity = extensions.identity();
         AppState {
             native,
+            file_ingress: lifecycle.file_ingress.clone(),
+            diagnostics_probe: Mutex::new(None),
             data: tenon_desktop::data::DataService::new(
                 db.clone(),
                 configured.root.clone(),
@@ -540,6 +550,8 @@ impl RuntimeReady {
             overrides: configured.overrides,
             config: configured.config,
             ephemeral_webview: configured.ephemeral_webview,
+            explicit_root: configured.explicit_root,
+            safe_mode: configured.safe_mode,
             log_level: configured.log_level,
             instance: configured.instance,
             db,

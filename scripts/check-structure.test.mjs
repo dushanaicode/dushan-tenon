@@ -27,6 +27,54 @@ function frontend(path, text, allowlist = []) {
   );
 }
 
+test("tauri-api-boundary: imports and re-exports outside ipc are rejected", () => {
+  for (const source of [
+    'import { invoke } from "@tauri-apps/api/core";',
+    'import type { Channel } from "@tauri-apps/api/core";',
+    'import "@tauri-apps/api";',
+    'const api = import("@tauri-apps/api/window");',
+    'export { Channel } from "@tauri-apps/api/core";',
+    'export type { Channel } from "@tauri-apps/api/core";',
+    'export * from "@tauri-apps/api";',
+    'type Native = import("@tauri-apps/api/core").Channel<string>;',
+  ]) {
+    for (const path of [
+      "src/lib/generated/commands.ts",
+      "src/core/adapter.ts",
+      "src/app/adapter.test.ts",
+      "src/lib/ipc-other/adapter.ts",
+      "src/lib/ipc.ts",
+    ]) {
+      const violations = frontend(path, source);
+      assert.equal(violations.length, 1, `${path}: ${source}`);
+      assert.equal(violations[0].rule, "tauri-api-boundary");
+    }
+  }
+});
+
+test("tauri-api-boundary: ipc and its tests may use all Tauri API imports", () => {
+  const source = [
+    'import { invoke } from "@tauri-apps/api/core";',
+    'import type { Channel } from "@tauri-apps/api/core";',
+    'const api = import("@tauri-apps/api/window");',
+    'type Native = import("@tauri-apps/api/core").Channel<string>;',
+    'export * from "@tauri-apps/api";',
+  ].join("\n");
+  for (const path of [
+    "src/lib/ipc/invoke.ts",
+    "src/lib/ipc/nested/test.test.ts",
+  ]) {
+    assert.deepEqual(frontend(path, source), []);
+  }
+  assert.deepEqual(
+    frontend(
+      "src/app/example.ts",
+      'import "@tauri-apps/api-other"; const label = "@tauri-apps/api/core"; // import("@tauri-apps/api")',
+    ),
+    [],
+  );
+});
+
 const layers = [
   ["lib", "src/lib/file.ts", ["lib"]],
   ["kit", "src/kit/file.ts", ["lib", "kit"]],

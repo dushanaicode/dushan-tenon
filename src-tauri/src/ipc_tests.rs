@@ -10,6 +10,7 @@ use tauri::{
 };
 use tenon_framework::{actor::Actor, id::Id, ipc::IpcContext};
 
+mod file_data;
 mod window_controls;
 
 fn with_host(
@@ -47,6 +48,8 @@ fn with_host_ports(
     .unwrap();
     prepare(&mut running.state);
     let shutdown = running.shutdown;
+    lifecycle.install(shutdown.clone()).unwrap();
+    app.manage(lifecycle.clone());
     app.manage(running.state);
     let window =
         tauri::WebviewWindowBuilder::new(&app, "main", WebviewUrl::App("index.html".into()))
@@ -148,8 +151,21 @@ fn command_access_and_implementations_match_the_three_entry_contracts() {
             "account_auth_logout",
             "account_session_lock",
             "account_session_unlock",
-            "account_session_touch"
+            "account_session_touch",
+            "app_file_pick",
+            "app_file_ingress_list",
+            "app_file_ingress_claim",
+            "app_file_ingress_dismiss",
+            "app_file_recent_open"
         ])
+    );
+    assert_eq!(
+        COMMAND_ADMISSION
+            .iter()
+            .filter(|(_, kind)| *kind == CommandAdmission::Maintenance)
+            .map(|(name, _)| *name)
+            .collect::<Vec<_>>(),
+        ["app_backup_export", "app_backup_restore"]
     );
     for (name, level) in COMMAND_ACCESS {
         let source = fs::read_to_string(
@@ -469,6 +485,36 @@ fn command_permission_denial_precedes_token_consumption() {
                     .take(&token, actor, FilePurpose::Store, None)
                     .is_ok()
             );
+            for (command, purpose, name, extra) in [
+                (
+                    "demo_sample_export",
+                    FilePurpose::Export,
+                    "export.csv",
+                    json!({"format":"csv"}),
+                ),
+                (
+                    "demo_sample_import",
+                    FilePurpose::Import,
+                    "import.csv",
+                    json!({"mode":"error"}),
+                ),
+            ] {
+                let token = state
+                    .picked_files
+                    .insert(actor, purpose, root.join(name), &[])
+                    .unwrap()
+                    .token;
+                let mut input = extra;
+                input["fileToken"] = json!(token);
+                assert_eq!(
+                    invoke(window, command, json!({"input":input})).unwrap_err()["code"],
+                    "app.permission.denied"
+                );
+                state
+                    .picked_files
+                    .take(&token, actor, purpose, None)
+                    .unwrap();
+            }
             assert_eq!(
                 state.required_permissions("ai_service_test"),
                 ["ai.service.manage", "ai.chat.use"]

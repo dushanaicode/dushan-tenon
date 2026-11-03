@@ -19,6 +19,8 @@ pub(crate) struct Lifecycle {
     pub gate: OperationGate,
     pub window: MainWindowIntent,
     pub exit: ExitController,
+    pub file_ingress: Arc<tenon_desktop::file_ingress::FileIngress>,
+    pub recovery_ui: crate::startup_recovery::RecoveryUi,
     recovery: Mutex<StartupRecovery>,
     // 事件循环从启动前就存在，关闭栈仅在全部阶段成功后移交。
     started: Mutex<Option<Arc<Started>>>,
@@ -31,6 +33,8 @@ impl Lifecycle {
         Self {
             window: MainWindowIntent::new(gate.clone()),
             exit: ExitController::new(gate.clone()),
+            file_ingress: Arc::default(),
+            recovery_ui: crate::startup_recovery::RecoveryUi::default(),
             gate,
             recovery: Mutex::new(StartupRecovery::default()),
             started: Mutex::new(None),

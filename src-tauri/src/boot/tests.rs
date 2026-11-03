@@ -42,6 +42,13 @@ pub(crate) fn root() -> tempfile::TempDir {
 
 pub(crate) fn app() -> tauri::App<MockRuntime> {
     let mut context = mock_context(noop_assets());
+    // 使用实际构建的 ACL；空 mock_context 会放行所有宿主命令，不能证明 main-only。
+    let mut generated: tauri::Context<MockRuntime> = tauri::generate_context!();
+    std::mem::swap(
+        context.runtime_authority_mut(),
+        generated.runtime_authority_mut(),
+    );
+    context.config_mut().identifier = generated.config().identifier.clone();
     context.config_mut().build.dev_url = Some("http://localhost:17430".parse().unwrap());
     mock_builder()
         .invoke_handler(crate::commands::handler())
@@ -358,7 +365,16 @@ async fn failure_before_first_window_uses_the_same_shutdown() {
     let error =
         crate::window::setup_window(fixture.app.handle(), fixture.lifecycle.clone()).unwrap_err();
     assert!(fixture.app.webview_windows().is_empty());
-    crate::application::present_startup_failure(fixture.app.handle(), &fixture.lifecycle, &error);
+    crate::startup_recovery::present_with(
+        fixture.app.handle(),
+        &fixture.lifecycle,
+        &error,
+        Vec::new(),
+        |_, fatal, reply| {
+            assert!(!fatal);
+            reply(None);
+        },
+    );
     tokio::time::timeout(Duration::from_secs(3), async {
         while !fixture.lifecycle.exit.is_finished() {
             tokio::task::yield_now().await;

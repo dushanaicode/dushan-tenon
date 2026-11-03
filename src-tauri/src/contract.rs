@@ -3,8 +3,11 @@
 use serde::{Deserialize, Serialize};
 pub use tenon_desktop::{
     config::{AppSettings, AppSettingsUpdate},
+    data::{DataStatus, FileArtifact, OperationProgress, RestoreAccepted, RestorePlan},
+    file_ingress::{FileIngressClaim, FileIngressDismiss, FileIngressId, FileIngressSnapshot},
     keyboard::{KeyboardSettings, KeyboardUpdate},
     network::{NetworkSettings, NetworkSettingsUpdate},
+    picked_files::{FilePickInput, FilePicked},
     workbench::{WorkbenchResetLayout, WorkbenchSnapshot, WorkbenchUpdate},
 };
 use tenon_framework::{cache::CacheProvider, db::DatabaseKind, id::Id, module::ModuleInfo};
@@ -72,6 +75,42 @@ pub struct DemoAttachmentSave {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct OperationCancelInput {
     pub operation_id: String,
+}
+
+#[derive(Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ArchiveOperationInput {
+    pub file_token: String,
+}
+
+#[derive(Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct RestoreCommitInput {
+    pub prepared_id: String,
+}
+
+#[derive(Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct DiagnosticExportInput {
+    pub file_token: String,
+}
+
+#[derive(Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct DemoExportInput {
+    pub file_token: String,
+    pub format: tenon_framework::exchange::ExchangeFormat,
+    #[ts(optional)]
+    pub keyword: Option<String>,
+    #[ts(optional)]
+    pub stage: Option<tenon_module_demo::DemoSampleStage>,
+}
+
+#[derive(Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct DemoImportInput {
+    pub file_token: String,
+    pub mode: tenon_module_demo::DemoImportMode,
 }
 
 pub const IPC_UNEXPECTED: tenon_framework::error::ErrorCode =

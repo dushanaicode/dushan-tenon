@@ -1,4 +1,4 @@
-use crate::{boot, commands, native, ports, window};
+use crate::{boot, commands, file_ingress, native, ports, startup_recovery, window};
 use clap::Parser;
 use std::sync::Arc;
 use tauri::{Manager, RunEvent, Runtime, WindowEvent};
@@ -15,7 +15,20 @@ pub fn run() -> tauri::Result<i32> {
         Ok(app) => {
             let events = lifecycle.clone();
             let code = app.run_return(move |app, event| handle_run_event(app, event, &events));
-            tauri::async_runtime::block_on(lifecycle.shutdown());
+            tauri::async_runtime::block_on(lifecycle.exit.request_exit(lifecycle.shutdown()));
+            if let Err(error) = lifecycle.recovery_ui.restart_with(|args| {
+                std::process::Command::new(std::env::current_exe()?)
+                    .args(args)
+                    .spawn()
+                    .map(|_| ())
+            }) {
+                eprintln!(
+                    "应用重启失败 / Restart failed. Code: {} Trace: {}",
+                    error.code(),
+                    tenon_framework::id::Id::new()
+                );
+                return Ok(1);
+            }
             Ok(if lifecycle.exit_code() != 0 {
                 lifecycle.exit_code()
             } else {
@@ -28,7 +41,7 @@ pub fn run() -> tauri::Result<i32> {
             if let Ok(summary) = tenon_desktop::startup_recovery::failure_summary(&notice) {
                 eprintln!("{summary}");
             }
-            tauri::async_runtime::block_on(lifecycle.shutdown());
+            tauri::async_runtime::block_on(lifecycle.exit.request_exit(lifecycle.shutdown()));
             Err(error)
         }
     }
@@ -37,6 +50,7 @@ pub fn run() -> tauri::Result<i32> {
 fn build_application(options: Options, lifecycle: Arc<Lifecycle>) -> tauri::Result<tauri::App> {
     let secondary = lifecycle.clone();
     tauri::Builder::default()
+        .manage(lifecycle.clone())
         .plugin(tauri_plugin_single_instance::init(move |app, args, cwd| {
             window::secondary_launch(app, args, cwd, &secondary);
         }))
@@ -58,6 +72,21 @@ fn build_application(options: Options, lifecycle: Arc<Lifecycle>) -> tauri::Resu
             }
         })
         .setup(move |app| {
+            if !options.open.is_empty() {
+                match std::env::current_dir() {
+                    Ok(cwd) => file_ingress::enqueue_arguments(
+                        app.handle(),
+                        &lifecycle,
+                        &options.open,
+                        &cwd,
+                        None,
+                    ),
+                    Err(error) => {
+                        present_startup_failure(app.handle(), &lifecycle, &boot::internal(error));
+                        return Ok(());
+                    }
+                }
+            }
             let result = tauri::async_runtime::block_on(boot::initialize(
                 app.handle(),
                 options,
@@ -92,16 +121,14 @@ pub(crate) fn present_startup_failure<R: Runtime>(
     lifecycle: &Arc<Lifecycle>,
     error: &AppError,
 ) {
-    lifecycle.fail(error);
     tracing::error!(code = %error.code(), "宿主启动失败");
-    let notice = tenon_desktop::startup_recovery::failure_notice(error);
-    if let Ok(summary) = tenon_desktop::startup_recovery::failure_summary(&notice) {
-        eprintln!("{summary}");
-    }
-    request_exit(app, lifecycle);
+    startup_recovery::show(app, lifecycle, error);
 }
 
 pub(crate) fn request_exit<R: Runtime>(app: &tauri::AppHandle<R>, lifecycle: &Arc<Lifecycle>) {
+    if lifecycle.recovery_ui.waiting() {
+        return;
+    }
     lifecycle.exit.begin();
     let app = app.clone();
     let lifecycle = lifecycle.clone();
@@ -119,6 +146,14 @@ pub(crate) fn handle_window_event<R: Runtime>(
     lifecycle: &Arc<Lifecycle>,
 ) {
     match event {
+        WindowEvent::DragDrop(tauri::DragDropEvent::Drop { paths, .. })
+            if label == "main" && !lifecycle.gate.is_closing() =>
+        {
+            if let Err(error) = lifecycle.file_ingress.enqueue_paths(&paths, None) {
+                tracing::warn!(code = %error.code(), "拖入文件未被接受");
+            }
+            file_ingress::changed(app);
+        }
         WindowEvent::CloseRequested { api, .. } if label == "main" => {
             api.prevent_close();
             if app.try_state::<AppState>().is_some() {
@@ -171,12 +206,41 @@ pub(crate) fn handle_window_event<R: Runtime>(
     }
 }
 
-fn handle_run_event<R: Runtime>(
+pub(crate) fn handle_run_event<R: Runtime>(
     app: &tauri::AppHandle<R>,
     event: RunEvent,
     lifecycle: &Arc<Lifecycle>,
 ) {
     match event {
+        RunEvent::ExitRequested { api, .. } if lifecycle.recovery_ui.waiting() => {
+            api.prevent_exit();
+        }
+        #[cfg(any(target_os = "macos", target_os = "ios"))]
+        RunEvent::Opened { urls } => {
+            match std::env::current_dir() {
+                Ok(cwd) => file_ingress::enqueue_arguments(
+                    app,
+                    lifecycle,
+                    &urls.iter().map(ToString::to_string).collect::<Vec<_>>(),
+                    &cwd,
+                    None,
+                ),
+                Err(_) => {
+                    tracing::warn!(reason_code = "open_cwd_unavailable", "文件打开请求未被接受")
+                }
+            }
+            match lifecycle.window.request_show(None) {
+                Ok(true) => window::show_main(app),
+                Ok(false) => {}
+                Err(error) => tracing::warn!(code = %error.code(), "文件打开显示意图失败"),
+            }
+        }
+        #[cfg(target_os = "macos")]
+        RunEvent::Reopen { .. } => match lifecycle.window.request_show(None) {
+            Ok(true) => window::show_main(app),
+            Ok(false) => {}
+            Err(error) => tracing::warn!(code = %error.code(), "窗口重开显示意图失败"),
+        },
         RunEvent::ExitRequested { api, .. } if !lifecycle.exit.is_finished() => {
             api.prevent_exit();
             if let Some(state) = app.try_state::<AppState>()

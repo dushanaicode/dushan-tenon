@@ -70,7 +70,7 @@ async fn context(
 fn export_payload(handle: String) -> serde_json::Value {
     serde_json::to_value(ExchangePayload {
         handle,
-        format: ExchangeFormat::Json,
+        format: Some(ExchangeFormat::Json),
         options: DemoExportOptions {
             keyword: None,
             stage: None,
@@ -184,7 +184,7 @@ async fn real_handlers_round_trip_data_without_persisting_paths() {
     let handle = handoff(&state.picked_files, actor, FilePurpose::Import, &path).await;
     let payload = serde_json::to_value(ExchangePayload {
         handle,
-        format: ExchangeFormat::Json,
+        format: Some(ExchangeFormat::Json),
         options: DemoImportOptions {
             mode: DemoImportMode::Error,
         },
