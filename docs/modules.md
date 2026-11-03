@@ -81,7 +81,7 @@ enabled = false
 1. 先备份现有状态；核查归档与数据库是否含该模块的迁移。移除声明后，这些记录会成为未知迁移，不能将含它们的原状态目录直接当作可启动状态；数据保留或迁移须单独处理，见[迁移合同](data.md#数据库与迁移)。
 2. 移除 [modules.rs](../src-tauri/src/modules.rs)中的声明和运行注册、[boot.rs](../src-tauri/src/boot.rs)中的构造与启动装配、[state.rs](../src-tauri/src/state.rs)中的服务持有及其他直接消费者；同时处理 [exchange.rs](../src-tauri/src/exchange.rs)中的宿主任务处理器。
 3. 从唯一命令清单 [list.rs](../src-tauri/src/commands/list.rs)移除该模块命令，删除对应命令适配及 [contract.rs](../src-tauri/src/contract.rs)中的类型导出。删除后端模块目录，并更新 [Cargo.toml](../Cargo.toml)和[宿主 Cargo.toml](../src-tauri/Cargo.toml)中的成员与依赖。
-4. 从前端组合根移除该模块清单与贡献，再删除前端模块目录；清除其翻译、专属测试及显式引用。不让 shell 或其他模块接管被裁模块的业务逻辑。
+4. 从前端唯一注册表 [src/app/module-registry.ts](../src/app/module-registry.ts)移除该模块清单的导入与数组项，再删除前端模块目录；清除其翻译、专属测试及显式引用。不让 shell 或其他模块接管被裁模块的业务逻辑。
 5. 从全部[预设](../presets)删掉该模块配置，避免未知模块启动错误。运行 `pnpm generate` 重建命令、权限、参数、字典、错误码、装配目录和窗口 ACL；生成物不手改，见[命令](ipc.md#生成合同)。
 6. 用新的独立状态目录验证启动、剩余模块和预设，运行相关定向测试与 `pnpm check`。逐项搜索被移除模块的 crate、服务类型、命令及清单引用，确认没有残留消费者。
 
