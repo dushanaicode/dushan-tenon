@@ -27,6 +27,12 @@
 ## 文档
 
 - [架构与分层规则](docs/architecture.md)
+- [模块与装配](docs/modules.md)
+- [命令与 IPC](docs/ipc.md)
+- [配置文件与设置](docs/settings.md)
+- [数据、任务与恢复](docs/data.md)
+- [原生能力](docs/native.md)
+- [前端合同与扩展](docs/frontend.md)
 - [安装包构建与发布](docs/release.md)
 - [协作规则](AGENTS.md)
 

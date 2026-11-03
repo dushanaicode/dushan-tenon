@@ -122,6 +122,9 @@ framework 的顶层模块自下而上排列如下，每个模块只能引用排�
 |---|---|---|
 | check-structure | `scripts/check-structure.mjs` | 前端分层、Rust 依赖方向与 crate 命名、framework 内部分层与模块说明、framework 不含产品身份、全局变量访问点、DOM 查询、品牌拼音的出现形式、AGENTS.md 体量 |
 | check-identity | `scripts/check-identity.mjs` | 产品身份与包名、库名、页面标题、凭据库服务名、缓存键前缀默认值一致 |
+| check-ipc | `scripts/check-ipc.mjs` | 生成合同的文件集合与逐字节一致、命令准入分类、双语翻译键齐全 |
+| check-kit | `scripts/check-kit.mjs` | 十条套件规则：不用原生表格、对话框、下拉与消息框，不导入 kit 内部或底层引擎，确认按钮与对话框标题齐全，不用裸滚动容器与视口断点 |
+| check-release | `scripts/check-release.mjs` | `src-tauri/release.json` 是唯一发行来源；三处版本一致；tauri.conf.json 的更新器字段无漂移 |
 | check-licenses | `scripts/check-licenses.mjs` | 依赖许可在白名单内或有登记的例外；vendor 目录有许可文件并在 `THIRD_PARTY_NOTICES.md` 声明 |
 | Clippy、Biome | `Cargo.toml`、`clippy.toml`、`biome.json` | 函数长度、生产代码不 panic 与常规 lint |
 
