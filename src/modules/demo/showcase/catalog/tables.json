@@ -1,0 +1,62 @@
+[
+  {
+    "id": "component.data-table",
+    "titleKey": "showcase.tables.catalog.dataTable.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/data-table.tsx",
+    "page": "/demo/tables",
+    "variants": ["default", "empty", "loading", "error", "selected", "sorted"],
+    "whenToUseKey": "showcase.tables.catalog.dataTable.whenToUse",
+    "notForKey": "showcase.tables.catalog.dataTable.notFor",
+    "related": [
+      "pattern.row-actions",
+      "component.filter-bar",
+      "pattern.table-pagination"
+    ],
+    "rule": "SC-R11"
+  },
+  {
+    "id": "pattern.row-actions",
+    "titleKey": "showcase.tables.catalog.rowActions.title",
+    "kind": "pattern",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/row-actions.tsx",
+    "page": "/demo/tables",
+    "variants": ["visible-more", "context-menu", "disabled"],
+    "whenToUseKey": "showcase.tables.catalog.rowActions.whenToUse",
+    "notForKey": "showcase.tables.catalog.rowActions.notFor",
+    "related": ["component.data-table", "component.button"],
+    "rule": "SC-R11"
+  },
+  {
+    "id": "component.filter-bar",
+    "titleKey": "showcase.tables.catalog.filterBar.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/filter-bar.tsx",
+    "page": "/demo/tables",
+    "variants": ["submit", "reset", "no-match"],
+    "whenToUseKey": "showcase.tables.catalog.filterBar.whenToUse",
+    "notForKey": "showcase.tables.catalog.filterBar.notFor",
+    "related": ["component.data-table"],
+    "rule": "SC-R11"
+  },
+  {
+    "id": "pattern.table-pagination",
+    "titleKey": "showcase.tables.catalog.pagination.title",
+    "kind": "pattern",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/data-table.tsx",
+    "page": "/demo/tables",
+    "variants": ["first-page", "last-page", "disabled"],
+    "whenToUseKey": "showcase.tables.catalog.pagination.whenToUse",
+    "notForKey": "showcase.tables.catalog.pagination.notFor",
+    "related": [
+      "component.data-table",
+      "component.filter-bar",
+      "component.pagination"
+    ],
+    "rule": "SC-R11"
+  }
+]

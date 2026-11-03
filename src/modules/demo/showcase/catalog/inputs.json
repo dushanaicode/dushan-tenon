@@ -1,0 +1,80 @@
+[
+  {
+    "id": "component.form-field",
+    "titleKey": "showcase.inputs.catalog.formField.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/form-field.tsx",
+    "page": "/demo/inputs",
+    "variants": ["input", "textarea", "required", "error"],
+    "whenToUseKey": "showcase.inputs.catalog.formField.whenToUse",
+    "notForKey": "showcase.inputs.catalog.formField.notFor",
+    "related": ["component.number-input", "component.select"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "component.slider",
+    "titleKey": "showcase.inputs.catalog.slider.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/slider.tsx",
+    "page": "/demo/inputs",
+    "variants": ["single", "native", "disabled"],
+    "whenToUseKey": "showcase.inputs.catalog.slider.whenToUse",
+    "notForKey": "showcase.inputs.catalog.slider.notFor",
+    "related": ["component.range-slider", "component.number-input"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "component.range-slider",
+    "titleKey": "showcase.inputs.catalog.rangeSlider.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/range-slider.tsx",
+    "page": "/demo/inputs",
+    "variants": ["tuple", "minimum-gap", "tick-composition", "disabled"],
+    "whenToUseKey": "showcase.inputs.catalog.rangeSlider.whenToUse",
+    "notForKey": "showcase.inputs.catalog.rangeSlider.notFor",
+    "related": ["component.slider", "component.number-input"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "component.number-input",
+    "titleKey": "showcase.inputs.catalog.numberInput.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/number-input.tsx",
+    "page": "/demo/inputs",
+    "variants": ["decimal", "bounds", "null", "unit-composition", "disabled"],
+    "whenToUseKey": "showcase.inputs.catalog.numberInput.whenToUse",
+    "notForKey": "showcase.inputs.catalog.numberInput.notFor",
+    "related": ["component.slider", "component.form-field"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "component.setting-group",
+    "titleKey": "showcase.inputs.catalog.settingGroup.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/form-field.tsx",
+    "page": "/demo/inputs",
+    "variants": ["expanded", "collapsed"],
+    "whenToUseKey": "showcase.inputs.catalog.settingGroup.whenToUse",
+    "notForKey": "showcase.inputs.catalog.settingGroup.notFor",
+    "related": ["component.form-field"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "component.setting-row",
+    "titleKey": "showcase.inputs.catalog.settingRow.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/form-field.tsx",
+    "page": "/demo/inputs",
+    "variants": ["responsive", "label", "description", "error"],
+    "whenToUseKey": "showcase.inputs.catalog.settingRow.whenToUse",
+    "notForKey": "showcase.inputs.catalog.settingRow.notFor",
+    "related": ["component.form-field"],
+    "rule": "SC-R03"
+  }
+]

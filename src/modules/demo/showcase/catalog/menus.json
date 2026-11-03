@@ -1,0 +1,71 @@
+[
+  {
+    "id": "component.dropdown-menu",
+    "titleKey": "showcase.menus.catalog.dropdownMenu.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/dropdown-menu.tsx",
+    "page": "/demo/menus",
+    "variants": ["items", "checkbox", "radio", "submenu", "toolbar", "avatar"],
+    "whenToUseKey": "showcase.menus.catalog.dropdownMenu.whenToUse",
+    "notForKey": "showcase.menus.catalog.dropdownMenu.notFor",
+    "related": [
+      "component.context-menu",
+      "component.menubar",
+      "component.select"
+    ],
+    "rule": "SC-R04"
+  },
+  {
+    "id": "component.context-menu",
+    "titleKey": "showcase.menus.catalog.contextMenu.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/context-menu.tsx",
+    "page": "/demo/menus",
+    "variants": ["row", "card", "canvas", "visible-more"],
+    "whenToUseKey": "showcase.menus.catalog.contextMenu.whenToUse",
+    "notForKey": "showcase.menus.catalog.contextMenu.notFor",
+    "related": ["component.dropdown-menu", "pattern.nav-tree"],
+    "rule": "SC-R04"
+  },
+  {
+    "id": "component.menubar",
+    "titleKey": "showcase.menus.catalog.menubar.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/menubar.tsx",
+    "page": "/demo/menus",
+    "variants": ["file", "edit", "view", "checkbox"],
+    "whenToUseKey": "showcase.menus.catalog.menubar.whenToUse",
+    "notForKey": "showcase.menus.catalog.menubar.notFor",
+    "related": ["component.dropdown-menu", "component.command"],
+    "rule": "SC-R04"
+  },
+  {
+    "id": "component.hover-card",
+    "titleKey": "showcase.menus.catalog.hoverCard.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/hover-card.tsx",
+    "page": "/demo/menus",
+    "variants": ["hover-summary", "explicit-popover"],
+    "whenToUseKey": "showcase.menus.catalog.hoverCard.whenToUse",
+    "notForKey": "showcase.menus.catalog.hoverCard.notFor",
+    "related": ["component.dropdown-menu", "component.command"],
+    "rule": "SC-R04"
+  },
+  {
+    "id": "component.command",
+    "titleKey": "showcase.menus.catalog.command.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/command-list.tsx",
+    "page": "/demo/menus",
+    "variants": ["inline", "search", "disabled"],
+    "whenToUseKey": "showcase.menus.catalog.command.whenToUse",
+    "notForKey": "showcase.menus.catalog.command.notFor",
+    "related": ["component.combobox", "pattern.nav-tree"],
+    "rule": "SC-R04"
+  }
+]

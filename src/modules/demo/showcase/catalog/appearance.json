@@ -1,0 +1,15 @@
+[
+  {
+    "id": "pattern.theme-tokens",
+    "titleKey": "showcase.appearance.catalog.themeTokens.title",
+    "kind": "pattern",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/theme-tokens.tsx",
+    "page": "/demo/appearance",
+    "variants": ["semantic-tokens"],
+    "whenToUseKey": "showcase.appearance.catalog.themeTokens.whenToUse",
+    "notForKey": "showcase.appearance.catalog.themeTokens.notFor",
+    "related": ["component.button", "component.collapsible"],
+    "rule": "SC-R12"
+  }
+]

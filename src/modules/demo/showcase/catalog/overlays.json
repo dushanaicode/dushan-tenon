@@ -1,0 +1,67 @@
+[
+  {
+    "id": "component.dialog",
+    "titleKey": "showcase.overlays.catalog.dialog.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/dialog.tsx",
+    "page": "/demo/overlays",
+    "variants": ["modal", "short-form", "failed-submit-retains-input"],
+    "whenToUseKey": "showcase.overlays.catalog.dialog.whenToUse",
+    "notForKey": "showcase.overlays.catalog.dialog.notFor",
+    "related": ["component.confirm-dialog", "component.sheet"],
+    "rule": "SC-R02"
+  },
+  {
+    "id": "component.confirm-dialog",
+    "titleKey": "showcase.overlays.catalog.confirmDialog.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/confirm-dialog.tsx",
+    "page": "/demo/overlays",
+    "variants": ["default", "destructive", "cancel-first"],
+    "whenToUseKey": "showcase.overlays.catalog.confirmDialog.whenToUse",
+    "notForKey": "showcase.overlays.catalog.confirmDialog.notFor",
+    "related": ["component.dialog"],
+    "rule": "SC-R02"
+  },
+  {
+    "id": "component.sheet",
+    "titleKey": "showcase.overlays.catalog.sheet.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/sheet.tsx",
+    "page": "/demo/overlays",
+    "variants": ["right", "controlled"],
+    "whenToUseKey": "showcase.overlays.catalog.sheet.whenToUse",
+    "notForKey": "showcase.overlays.catalog.sheet.notFor",
+    "related": ["component.dialog", "template.form-sheet"],
+    "rule": "SC-R02"
+  },
+  {
+    "id": "component.popover",
+    "titleKey": "showcase.overlays.catalog.popover.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/popover.tsx",
+    "page": "/demo/overlays",
+    "variants": ["non-modal", "controlled-content"],
+    "whenToUseKey": "showcase.overlays.catalog.popover.whenToUse",
+    "notForKey": "showcase.overlays.catalog.popover.notFor",
+    "related": ["component.tooltip", "component.dialog"],
+    "rule": "SC-R02"
+  },
+  {
+    "id": "component.tooltip",
+    "titleKey": "showcase.overlays.catalog.tooltip.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/tooltip.tsx",
+    "page": "/demo/overlays",
+    "variants": ["hover", "keyboard-focus"],
+    "whenToUseKey": "showcase.overlays.catalog.tooltip.whenToUse",
+    "notForKey": "showcase.overlays.catalog.tooltip.notFor",
+    "related": ["component.popover"],
+    "rule": "SC-R02"
+  }
+]

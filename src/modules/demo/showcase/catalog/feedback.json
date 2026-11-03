@@ -1,0 +1,93 @@
+[
+  {
+    "id": "component.toast",
+    "titleKey": "showcase.feedback.catalog.toast.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/toast.tsx",
+    "page": "/demo/feedback",
+    "variants": ["success", "error", "plain"],
+    "whenToUseKey": "showcase.feedback.catalog.toast.whenToUse",
+    "notForKey": "showcase.feedback.catalog.toast.notFor",
+    "related": ["component.alert", "component.error-view"],
+    "rule": "SC-R10"
+  },
+  {
+    "id": "component.alert",
+    "titleKey": "showcase.feedback.catalog.alert.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/alert.tsx",
+    "page": "/demo/feedback",
+    "variants": ["info", "success", "warning", "danger"],
+    "whenToUseKey": "showcase.feedback.catalog.alert.whenToUse",
+    "notForKey": "showcase.feedback.catalog.alert.notFor",
+    "related": ["component.error-view", "component.progress"],
+    "rule": "SC-R10"
+  },
+  {
+    "id": "component.progress",
+    "titleKey": "showcase.feedback.catalog.progress.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/progress.tsx",
+    "page": "/demo/feedback",
+    "variants": ["determinate", "indeterminate"],
+    "whenToUseKey": "showcase.feedback.catalog.progress.whenToUse",
+    "notForKey": "showcase.feedback.catalog.progress.notFor",
+    "related": ["component.skeleton"],
+    "rule": "SC-R10"
+  },
+  {
+    "id": "component.skeleton",
+    "titleKey": "showcase.feedback.catalog.skeleton.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/loading.tsx",
+    "page": "/demo/feedback",
+    "variants": ["skeleton", "loading", "loaded"],
+    "whenToUseKey": "showcase.feedback.catalog.skeleton.whenToUse",
+    "notForKey": "showcase.feedback.catalog.skeleton.notFor",
+    "related": ["component.progress", "component.error-view"],
+    "rule": "SC-R10"
+  },
+  {
+    "id": "component.empty-state",
+    "titleKey": "showcase.feedback.catalog.emptyState.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/empty-state.tsx",
+    "page": "/demo/feedback",
+    "variants": ["empty", "local-create"],
+    "whenToUseKey": "showcase.feedback.catalog.emptyState.whenToUse",
+    "notForKey": "showcase.feedback.catalog.emptyState.notFor",
+    "related": ["component.error-view"],
+    "rule": "SC-R10"
+  },
+  {
+    "id": "component.error-view",
+    "titleKey": "showcase.feedback.catalog.errorView.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/error-view.tsx",
+    "page": "/demo/feedback",
+    "variants": ["failed", "retry", "recovered"],
+    "whenToUseKey": "showcase.feedback.catalog.errorView.whenToUse",
+    "notForKey": "showcase.feedback.catalog.errorView.notFor",
+    "related": ["component.empty-state", "component.alert"],
+    "rule": "SC-R10"
+  },
+  {
+    "id": "component.loading",
+    "titleKey": "showcase.feedback.catalog.loading.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/loading-styles.tsx",
+    "page": "/demo/feedback",
+    "variants": ["block", "page"],
+    "whenToUseKey": "showcase.feedback.catalog.loading.whenToUse",
+    "notForKey": "showcase.feedback.catalog.loading.notFor",
+    "related": ["component.skeleton", "component.progress"],
+    "rule": "SC-R10"
+  }
+]

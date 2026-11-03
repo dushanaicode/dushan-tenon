@@ -1,0 +1,60 @@
+[
+  {
+    "id": "component.switch",
+    "titleKey": "showcase.choices.catalog.switch.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/switch.tsx",
+    "page": "/demo/choices",
+    "variants": ["on", "off", "disabled"],
+    "whenToUseKey": "showcase.choices.catalog.switch.whenToUse",
+    "notForKey": "showcase.choices.catalog.switch.notFor",
+    "related": ["component.checkbox", "component.toggle-group"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "component.checkbox",
+    "titleKey": "showcase.choices.catalog.checkbox.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/checkbox-form.tsx",
+    "page": "/demo/choices",
+    "variants": [
+      "unchecked",
+      "checked",
+      "indeterminate",
+      "disabled",
+      "submitted-form"
+    ],
+    "whenToUseKey": "showcase.choices.catalog.checkbox.whenToUse",
+    "notForKey": "showcase.choices.catalog.checkbox.notFor",
+    "related": ["component.switch", "component.radio-group"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "component.radio-group",
+    "titleKey": "showcase.choices.catalog.radioGroup.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/radio-group.tsx",
+    "page": "/demo/choices",
+    "variants": ["controlled", "disabled"],
+    "whenToUseKey": "showcase.choices.catalog.radioGroup.whenToUse",
+    "notForKey": "showcase.choices.catalog.radioGroup.notFor",
+    "related": ["component.select", "component.checkbox"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "component.toggle-group",
+    "titleKey": "showcase.choices.catalog.toggleGroup.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/toggle-group.tsx",
+    "page": "/demo/choices",
+    "variants": ["single", "multiple", "empty", "disabled"],
+    "whenToUseKey": "showcase.choices.catalog.toggleGroup.whenToUse",
+    "notForKey": "showcase.choices.catalog.toggleGroup.notFor",
+    "related": ["component.button", "component.radio-group"],
+    "rule": "SC-R03"
+  }
+]

@@ -1,0 +1,48 @@
+[
+  {
+    "id": "component.select",
+    "titleKey": "showcase.selects.catalog.select.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/select.tsx",
+    "page": "/demo/selects",
+    "variants": [
+      "grouped",
+      "placeholder",
+      "selected",
+      "disabled",
+      "error",
+      "long-list"
+    ],
+    "whenToUseKey": "showcase.selects.catalog.select.whenToUse",
+    "notForKey": "showcase.selects.catalog.select.notFor",
+    "related": ["component.combobox", "component.dropdown-menu"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "component.combobox",
+    "titleKey": "showcase.selects.catalog.combobox.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/combobox.tsx",
+    "page": "/demo/selects",
+    "variants": ["search", "single", "clearable", "disabled", "error"],
+    "whenToUseKey": "showcase.selects.catalog.combobox.whenToUse",
+    "notForKey": "showcase.selects.catalog.combobox.notFor",
+    "related": ["component.select", "pattern.multi-select"],
+    "rule": "SC-R03"
+  },
+  {
+    "id": "pattern.multi-select",
+    "titleKey": "showcase.selects.catalog.multiSelect.title",
+    "kind": "pattern",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/multi-select.tsx",
+    "page": "/demo/selects",
+    "variants": ["search", "multiple", "retained-selection", "clear", "badges"],
+    "whenToUseKey": "showcase.selects.catalog.multiSelect.whenToUse",
+    "notForKey": "showcase.selects.catalog.multiSelect.notFor",
+    "related": ["component.combobox", "component.checkbox"],
+    "rule": "SC-R03"
+  }
+]
