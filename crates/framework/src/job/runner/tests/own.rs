@@ -393,6 +393,115 @@ impl StreamSink<JobEvent> for RevokeOnProgress {
 }
 
 #[tokio::test]
+async fn cancelled_watch_does_not_read_closed_database() {
+    for mine in [false, true] {
+        test_support::run(async |test| {
+            let queue = queue(test, vec![success()]).await;
+            let owner = Id::new();
+            let actor = Actor::User(owner);
+            let id = queue
+                .submit(
+                    &test.db,
+                    SubmitJob {
+                        submitted_by: Some(owner),
+                        ..input("test.one")
+                    },
+                )
+                .await
+                .unwrap();
+            let streams = StreamRegistry::default();
+            let (sender, mut events) = tokio::sync::mpsc::unbounded_channel();
+            let stream = streams.open(observer(actor), Sink(sender)).unwrap();
+            assert!(matches!(
+                events.recv().await.unwrap(),
+                StreamEvent::Started { .. }
+            ));
+
+            // 固定调度：关闭流并完成关库后，才允许监视 future 首次运行。
+            streams.close().unwrap();
+            test.db.close().await;
+            let authorize = || require_mine(&queue, actor, id);
+            let result = if mine {
+                watch_mine(&queue, actor, id, &stream, authorize).await
+            } else {
+                watch(&queue, id, &stream, authorize).await
+            };
+            let ending = events.try_recv();
+            assert!(
+                matches!(ending, Ok(StreamEvent::Cancelled)),
+                "{ending:?}; {result:?}"
+            );
+            result.unwrap();
+            drop(stream);
+            assert!(events.recv().await.is_none());
+        })
+        .await;
+    }
+}
+
+#[tokio::test]
+async fn watch_cancellation_interrupts_authorization_before_database_closes() {
+    test_support::run(async |test| {
+        let queue = queue(test, vec![success()]).await;
+        let id = queue.submit(&test.db, input("test.one")).await.unwrap();
+        let streams = StreamRegistry::default();
+        let (sender, mut events) = tokio::sync::mpsc::unbounded_channel();
+        let authorized = Arc::new(AtomicBool::new(true));
+        let stream = streams
+            .open(
+                observer(Actor::System),
+                RevokeOnProgress {
+                    sender,
+                    authorized: authorized.clone(),
+                    revoke: Arc::new(AtomicBool::new(true)),
+                },
+            )
+            .unwrap();
+        let entered = tokio::sync::Notify::new();
+        let resume = tokio::sync::Notify::new();
+        let mut watching = std::pin::pin!(watch(&queue, id, &stream, || async {
+            if !authorized.load(Ordering::SeqCst) {
+                entered.notify_one();
+                resume.notified().await;
+            }
+            queue.get(id).await.map(|_| ())
+        }));
+        tokio::time::timeout(Duration::from_secs(5), async {
+            tokio::select! {
+                result = &mut watching => panic!("watch ended before shutdown: {result:?}"),
+                _ = entered.notified() => {},
+            }
+        })
+        .await
+        .unwrap();
+        assert!(matches!(
+            events.recv().await.unwrap(),
+            StreamEvent::Started { .. }
+        ));
+        assert!(matches!(
+            events.recv().await.unwrap(),
+            StreamEvent::Progress { .. }
+        ));
+
+        // 已进入快照后的授权复核，但尚未查库；关库后再释放等待点。
+        streams.close().unwrap();
+        test.db.close().await;
+        resume.notify_one();
+        let result = tokio::time::timeout(Duration::from_secs(5), &mut watching)
+            .await
+            .unwrap();
+        let ending = events.try_recv();
+        assert!(
+            matches!(ending, Ok(StreamEvent::Cancelled)),
+            "{ending:?}; {result:?}"
+        );
+        result.unwrap();
+        assert!(events.try_recv().is_err());
+    })
+    .await;
+}
+
+#[tokio::test]
 async fn watch_rechecks_authorization_before_initial_progress_delta_and_terminal() {
     test_support::run(async |test| {
         let queue = queue(test, vec![success()]).await;

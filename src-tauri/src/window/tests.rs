@@ -57,7 +57,7 @@ fn initial_script_applies_light_dark_system_and_respects_origin() {
     ] {
         let mut settings = config.settings();
         settings.theme.value = mode;
-        let script = initialization_script(&settings, "http://tauri.localhost", "null").unwrap();
+        let script = initialization_script(&settings, "http://tauri.localhost").unwrap();
         // 执行生成的 JavaScript，验证真实 DOM 修改和来源门控，非源码子串断言。
         let harness = r#"
 const assert = require('node:assert/strict');

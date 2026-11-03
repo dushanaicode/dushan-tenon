@@ -87,7 +87,7 @@ pnpm.cmd db export-sql --dialect postgres
 
 编排见 [desktop restore](../crates/desktop/src/restore.rs)、[宿主重启](../src-tauri/src/restore.rs)与[启动构建](../src-tauri/src/boot.rs)。系统凭据不随归档迁移，恢复后需要重新提供秘密。
 
-普通启动另用 `startup-state.json` 记录运行、正常关闭或失败，以识别上次异常退出。原生故障提示可选择重试或本次基础界面；基础界面不写回配置。涉及备份恢复的致命失败只提示保留证据并退出。见 [startup_recovery](../crates/desktop/src/startup_recovery.rs)与[原生提示](../src-tauri/src/startup_recovery.rs)。
+普通启动另用 `startup-state.json` 记录运行、正常关闭或失败，以识别上次异常退出。原生故障提示可选择重试或退出；重试沿用本次启动参数，不重置数据或保存的设置。涉及备份恢复的致命失败只提示保留证据并退出。见 [startup_recovery](../crates/desktop/src/startup_recovery.rs)与[原生提示](../src-tauri/src/startup_recovery.rs)。
 
 ## 诊断包
 

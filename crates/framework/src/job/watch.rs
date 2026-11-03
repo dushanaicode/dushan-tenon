@@ -32,11 +32,26 @@ pub async fn watch<F>(
 where
     F: std::future::Future<Output = Result<(), AppError>>,
 {
-    let authorize = async || {
-        still_authorized().await.inspect_err(|error| {
-            let _ = stream.failed(error.code().as_str().into(), Default::default());
-        })
+    // 取消覆盖快照读取及授权复核；关闭时不能等查库失败后再结束订阅。
+    let result = tokio::select! {
+        biased;
+        _ = stream.cancellation.cancelled() => return stream.cancelled(),
+        result = observe(queue, id, stream, still_authorized) => result,
     };
+    result.inspect_err(|error| {
+        let _ = stream.failed(error.code().as_str().into(), Default::default());
+    })
+}
+
+async fn observe<F>(
+    queue: &JobQueue,
+    id: Id,
+    stream: &Stream<JobEvent>,
+    authorize: impl Fn() -> F,
+) -> Result<(), AppError>
+where
+    F: std::future::Future<Output = Result<(), AppError>>,
+{
     // 先订阅再读快照，避免首次查询期间的完成事件丢失。
     let mut events = queue.subscribe();
     authorize().await?;
@@ -53,10 +68,6 @@ where
     loop {
         let event = tokio::select! {
             biased;
-            _ = stream.cancellation.cancelled() => {
-                authorize().await?;
-                return stream.cancelled();
-            },
             event = events.recv() => match event {
                 Ok(event) if event.job_id == id => Some(event),
                 Ok(_) => {

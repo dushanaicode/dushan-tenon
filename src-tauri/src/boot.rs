@@ -56,9 +56,6 @@ pub(crate) struct Options {
     pub overrides: Vec<String>,
     #[arg(long, hide = true, value_parser = parse_prepared)]
     pub restore_prepared: Option<String>,
-    /// 仅本次使用基础界面，不写回配置。
-    #[arg(long)]
-    pub safe_mode: bool,
     /// 系统文件、目录或应用 URI；只进入接入队列。
     #[arg(value_name = "OPEN")]
     pub open: Vec<String>,

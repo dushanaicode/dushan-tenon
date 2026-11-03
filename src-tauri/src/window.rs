@@ -52,7 +52,6 @@ impl WindowReveal {
 pub(crate) fn initialization_script(
     settings: &AppSettings,
     origin: &str,
-    notice: &str,
 ) -> Result<String, AppError> {
     let settings = serde_json::to_string(settings).map_err(internal)?;
     let origin = serde_json::to_string(origin).map_err(internal)?;
@@ -61,7 +60,6 @@ pub(crate) fn initialization_script(
   if (window.top !== window || window.location.protocol + '//' + window.location.host !== {origin}) return;
   const settings = {settings};
   window.__TENON_INITIAL_SETTINGS__ = {{ settings }};
-  window.__TENON_RECOVERY_NOTICE__ = {notice};
   const mode = settings.theme.value;
   const dark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   const apply = () => {{
@@ -98,7 +96,7 @@ pub(crate) fn setup_window<R: Runtime>(
     } else {
         "tauri://localhost".into()
     };
-    let script = initialization_script(&settings, &origin, &lifecycle.notice_json()?)?;
+    let script = initialization_script(&settings, &origin)?;
     let config = app
         .config()
         .app

@@ -372,7 +372,7 @@ async fn failure_before_first_window_uses_the_same_shutdown() {
         Vec::new(),
         |_, fatal, reply| {
             assert!(!fatal);
-            reply(None);
+            reply(false);
         },
     );
     tokio::time::timeout(Duration::from_secs(3), async {

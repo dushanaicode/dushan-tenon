@@ -65,13 +65,6 @@ impl Lifecycle {
         Ok(())
     }
 
-    pub fn notice_json(&self) -> Result<String, AppError> {
-        self.recovery
-            .lock()
-            .map_err(|_| AppError::new(INTERNAL_UNEXPECTED))?
-            .notice_json()
-    }
-
     pub fn fail(&self, error: &AppError) {
         self.failed.store(true, Ordering::Release);
         self.exit.begin();

@@ -8,10 +8,8 @@ use std::{
     },
 };
 use tauri::Runtime;
-use tauri_plugin_dialog::{
-    DialogExt, MessageDialogButtons, MessageDialogKind, MessageDialogResult,
-};
-use tenon_desktop::startup_recovery::{failure_notice, failure_summary, retry_args};
+use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+use tenon_desktop::startup_recovery::{failure_notice, failure_summary};
 use tenon_framework::error::{AppError, INTERNAL_UNEXPECTED};
 
 use crate::lifecycle::Lifecycle;
@@ -71,24 +69,15 @@ pub(crate) fn show<R: Runtime>(
             if fatal {
                 dialog
                     .title("恢复启动失败 / Restore startup failed")
-                    .show(move |_| reply(None));
+                    .show(move |_| reply(false));
             } else {
-                let retry = "重试 / Retry".to_owned();
-                let basic = "基础界面 / Basic graphics".to_owned();
                 dialog
                     .title(app.package_info().name.clone())
-                    .buttons(MessageDialogButtons::YesNoCancelCustom(
-                        retry.clone(),
-                        basic.clone(),
+                    .buttons(MessageDialogButtons::OkCancelCustom(
+                        "重试 / Retry".into(),
                         "退出 / Exit".into(),
                     ))
-                    .show_with_result(move |choice| {
-                        reply(match choice {
-                            MessageDialogResult::Custom(label) if label == retry => Some(false),
-                            MessageDialogResult::Custom(label) if label == basic => Some(true),
-                            _ => None,
-                        });
-                    });
+                    .show(reply);
             }
         },
     );
@@ -99,7 +88,7 @@ pub(crate) fn present_with<R: Runtime>(
     lifecycle: &Arc<Lifecycle>,
     error: &AppError,
     original: Vec<OsString>,
-    present: impl FnOnce(String, bool, Box<dyn FnOnce(Option<bool>) + Send>),
+    present: impl FnOnce(String, bool, Box<dyn FnOnce(bool) + Send>),
 ) {
     lifecycle.fail(error);
     let fatal = error.code().as_str().starts_with("app.backup.");
@@ -126,12 +115,10 @@ pub(crate) fn present_with<R: Runtime>(
     present(
         summary,
         fatal,
-        Box::new(move |choice| {
+        Box::new(move |retry| {
             if !fatal
-                && let Some(basic) = choice
-                && let Err(error) = lifecycle
-                    .recovery_ui
-                    .schedule_restart(retry_args(&original, basic))
+                && retry
+                && let Err(error) = lifecycle.recovery_ui.schedule_restart(original)
             {
                 tracing::error!(code = %error.code(), "启动重试未安排");
             }

@@ -1,8 +1,7 @@
-//! 有界原子启动记录与提示、重试策略；对话框、事件循环和进程重启由宿主负责。
+//! 有界原子启动记录与安全故障摘要；对话框、事件循环和进程重启由宿主负责。
 use serde::{Deserialize, Serialize};
 use std::{
     error::Error,
-    ffi::OsString,
     fs,
     io::{Read, Write},
     path::{Path, PathBuf},
@@ -61,7 +60,7 @@ struct SessionRecord {
     current: RunRecord,
 }
 impl SessionRecord {
-    fn begin(root: &Path, scratch: &Path) -> Result<(Self, Option<RecoveryNotice>), AppError> {
+    fn begin(root: &Path, scratch: &Path) -> Result<Self, AppError> {
         let path = root.join("startup-state.json");
         backup::regular_path(&path, true).map_err(|_| AppError::new(RECORD_UNAVAILABLE))?;
         let previous = match fs::File::open(&path) {
@@ -90,13 +89,12 @@ impl SessionRecord {
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
             Err(_) => return Err(AppError::new(RECORD_UNAVAILABLE)),
         };
-        let notice = previous.as_ref().and_then(|record| match record.phase {
+        let last_issue = previous.and_then(|record| match record.phase {
             Phase::Running => Some(RecoveryNotice {
                 code: "app.lifecycle.unclean_exit".into(),
-                trace_id: record.run_id.clone(),
+                trace_id: record.run_id,
             }),
-            Phase::Failed => record.last_issue.clone(),
-            Phase::Clean => None,
+            Phase::Failed | Phase::Clean => record.last_issue,
         });
         let session = Self {
             path,
@@ -105,13 +103,11 @@ impl SessionRecord {
                 schema_version: 1,
                 run_id: uuid::Uuid::now_v7().to_string(),
                 phase: Phase::Running,
-                last_issue: notice
-                    .clone()
-                    .or_else(|| previous.and_then(|record| record.last_issue)),
+                last_issue,
             },
         };
         session.persist()?;
-        Ok((session, notice))
+        Ok(session)
     }
     fn persist(&self) -> Result<(), AppError> {
         crate::state_root::create_directory(&self.scratch)
@@ -162,28 +158,14 @@ impl SessionRecord {
 #[derive(Default)]
 pub struct StartupRecovery {
     record: Option<SessionRecord>,
-    notice: Option<RecoveryNotice>,
 }
 
 impl StartupRecovery {
-    /// 失败保留原文件并保存安全提示；宿主决定如何显示该错误。
+    /// 失败保留原文件并返回安全错误；宿主决定如何显示该错误。
     pub fn begin_record(&mut self, root: &Path, scratch: &Path) -> Result<(), AppError> {
-        match SessionRecord::begin(root, scratch) {
-            Ok((record, notice)) => {
-                self.record = Some(record);
-                self.notice = notice;
-                Ok(())
-            }
-            Err(error) => {
-                self.record = None;
-                self.notice = Some(RecoveryNotice::new(error.code().as_str()));
-                Err(error)
-            }
-        }
-    }
-
-    pub fn notice_json(&self) -> Result<String, AppError> {
-        serde_json::to_string(&self.notice).map_err(|_| AppError::new(RECORD_INVALID))
+        self.record = None;
+        self.record = Some(SessionRecord::begin(root, scratch)?);
+        Ok(())
     }
 
     pub fn finish_record(&mut self) -> Result<(), AppError> {
@@ -205,18 +187,6 @@ impl StartupRecovery {
     }
 }
 
-pub fn retry_args(original: &[OsString], basic: bool) -> Vec<OsString> {
-    let mut args: Vec<_> = original
-        .iter()
-        .filter(|arg| *arg != "--safe-mode")
-        .cloned()
-        .collect();
-    if basic {
-        args.push("--safe-mode".into());
-    }
-    args
-}
-
 /// 只提取安全 code；绝不格式化错误 source 或参数。
 pub fn failure_notice(error: &(dyn Error + 'static)) -> RecoveryNotice {
     let code = error
@@ -231,7 +201,7 @@ pub fn failure_summary(issue: &RecoveryNotice) -> Result<String, AppError> {
         return Err(AppError::new(RECORD_INVALID));
     }
     Ok(format!(
-        "应用启动失败 / Startup failed\nCode: {}\nTrace: {}\n\n可重试，或仅本次使用基础界面启动。不会重置数据或保存的外观设置。\nRetry, or use basic graphics for this launch. Saved data and preferences are unchanged.",
+        "应用启动失败 / Startup failed\nCode: {}\nTrace: {}\n\n可重试或退出。不会重置数据或保存的外观设置。\nRetry or exit. Saved data and preferences are unchanged.",
         issue.code, issue.trace_id
     ))
 }
@@ -248,28 +218,6 @@ mod tests {
         (dir, scratch)
     }
     #[test]
-    fn retry_removes_basic_mode_and_keeps_other_arguments() {
-        let original = vec![
-            "--state-root".into(),
-            "workspace/Temp/state".into(),
-            "--safe-mode".into(),
-            "--set".into(),
-            "ui.theme=dark".into(),
-        ];
-        assert_eq!(
-            retry_args(&original, false),
-            vec![
-                OsString::from("--state-root"),
-                "workspace/Temp/state".into(),
-                "--set".into(),
-                "ui.theme=dark".into()
-            ]
-        );
-        let basic = retry_args(&original, true);
-        assert_eq!(basic.iter().filter(|arg| *arg == "--safe-mode").count(), 1);
-        assert_eq!(retry_args(&basic, true), basic);
-    }
-    #[test]
     fn failure_summary_has_only_safe_code_and_trace() {
         let error = AppError::new(ErrorCode::new("app.startup.test"))
             .with_param("secret", "private/path")
@@ -282,34 +230,35 @@ mod tests {
         assert!(!summary.contains("secret endpoint"));
     }
     #[test]
-    fn unclean_exit_notices_once_and_keeps_last_issue_after_clean_exit() {
+    fn unclean_exit_is_recorded_and_last_issue_survives_clean_exit() {
         let (root, scratch) = roots();
-        let (first, previous) = SessionRecord::begin(root.path(), &scratch).unwrap();
-        assert!(previous.is_none());
+        let first = SessionRecord::begin(root.path(), &scratch).unwrap();
+        assert!(first.current.last_issue.is_none());
         let old_id = first.current.run_id.clone();
         drop(first);
-        let (mut second, previous) = SessionRecord::begin(root.path(), &scratch).unwrap();
-        assert_eq!(previous.unwrap().trace_id, old_id);
+        let mut second = SessionRecord::begin(root.path(), &scratch).unwrap();
+        assert_eq!(second.current.last_issue.as_ref().unwrap().trace_id, old_id);
         assert_eq!(
             second.current.last_issue.as_ref().unwrap().code,
             "app.lifecycle.unclean_exit"
         );
         second.finish().unwrap();
+        assert_eq!(second.current.phase, Phase::Clean);
         drop(second);
-        let (third, previous) = SessionRecord::begin(root.path(), &scratch).unwrap();
-        assert!(previous.is_none());
-        assert!(third.current.last_issue.is_some());
+        let third = SessionRecord::begin(root.path(), &scratch).unwrap();
+        assert_eq!(third.current.last_issue.as_ref().unwrap().trace_id, old_id);
     }
     #[test]
     fn failed_startup_keeps_its_code_even_when_event_loop_exits() {
         let (root, scratch) = roots();
-        let (mut record, _) = SessionRecord::begin(root.path(), &scratch).unwrap();
+        let mut record = SessionRecord::begin(root.path(), &scratch).unwrap();
         record
             .fail(RecoveryNotice::new("app.startup.test"))
             .unwrap();
         record.finish().unwrap();
-        let (_, notice) = SessionRecord::begin(root.path(), &scratch).unwrap();
-        assert_eq!(notice.unwrap().code, "app.startup.test");
+        assert_eq!(record.current.phase, Phase::Failed);
+        let record = SessionRecord::begin(root.path(), &scratch).unwrap();
+        assert_eq!(record.current.last_issue.unwrap().code, "app.startup.test");
         let text = fs::read_to_string(root.path().join("startup-state.json")).unwrap();
         assert!(!text.contains(root.path().to_str().unwrap()));
         assert!(text.len() < RECORD_LIMIT as usize);
@@ -321,12 +270,12 @@ mod tests {
         for bytes in [b"broken".to_vec(), vec![b' '; RECORD_LIMIT as usize + 1]] {
             fs::write(&path, &bytes).unwrap();
             let mut recovery = StartupRecovery::default();
-            let _ = recovery.begin_record(root.path(), &scratch);
-            assert!(
+            assert_eq!(
                 recovery
-                    .notice_json()
-                    .unwrap()
-                    .contains("app.recovery.record_invalid")
+                    .begin_record(root.path(), &scratch)
+                    .unwrap_err()
+                    .code(),
+                RECORD_INVALID
             );
             recovery.finish_record().unwrap();
             assert_eq!(fs::read(&path).unwrap(), bytes);
@@ -335,18 +284,18 @@ mod tests {
     #[test]
     fn unavailable_scratch_does_not_replace_previous_evidence() {
         let (root, scratch) = roots();
-        let (mut record, _) = SessionRecord::begin(root.path(), &scratch).unwrap();
+        let mut record = SessionRecord::begin(root.path(), &scratch).unwrap();
         record.finish().unwrap();
         let before = fs::read(root.path().join("startup-state.json")).unwrap();
         let blocked = root.path().join("not-a-directory");
         fs::write(&blocked, b"blocked").unwrap();
         let mut recovery = StartupRecovery::default();
-        assert!(recovery.begin_record(root.path(), &blocked).is_err());
-        assert!(
+        assert_eq!(
             recovery
-                .notice_json()
-                .unwrap()
-                .contains("app.recovery.record_unavailable")
+                .begin_record(root.path(), &blocked)
+                .unwrap_err()
+                .code(),
+            RECORD_UNAVAILABLE
         );
         assert_eq!(
             fs::read(root.path().join("startup-state.json")).unwrap(),
@@ -358,15 +307,18 @@ mod tests {
     fn failed_main_window_is_not_marked_clean_by_completed_shutdown() {
         let (root, scratch) = roots();
         let mut recovery = StartupRecovery::default();
-        let _ = recovery.begin_record(root.path(), &scratch);
+        recovery.begin_record(root.path(), &scratch).unwrap();
         recovery.startup_failed().unwrap();
         recovery.finish_record().unwrap();
-        let (_, notice) = SessionRecord::begin(root.path(), &scratch).unwrap();
-        assert_eq!(notice.unwrap().code, "app.startup.failed");
+        let record = SessionRecord::begin(root.path(), &scratch).unwrap();
+        assert_eq!(
+            record.current.last_issue.unwrap().code,
+            "app.startup.failed"
+        );
     }
 
     #[test]
-    fn invalid_notice_fields_are_never_replayed_into_the_page() {
+    fn invalid_issue_fields_are_rejected_without_replacing_evidence() {
         let (root, scratch) = roots();
         let path = root.path().join("startup-state.json");
         let content = serde_json::json!({
@@ -378,13 +330,12 @@ mod tests {
         let original = serde_json::to_vec(&content).unwrap();
         fs::write(&path, &original).unwrap();
         let mut recovery = StartupRecovery::default();
-        let _ = recovery.begin_record(root.path(), &scratch);
-        assert!(!recovery.notice_json().unwrap().contains("private/path"));
-        assert!(
+        assert_eq!(
             recovery
-                .notice_json()
-                .unwrap()
-                .contains("app.recovery.record_invalid")
+                .begin_record(root.path(), &scratch)
+                .unwrap_err()
+                .code(),
+            RECORD_INVALID
         );
         assert_eq!(fs::read(&path).unwrap(), original);
     }
@@ -435,7 +386,7 @@ mod tests {
     #[test]
     fn failed_clean_write_can_be_retried_without_losing_running_record() {
         let (root, scratch) = roots();
-        let (mut record, _) = SessionRecord::begin(root.path(), &scratch).unwrap();
+        let mut record = SessionRecord::begin(root.path(), &scratch).unwrap();
         let before = fs::read(&record.path).unwrap();
         let saved = scratch.with_file_name("record-saved");
         fs::rename(&scratch, &saved).unwrap();
@@ -446,7 +397,7 @@ mod tests {
         fs::remove_file(&scratch).unwrap();
         fs::rename(saved, &scratch).unwrap();
         record.finish().unwrap();
-        let (_, notice) = SessionRecord::begin(root.path(), &scratch).unwrap();
-        assert!(notice.is_none());
+        let record = SessionRecord::begin(root.path(), &scratch).unwrap();
+        assert!(record.current.last_issue.is_none());
     }
 }

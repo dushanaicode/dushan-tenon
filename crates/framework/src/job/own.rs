@@ -36,7 +36,15 @@ pub async fn watch_mine<F>(
 where
     F: std::future::Future<Output = Result<(), AppError>>,
 {
-    require_mine(queue, actor, id).await?;
+    let ownership = tokio::select! {
+        biased;
+        _ = stream.cancellation.cancelled() => return stream.cancelled(),
+        result = require_mine(queue, actor, id) => result,
+    };
+    if stream.cancellation.is_cancelled() {
+        return stream.cancelled();
+    }
+    ownership?;
     watch(queue, id, stream, still_authorized).await
 }
 
