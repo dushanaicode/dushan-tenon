@@ -87,6 +87,9 @@ import type { SettingListInput } from "./SettingListInput";
 import type { SettingResetInput } from "./SettingResetInput";
 import type { SettingSetInput } from "./SettingSetInput";
 import type { StreamCancel } from "./StreamCancel";
+import type { UpdateDownloadInput } from "./UpdateDownloadInput";
+import type { UpdateInstallInput } from "./UpdateInstallInput";
+import type { UpdateState } from "./UpdateState";
 import type { UserPasswordChange } from "./UserPasswordChange";
 import type { UserProfileUpdate } from "./UserProfileUpdate";
 import type { WindowCloseDecision } from "./WindowCloseDecision";
@@ -326,6 +329,25 @@ export function appFileIngressDismiss(
 
 export function appFileRecentOpen(input: FileIngressId): Promise<null> {
   return invoke<null>("app_file_recent_open", { input });
+}
+
+export function appUpdateStatus(): Promise<UpdateState> {
+  return invoke<UpdateState>("app_update_status");
+}
+
+export function appUpdateCheck(): Promise<UpdateState> {
+  return invoke<UpdateState>("app_update_check");
+}
+
+export function appUpdateDownload(
+  input: UpdateDownloadInput,
+  channel: StreamChannel<OperationProgress>,
+): Promise<UpdateState> {
+  return invoke<UpdateState>("app_update_download", { input, channel });
+}
+
+export function appUpdateInstall(input: UpdateInstallInput): Promise<null> {
+  return invoke<null>("app_update_install", { input });
 }
 
 export function appDataStatus(): Promise<DataStatus> {

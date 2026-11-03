@@ -162,6 +162,10 @@ fn reveal_main<R: Runtime>(
         window.show().map_err(internal)
     }) {
         Ok(true) => {
+            if let Err(error) = crate::native::updater::check_on_start(window.app_handle().clone())
+            {
+                tracing::warn!(code = %error.code(), "启动更新检查未安排");
+            }
             if deadline {
                 tracing::warn!("主窗口加载超过 10 秒，已触发显示");
             }

@@ -24,6 +24,8 @@ tauri-build.workspace = true
 serde_json.workspace = true
 
 [dependencies]
+base64.workspace = true
+secrecy.workspace = true
 clap.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -34,6 +36,7 @@ tauri-plugin-opener.workspace = true
 tauri-plugin-window-state.workspace = true
 tauri-plugin-notification.workspace = true
 tauri-plugin-single-instance.workspace = true
+tauri-plugin-updater.workspace = true
 tenon-desktop.workspace = true
 tenon-framework.workspace = true
 tenon-module-account.workspace = true
