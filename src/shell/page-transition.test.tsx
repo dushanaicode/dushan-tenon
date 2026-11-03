@@ -41,7 +41,7 @@ it("首次入场保留高度链，路径变化替换包装层并卸载旧子树"
   const content = screen.getByText("页面内容");
   expect(content.parentElement).toBe(previous);
   expect(content.classList.contains("h-full")).toBe(true);
-  for (const name of ["kit-enter", "h-full", "min-h-0"]) {
+  for (const name of ["kit-enter", "h-full", "min-h-max"]) {
     expect(previous.classList.contains(name)).toBe(true);
   }
   expect(previous.hasAttribute("data-motion-item")).toBe(true);

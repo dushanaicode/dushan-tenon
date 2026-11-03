@@ -37,7 +37,7 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   const Heading = `h${useContext(PageHeadingLevelContext)}` as const;
-  const titleRef = usePageTitleRef(Heading === "h1");
+  const titleRef = usePageTitleRef(title, Heading === "h1");
   return (
     <header
       data-slot="page-header"

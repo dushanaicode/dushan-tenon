@@ -1,6 +1,45 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { expect, it } from "vitest";
+import { PageHeader } from "@/kit";
 import { mockShellIpc, renderShell, resizeShell } from "../shell.test-support";
+
+it("顶栏优先导航名，无导航时同步页面标题，无标题时留空", async () => {
+  mockShellIpc();
+  const view = renderShell({}, "/", <PageHeader title="首页正文" />);
+  await screen.findByRole("button", { name: "收起侧栏" });
+  const title = view.container.querySelector(
+    '[data-shell="topbar"] [data-part="title"]',
+  );
+  expect(title?.textContent).toBe("首页");
+  view.update({ tree: { groups: [], footer: [] } });
+  expect(title?.textContent).toBe("首页正文");
+  view.update({ children: <PageHeader title="个人资料" /> });
+  expect(title?.textContent).toBe("个人资料");
+  view.update({ children: null });
+  expect(title?.textContent).toBe("");
+});
+
+it.each(["/notify", "/account/profile", "/missing", "/demo/details/42"])(
+  "%s 没有导航匹配时显示 PageHeader 标题",
+  async (path) => {
+    mockShellIpc();
+    const view = renderShell({}, path);
+    await screen.findByRole("heading", { name: path });
+    expect(
+      view.container.querySelector('[data-shell="topbar"] [data-part="title"]')
+        ?.textContent,
+    ).toBe(path);
+  },
+);
+
+it("主内容不受 Grid 行高限制，内容板保留满屏高度与自然增长", async () => {
+  mockShellIpc();
+  renderShell();
+  const main = await screen.findByRole("main");
+  expect(main.classList.contains("grid")).toBe(false);
+  for (const token of ["@container/content", "h-full", "min-h-max"])
+    expect(main.firstElementChild?.classList.contains(token)).toBe(true);
+});
 
 it("宽档侧栏、中档图标栏和窄档抽屉按容器切换；响应式不写宿主布局", async () => {
   const { calls } = mockShellIpc();

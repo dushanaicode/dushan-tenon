@@ -11,11 +11,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Button,
   Checkbox,
+  Combobox,
+  FormField,
   Input,
   Label,
+  NumberInput,
   Progress,
   RadioGroup,
   RadioGroupItem,
+  Select,
+  SelectTrigger,
+  SelectValue,
   Separator,
   Spinner,
   Switch,
@@ -37,6 +43,59 @@ function pressSpace(button: HTMLElement) {
 }
 
 describe("表单原语", () => {
+  it("表单控件使用单层半透明焦点环与分明暗错误态，标签至少间隔 8px", () => {
+    const { container } = render(
+      <>
+        <FormField label="密码">
+          {(control) => <Input {...control} type="password" />}
+        </FormField>
+        <Textarea aria-label="说明" />
+        <NumberInput value={1} onValueChange={vi.fn()} />
+        <Select>
+          <SelectTrigger>
+            <SelectValue placeholder="城市" />
+          </SelectTrigger>
+        </Select>
+        <Combobox
+          options={[]}
+          value={null}
+          onValueChange={vi.fn()}
+          placeholder="选择"
+          searchPlaceholder="搜索"
+          emptyText="无选项"
+        />
+        <Checkbox aria-label="确认" />
+        <RadioGroup>
+          <RadioGroupItem value="a" />
+        </RadioGroup>
+        <Switch aria-label="启用" />
+      </>,
+    );
+    const controls = container.querySelectorAll(
+      '[data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"], [data-slot="combobox"], [data-slot="checkbox"], [data-slot="radio-group-item"], [data-slot="switch"]',
+    );
+    expect(controls).toHaveLength(8);
+    for (const control of controls) {
+      for (const token of [
+        "focus-visible:border-ring",
+        "focus-visible:ring-[3px]",
+        "focus-visible:ring-ring/50",
+        "aria-invalid:border-destructive",
+        "aria-invalid:ring-destructive/20",
+        "dark:aria-invalid:ring-destructive/40",
+      ])
+        expect(control.classList.contains(token)).toBe(true);
+      expect(control.classList.contains("focus-visible:ring-2")).toBe(false);
+      expect(control.classList.contains("focus-visible:ring-ring")).toBe(false);
+    }
+    expect(
+      screen
+        .getByLabelText("密码")
+        .closest('[data-slot="form-field"]')
+        ?.classList.contains("gap-2"),
+    ).toBe(true);
+  });
+
   it("长文本控件保留完整文案、焦点与文本选择", () => {
     // 无头环境仅验证约束、焦点与可选择性；字形边界和 200% 文字由实机验收。
     const text = "中文 Aa 0123 — A long English label that remains selectable";

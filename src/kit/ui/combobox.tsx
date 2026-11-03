@@ -68,7 +68,12 @@ export function Combobox({
           aria-expanded={open}
           aria-haspopup="listbox"
           disabled={disabled}
-          className={cn("w-full justify-between", className)}
+          className={cn(
+            "w-full justify-between",
+            "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+            "aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
+            className,
+          )}
           {...props}
         >
           <span
