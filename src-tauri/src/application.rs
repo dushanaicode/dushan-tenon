@@ -129,6 +129,20 @@ pub(crate) fn request_exit<R: Runtime>(app: &tauri::AppHandle<R>, lifecycle: &Ar
     if lifecycle.recovery_ui.waiting() {
         return;
     }
+    if let Some(state) = app.try_state::<AppState>() {
+        match state.native.updater.installing() {
+            Ok(true) => return,
+            Ok(false) => {}
+            Err(error) => {
+                tracing::error!(code = %error.code(), "更新安装状态不可用");
+                return;
+            }
+        }
+    }
+    if lifecycle.exit.is_finished() {
+        app.exit(lifecycle.exit_code());
+        return;
+    }
     lifecycle.exit.begin();
     let app = app.clone();
     let lifecycle = lifecycle.clone();
@@ -241,6 +255,19 @@ pub(crate) fn handle_run_event<R: Runtime>(
             Ok(false) => {}
             Err(error) => tracing::warn!(code = %error.code(), "窗口重开显示意图失败"),
         },
+        RunEvent::ExitRequested { api, .. }
+            if app.try_state::<AppState>().is_some_and(|state| {
+                match state.native.updater.installing() {
+                    Ok(installing) => installing,
+                    Err(error) => {
+                        tracing::error!(code = %error.code(), "更新安装状态不可用");
+                        true
+                    }
+                }
+            }) =>
+        {
+            api.prevent_exit();
+        }
         RunEvent::ExitRequested { api, .. } if !lifecycle.exit.is_finished() => {
             api.prevent_exit();
             if let Some(state) = app.try_state::<AppState>()

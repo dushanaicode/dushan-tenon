@@ -189,6 +189,14 @@ pub(crate) async fn initialize<R: Runtime>(
             )?);
             let close = native.clone();
             shutdown.push("native", move || async move { close.shutdown() });
+            if !native.updater.configured()
+                && ports::read(&configured.config)?
+                    .native_settings()
+                    .check_on_start
+                    .value
+            {
+                return Err(AppError::new(tenon_desktop::native::updater::UNCONFIGURED));
+            }
             Ok(native)
         })
         .await?;

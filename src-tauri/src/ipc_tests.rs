@@ -11,6 +11,7 @@ use tauri::{
 use tenon_framework::{actor::Actor, id::Id};
 
 mod file_data;
+mod updater;
 mod window_controls;
 mod workbench;
 
@@ -166,7 +167,11 @@ fn command_access_and_implementations_match_the_three_entry_contracts() {
             .filter(|(_, kind)| *kind == CommandAdmission::Maintenance)
             .map(|(name, _)| *name)
             .collect::<Vec<_>>(),
-        ["app_backup_export", "app_backup_restore"]
+        [
+            "app_update_install",
+            "app_backup_export",
+            "app_backup_restore"
+        ]
     );
     for (name, level) in COMMAND_ACCESS {
         let source = fs::read_to_string(
