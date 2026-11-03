@@ -75,7 +75,7 @@ test("diagnostic_text_preserves_whitelist and excludes sensitive sentinels", () 
   }
   expect(text.split("\n")).toEqual([
     "Tenon diagnostics v1",
-    "version: 0.1.0-test",
+    "version: 0.1.0-alpha.1",
     "database.kind: postgres",
     "database.appliedMigrations: 3",
     "cache.provider: redis",
@@ -107,7 +107,7 @@ test("diagnostic text handles cache errors", () => {
   );
   expect(text.split("\n")).toEqual([
     "Tenon diagnostics v1",
-    "version: 0.1.0-test",
+    "version: 0.1.0-alpha.1",
     "database.kind: postgres",
     "database.appliedMigrations: 3",
     "cache.provider: redis",

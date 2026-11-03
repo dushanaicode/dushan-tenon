@@ -3,7 +3,7 @@
   "productName": "Dushan Tenon",
   "mainBinaryName": "dushan-tenon",
   "identifier": "com.dushan.tenon",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "build": {
     "beforeDevCommand": "node scripts/web.mjs dev",
     "beforeBuildCommand": "node scripts/web.mjs build",
@@ -30,6 +30,13 @@
   },
   "bundle": {
     "active": true,
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["SimpChinese", "English"],
+        "displayLanguageSelector": false
+      }
+    },
     "macOS": { "minimumSystemVersion": "13.0" },
     "icon": [
       "icons/32x32.png",

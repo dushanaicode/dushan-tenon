@@ -41,7 +41,7 @@ export const defaultSettings: AppSettings = {
 export const appModules: AppModules = {
   modules: MODULE_IDS.map((id) => ({
     id,
-    version: "0.1.0",
+    version: "0.1.0-alpha.1",
     enabled: true,
     core: id === "account",
     appliedMigrations: 0,

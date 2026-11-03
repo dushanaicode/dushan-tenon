@@ -34,7 +34,7 @@ test.each([
     const account = within(
       await table.findByRole("row", { name: /^account\s/ }),
     );
-    for (const value of ["0.1.0", enabled, core, "0"])
+    for (const value of ["0.1.0-alpha.1", enabled, core, "0"])
       expect(account.getByText(value)).toBeTruthy();
     const notify = within(table.getByRole("row", { name: /^notify\s/ }));
     for (const value of ["2.0.0", disabled, optional, "4"])

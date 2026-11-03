@@ -2,7 +2,7 @@
 
 可装配的单人桌面工具底座：Rust + Tauri 2 + React / TypeScript。
 
-> 当前处于骨架阶段：只有一个空窗口和分层检查，功能正在按依赖顺序迁入，暂不可用。
+> 当前基础版包含 account、notify、files、devtools、demo 五个模块及演示中心，不含 AI。外观仅提供标准主题的浅色、深色与跟随系统。
 
 ## 环境要求
 
@@ -17,6 +17,8 @@
 | `pnpm install` | 安装依赖 |
 | `pnpm dev` | 启动开发窗口 |
 | `pnpm build` | 构建可执行文件（不生成安装包） |
+| `pnpm bundle` | [构建 Windows NSIS 安装包](docs/release.md) |
+| `pnpm preset` | 从 minimal、tool、full 预设创建配置 |
 | `pnpm check` | 运行全部检查 |
 | `pnpm test` | 运行单元测试 |
 
@@ -25,6 +27,7 @@
 ## 文档
 
 - [架构与分层规则](docs/architecture.md)
+- [安装包构建与发布](docs/release.md)
 - [协作规则](AGENTS.md)
 
 ## 许可

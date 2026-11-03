@@ -1,6 +1,6 @@
 {
   "name": "dushan-tenon",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.16.0",
@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs",
+    "bundle": "node scripts/bundle.mjs",
     "generate": "node scripts/generate.mjs",
     "preset": "node scripts/preset.mjs",
     "check": "node scripts/check.mjs",

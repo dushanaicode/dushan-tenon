@@ -76,6 +76,7 @@ if (targets.includes("--help") || targets.includes("-h")) {
               "scripts/product.test.mjs",
               "scripts/preset.test.mjs",
               "scripts/check-release.test.mjs",
+              "scripts/bundle.test.mjs",
               "scripts/check-kit.test.mjs",
               "scripts/check-identity.test.mjs",
               "scripts/check-licenses.test.mjs",
