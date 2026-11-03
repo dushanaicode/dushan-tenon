@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, DataTable, type DataTableColumn } from "@/kit";
+import { DataTable, type DataTableColumn } from "@/kit";
 import catalog from "../catalog/menus.json";
 import { CommandListExample } from "../examples/command-list";
 import { ContextMenuExample } from "../examples/context-menu";
@@ -241,38 +241,27 @@ export function MenusPage() {
         <div className="space-y-6">
           <div className="grid min-w-0 gap-6 @3xl:grid-cols-2">
             <section className="min-w-0 space-y-3">
-              <h3 className="flex flex-wrap gap-2 font-semibold">
-                {t("showcase.menus.dropdown")}{" "}
-                <Badge>{t("showcase.common.mixed")}</Badge>
-              </h3>
+              <h3 className="font-semibold">{t("showcase.menus.dropdown")}</h3>
               <DropdownMenuExample />
             </section>
             <section className="min-w-0 space-y-3">
-              <h3 className="flex flex-wrap gap-2 font-semibold">
-                {t("showcase.menus.contextHeading")}{" "}
-                <Badge>{t("showcase.common.new")}</Badge>
+              <h3 className="font-semibold">
+                {t("showcase.menus.contextHeading")}
               </h3>
               <ContextMenuExample />
             </section>
             <section className="min-w-0 space-y-3">
-              <h3 className="flex flex-wrap gap-2 font-semibold">
-                {t("showcase.menus.editor")}{" "}
-                <Badge>{t("showcase.common.new")}</Badge>
-              </h3>
+              <h3 className="font-semibold">{t("showcase.menus.editor")}</h3>
               <MenubarExample />
             </section>
             <section className="min-w-0 space-y-3">
-              <h3 className="flex flex-wrap gap-2 font-semibold">
-                {t("showcase.menus.hoverHeading")}{" "}
-                <Badge>{t("showcase.common.new")}</Badge>
+              <h3 className="font-semibold">
+                {t("showcase.menus.hoverHeading")}
               </h3>
               <HoverCardExample />
             </section>
             <section className="min-w-0 space-y-3 @3xl:col-span-2">
-              <h3 className="flex flex-wrap gap-2 font-semibold">
-                {t("showcase.menus.commands")}{" "}
-                <Badge>{t("showcase.common.existing")}</Badge>
-              </h3>
+              <h3 className="font-semibold">{t("showcase.menus.commands")}</h3>
               <CommandListExample />
             </section>
           </div>

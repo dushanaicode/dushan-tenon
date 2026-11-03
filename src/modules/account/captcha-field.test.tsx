@@ -37,6 +37,10 @@ test.each([
         "src",
       ),
     ).toContain("image-1");
+    const answer = form.getByLabelText("验证码");
+    const field = answer.closest('[data-slot="form-field"]');
+    expect(field?.classList.contains("gap-2")).toBe(true);
+    expect(field?.querySelector("label")?.nextElementSibling).toBe(answer);
     fireEvent.change(form.getByLabelText("验证码"), {
       target: { value: "abcde" },
     });

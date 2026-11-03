@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Badge,
   Button,
   DataTable,
   type DataTableColumn,
@@ -181,9 +180,8 @@ export function ButtonsPage() {
             <ButtonExample />
           </div>
           <div className="space-y-4">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
+            <h3 className="font-semibold">
               {t("showcase.buttons.combinations")}
-              <Badge>{t("showcase.buttons.newPattern")}</Badge>
             </h3>
             <SplitButtonExample />
             <div className="space-y-2">

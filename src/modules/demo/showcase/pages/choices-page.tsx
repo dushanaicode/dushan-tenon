@@ -1,7 +1,6 @@
 import { useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Badge,
   Checkbox,
   DataTable,
   type DataTableColumn,
@@ -160,17 +159,11 @@ export function ChoicesPage() {
       preview={
         <div className="grid min-w-0 gap-6 @3xl:grid-cols-2">
           <section className="min-w-0 space-y-3 rounded-lg border p-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.choices.immediate")}{" "}
-              <Badge>{t("showcase.common.existing")}</Badge>
-            </h3>
+            <h3 className="font-semibold">{t("showcase.choices.immediate")}</h3>
             <SwitchExample />
           </section>
           <section className="min-w-0 space-y-3 rounded-lg border p-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.choices.deferred")}{" "}
-              <Badge>{t("showcase.common.existing")}</Badge>
-            </h3>
+            <h3 className="font-semibold">{t("showcase.choices.deferred")}</h3>
             <CheckboxFormExample />
           </section>
           <section className="min-w-0 space-y-3">
@@ -180,9 +173,8 @@ export function ChoicesPage() {
             <RadioGroupExample />
           </section>
           <section className="min-w-0 space-y-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.choices.toggleHeading")}{" "}
-              <Badge>{t("showcase.common.new")}</Badge>
+            <h3 className="font-semibold">
+              {t("showcase.choices.toggleHeading")}
             </h3>
             <ToggleGroupExample />
           </section>
