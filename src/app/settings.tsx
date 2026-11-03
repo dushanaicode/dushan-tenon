@@ -31,7 +31,7 @@ export function Settings({ directory }: { directory: SectionDirectory }) {
       <PageHeader title={t("nav.settings")} />
       <div className="flex flex-col gap-stack @medium/content:flex-row">
         <SectionNavigation sections={table.visible} selected={section} />
-        <div className="min-w-0 max-w-4xl flex-1">
+        <div className="w-full min-w-0 max-w-4xl flex-1">
           <section
             id={`settings-content-${id}`}
             aria-label={`${t("nav.settings")} · ${t(section.labelKey)}`}

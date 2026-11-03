@@ -1,12 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { Fragment, type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppSettings } from "@/core/app-settings";
 import { useAuthStatus } from "@/core/auth";
 import { DictTag } from "@/core/dict/dict-tag";
 import { appModulesQuery } from "@/core/enabled-modules";
 import { IpcErrorMessage } from "@/core/ipc-error";
-import { Button, SettingGroup, SettingRow, Spinner, Textarea } from "@/kit";
+import { Badge, Button, SettingGroup, Spinner, Textarea } from "@/kit";
 import type { AppAbout } from "@/lib/generated/AppAbout";
 import {
   appAboutGet,
@@ -107,106 +107,11 @@ export function AboutSection() {
       ) : about.isError ? (
         <IpcErrorMessage error={about.error} />
       ) : (
-        <SettingGroup>
-          <SettingRow label={t("settings.version")}>
-            {(control) => <div {...control}>{about.data.version}</div>}
-          </SettingRow>
-          <SettingRow label={t("settings.stateRoot")}>
-            {(control) => (
-              <div {...control} className="space-y-2 break-all">
-                <p>{about.data.stateRoot}</p>
-                <Button
-                  variant="outline"
-                  disabled={opening.isPending}
-                  onClick={() => opening.mutate({ target: "stateDirectory" })}
-                >
-                  {t("settings.open.state")}
-                </Button>
-              </div>
-            )}
-          </SettingRow>
-          <SettingRow label={t("settings.configFile")}>
-            {(control) => (
-              <div {...control} className="break-all">
-                {about.data.configFile}
-                <span className="ml-2 text-muted-foreground">
-                  {t(
-                    about.data.configFileExists
-                      ? "settings.configExists"
-                      : "settings.configMissing",
-                  )}
-                </span>
-                <div className="mt-2">
-                  <Button
-                    variant="outline"
-                    disabled={opening.isPending}
-                    onClick={() =>
-                      opening.mutate({ target: "configDirectory" })
-                    }
-                  >
-                    {t("settings.open.config")}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </SettingRow>
-          <SettingRow label={t("settings.logDirectory")}>
-            {(control) => (
-              <div {...control} className="space-y-2 break-all">
-                <p>{about.data.logDirectory}</p>
-                <Button
-                  variant="outline"
-                  disabled={opening.isPending}
-                  onClick={() => opening.mutate({ target: "logDirectory" })}
-                >
-                  {t("settings.open.logs")}
-                </Button>
-              </div>
-            )}
-          </SettingRow>
-          <SettingRow label={t("settings.databaseKind")}>
-            {(control) => (
-              <div {...control}>{t(`database.${about.data.databaseKind}`)}</div>
-            )}
-          </SettingRow>
-          <SettingRow label={t("settings.databaseLocation")}>
-            {(control) => (
-              <div {...control} className="break-all">
-                {about.data.databaseLocation}
-              </div>
-            )}
-          </SettingRow>
-          <SettingRow label={t("settings.appliedMigrations")}>
-            {(control) => (
-              <div {...control}>{about.data.appliedMigrations}</div>
-            )}
-          </SettingRow>
-          <SettingRow label={t("settings.cacheProvider")}>
-            {(control) => (
-              <div {...control}>{t(`cache.${about.data.cacheProvider}`)}</div>
-            )}
-          </SettingRow>
-          <SettingRow label={t("settings.cacheLocation")}>
-            {(control) => (
-              <div {...control} className="break-all">
-                {about.data.cacheLocation ?? t("cache.localLocation")}
-              </div>
-            )}
-          </SettingRow>
-          <SettingRow label={t("settings.cacheStatus")}>
-            {(control) => (
-              <div {...control}>
-                <DictTag
-                  code="framework.cache_status"
-                  value={about.data.cacheStatus.status}
-                />
-                {about.data.cacheStatus.status === "error" && (
-                  <p>{t(`errors.${about.data.cacheStatus.code}`)}</p>
-                )}
-              </div>
-            )}
-          </SettingRow>
-        </SettingGroup>
+        <AboutDetails
+          about={about.data}
+          opening={opening.isPending}
+          onOpen={(target) => opening.mutate({ target })}
+        />
       )}
       {opening.isError && <IpcErrorMessage error={opening.error} />}
       <div className="space-y-3">
@@ -281,5 +186,129 @@ export function AboutSection() {
       </div>
       <UpdatePanel />
     </section>
+  );
+}
+
+function AboutRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid min-w-0 gap-2 p-4 @medium/settings:grid-cols-[10rem_minmax(0,1fr)] @medium/settings:items-center">
+      <dt className="text-body font-medium">{label}</dt>
+      <dd className="min-w-0 text-body">{children}</dd>
+    </div>
+  );
+}
+
+function AboutPath({ path }: { path: string }) {
+  return (
+    <code className="block min-w-0 select-text font-mono text-sm whitespace-pre-wrap [overflow-wrap:anywhere]">
+      {Array.from(path.matchAll(/[^\\/]*[\\/]|[^\\/]+$/g), (part) => (
+        <Fragment key={part.index}>
+          {part[0]}
+          <wbr />
+        </Fragment>
+      ))}
+    </code>
+  );
+}
+
+function AboutDetails({
+  about,
+  opening,
+  onOpen,
+}: {
+  about: AppAbout;
+  opening: boolean;
+  onOpen: (target: OpenKnownTargetInput["target"]) => void;
+}) {
+  const { t } = useTranslation();
+  const directories = [
+    {
+      label: "settings.stateRoot",
+      path: about.stateRoot,
+      target: "stateDirectory",
+      action: "settings.open.state",
+    },
+    {
+      label: "settings.configFile",
+      path: about.configFile,
+      target: "configDirectory",
+      action: "settings.open.config",
+    },
+    {
+      label: "settings.logDirectory",
+      path: about.logDirectory,
+      target: "logDirectory",
+      action: "settings.open.logs",
+    },
+  ] as const;
+  return (
+    <SettingGroup>
+      <dl className="divide-y divide-border" style={{ padding: 0 }}>
+        <AboutRow label={t("settings.version")}>{about.version}</AboutRow>
+        {directories.map(({ label, path, target, action }) => (
+          <AboutRow key={target} label={t(label)}>
+            <div className="flex min-w-0 flex-col items-start gap-3 @medium/settings:flex-row @medium/settings:items-center">
+              <div className="min-w-0 flex-1 space-y-2">
+                <AboutPath path={path} />
+                {target === "configDirectory" && (
+                  <Badge
+                    tone={about.configFileExists ? "success" : "neutral"}
+                    className="whitespace-nowrap"
+                    title={
+                      about.configFileExists
+                        ? undefined
+                        : t("settings.configMissingHint")
+                    }
+                  >
+                    {t(
+                      about.configFileExists
+                        ? "settings.configExists"
+                        : "settings.configMissing",
+                    )}
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                className="shrink-0"
+                aria-label={t(action)}
+                disabled={opening}
+                onClick={() => onOpen(target)}
+              >
+                {t("settings.open.directory")}
+              </Button>
+            </div>
+          </AboutRow>
+        ))}
+        <AboutRow label={t("settings.databaseKind")}>
+          {t(`database.${about.databaseKind}`)}
+        </AboutRow>
+        <AboutRow label={t("settings.databaseLocation")}>
+          <AboutPath path={about.databaseLocation} />
+        </AboutRow>
+        <AboutRow label={t("settings.appliedMigrations")}>
+          {about.appliedMigrations}
+        </AboutRow>
+        <AboutRow label={t("settings.cacheProvider")}>
+          {t(`cache.${about.cacheProvider}`)}
+        </AboutRow>
+        <AboutRow label={t("settings.cacheLocation")}>
+          {about.cacheLocation === null ? (
+            t("cache.localLocation")
+          ) : (
+            <AboutPath path={about.cacheLocation} />
+          )}
+        </AboutRow>
+        <AboutRow label={t("settings.cacheStatus")}>
+          <DictTag
+            code="framework.cache_status"
+            value={about.cacheStatus.status}
+          />
+          {about.cacheStatus.status === "error" && (
+            <p>{t(`errors.${about.cacheStatus.code}`)}</p>
+          )}
+        </AboutRow>
+      </dl>
+    </SettingGroup>
   );
 }

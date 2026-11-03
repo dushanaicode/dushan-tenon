@@ -1,6 +1,49 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { expect, test } from "vitest";
 import { mockAppIpc, renderApp } from "./settings.test-support";
+
+test("通用设置按功能分组，窗口状态关联到几何恢复开关", async () => {
+  mockAppIpc();
+  renderApp("/settings/general");
+  await screen.findByRole("group", { name: "应用内快捷键" });
+  const restore = await screen.findByRole("switch", {
+    name: "记住窗口位置和大小",
+  });
+  expect(
+    screen
+      .getAllByRole("group")
+      .map(
+        (group) =>
+          group.getAttribute("aria-labelledby") &&
+          document.getElementById(group.getAttribute("aria-labelledby") ?? "")
+            ?.textContent,
+      ),
+  ).toEqual([
+    "语言",
+    "标题栏",
+    "窗口",
+    "托盘与关闭",
+    "启动",
+    "全局快捷键",
+    "应用内快捷键",
+  ]);
+  const window = screen.getByRole("group", { name: "窗口" });
+  expect(within(window).getByRole("switch")).toBe(restore);
+  const description = document.getElementById(
+    restore.getAttribute("aria-describedby") ?? "",
+  );
+  expect(description?.textContent).toContain("下次启动恢复窗口");
+  expect(description?.textContent).toContain("本次启动未恢复窗口位置。");
+  expect(
+    within(window).getByRole("button", { name: "重置窗口位置" }),
+  ).toBeTruthy();
+});
 
 test.each(["environment", "commandLine"] as const)(
   "通用页的语言、标题栏和高级选项遵守 %s 来源锁定",
