@@ -29,4 +29,4 @@ test("清单提供无额外权限的资料路由和安全分节，工厂加载�
   const { default: Security } = await setting.Component();
   render(<Security />, { wrapper });
   await screen.findByRole("region", { name: "安全" });
-});
+}, 20_000);

@@ -121,6 +121,7 @@ pub use tenon_desktop::{
     config::NativeSettingsChange,
     native::{
         opener::OpenKnownTargetInput,
+        updater::{UpdateDownloadInput, UpdateInstallInput, UpdateState},
         window_controls::{WindowCloseDecision, WindowEditDecision, WindowEditState, WindowEvent},
     },
 };

@@ -52,7 +52,10 @@ export function mockNotifyIpc(
       case "notify_mark_all_read":
         return null;
       case "app_setting_list":
-        return [...paramEntries, ...notifyParams];
+        return [
+          ...paramEntries.filter((entry) => entry.moduleId !== "notify"),
+          ...notifyParams,
+        ];
     }
   }, settingsPatch);
 }

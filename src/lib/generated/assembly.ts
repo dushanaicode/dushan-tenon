@@ -36,3 +36,12 @@ export const MODULE_CATALOG = [
     version: "0.1.0",
   },
 ] as const;
+export const PRESET_CATALOG = [
+  {
+    enabledModules: ["account", "notify", "files", "devtools", "demo"],
+    name: "full",
+  },
+  { enabledModules: ["account"], name: "minimal" },
+  { enabledModules: ["account", "notify"], name: "tool" },
+] as const;
+export type PresetName = (typeof PRESET_CATALOG)[number]["name"];

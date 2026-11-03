@@ -7,7 +7,8 @@ pub async fn app_operation_cancel(
     input: OperationCancelInput,
 ) -> Result<(), IpcError> {
     ipc::execute_control(state.inner(), stringify!(app_operation_cancel), || {
-        state.data.cancel(&input.operation_id)
+        state.data.cancel(&input.operation_id)?;
+        state.native.updater.cancel(&input.operation_id)
     })
     .await
 }

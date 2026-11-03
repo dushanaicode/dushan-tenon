@@ -29,6 +29,7 @@ mod autostart_scope;
 pub(crate) mod chrome;
 mod shortcuts;
 pub(crate) mod tray;
+pub(crate) mod updater;
 pub(crate) mod window_controls;
 pub(crate) mod window_state;
 
@@ -125,6 +126,7 @@ pub(crate) fn system(
     } else {
         None
     };
+    let updater = updater::create(app.clone(), root.join("Temp/updates"))?;
     // 注册键之后不再执行可失败的构造，取得资源即由 native 关闭栈负责。
     let shortcuts = Arc::new(Shortcuts::new(adapter, activation, &config.show_main.value));
     let feedback = app.clone();
@@ -142,8 +144,7 @@ pub(crate) fn system(
         shortcuts,
         known_targets,
         window_state,
-        // 未配置发行源的真实状态；H4 将注入发行配置与 SystemUpdater。
-        updater: Updater::new(None, root.join("Temp/updates")),
+        updater,
         report_failure: Arc::new(move |error| {
             window_controls::report_system_failure(&feedback, error)
         }),
@@ -152,6 +153,14 @@ pub(crate) fn system(
 
 pub(crate) fn close_requested<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<(), AppError> {
     let state = app.state::<AppState>();
+    if state.native.updater.installing()? {
+        return Ok(());
+    }
+    let lifecycle = app.state::<Arc<Lifecycle>>();
+    if lifecycle.exit.is_finished() {
+        app.exit(lifecycle.exit_code());
+        return Ok(());
+    }
     state
         .native
         .window_controls
