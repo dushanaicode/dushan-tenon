@@ -45,7 +45,7 @@ fn ui_defaults_sources_and_strict_values() {
         let expected = match name {
             "minimal" => vec!["account"],
             "tool" => vec!["account", "notify"],
-            "full" => vec!["account", "ai", "demo", "devtools", "files", "notify"],
+            "full" => vec!["account", "demo", "devtools", "files", "notify"],
             _ => panic!("unexpected preset"),
         };
         assert_eq!(enabled, expected);

@@ -97,7 +97,6 @@ pub(crate) async fn prepare_restore<R: Runtime>(
                 modules::registry(
                     state.account.clone(),
                     state.notify.clone(),
-                    state.ai.clone(),
                     state.demo.clone(),
                     &config
                         .modules()
@@ -109,8 +108,7 @@ pub(crate) async fn prepare_restore<R: Runtime>(
                 .map_err(|_| AppError::new(backup::INVALID_ARCHIVE))
             },
             async |db| {
-                tenon_module_account::AccountService::check_restored_password_hashes(db).await?;
-                tenon_module_ai::AiService::unbind_restored_credentials(db).await
+                tenon_module_account::AccountService::check_restored_password_hashes(db).await
             },
         ))
     })

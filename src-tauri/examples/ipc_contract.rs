@@ -407,24 +407,5 @@ fn main() -> Result<(), Box<dyn Error>> {
     write_metadata(&output)?;
     write_dictionaries_and_params(&output)?;
     write_appearance(&output)?;
-    write_constants(
-        &output,
-        "ai-limits.ts",
-        &[
-            (
-                "MAX_MESSAGES",
-                serde_json::json!(tenon_module_ai::MAX_MESSAGES),
-            ),
-            (
-                "MAX_PARTS_PER_MESSAGE",
-                serde_json::json!(tenon_module_ai::MAX_PARTS_PER_MESSAGE),
-            ),
-            (
-                "MAX_REQUEST_BYTES",
-                serde_json::json!(tenon_module_ai::MAX_REQUEST_BYTES),
-            ),
-        ],
-        "",
-    )?;
     Ok(())
 }

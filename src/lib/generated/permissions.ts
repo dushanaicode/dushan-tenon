@@ -5,8 +5,6 @@ export const PERMISSION_KEYS = [
   "files.file.write",
   "devtools.job.read",
   "devtools.job.write",
-  "ai.chat.use",
-  "ai.service.manage",
   "demo.sample.read",
   "demo.sample.write",
   "demo.sample.import",
@@ -19,7 +17,6 @@ export const MODULE_IDS = [
   "notify",
   "files",
   "devtools",
-  "ai",
   "demo",
 ] as const;
 export type PermissionKey = (typeof PERMISSION_KEYS)[number];

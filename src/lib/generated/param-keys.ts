@@ -12,13 +12,6 @@ export const PARAM_KEYS = [
   "notify.toast_seconds",
   "notify.toast_position",
   "notify.retention_days",
-  "ai.base_url",
-  "ai.model",
-  "ai.api_key",
-  "ai.connect_timeout_seconds",
-  "ai.idle_timeout_seconds",
-  "ai.total_timeout_seconds",
-  "ai.include_usage",
   "demo.batch_size",
 ] as const;
 export const PARAM_MESSAGE_KEYS = [
@@ -54,21 +47,6 @@ export const PARAM_MESSAGE_KEYS = [
   "param.notify.toast_position.choice.top-center",
   "param.notify.retention_days.name",
   "param.notify.retention_days.description",
-  "param.ai.base_url.name",
-  "param.ai.base_url.description",
-  "param.group.ai.service",
-  "param.ai.model.name",
-  "param.ai.model.description",
-  "param.ai.api_key.name",
-  "param.ai.api_key.description",
-  "param.ai.connect_timeout_seconds.name",
-  "param.ai.connect_timeout_seconds.description",
-  "param.ai.idle_timeout_seconds.name",
-  "param.ai.idle_timeout_seconds.description",
-  "param.ai.total_timeout_seconds.name",
-  "param.ai.total_timeout_seconds.description",
-  "param.ai.include_usage.name",
-  "param.ai.include_usage.description",
   "param.demo.batch_size.name",
   "param.demo.batch_size.description",
   "param.group.demo.work",
@@ -76,7 +54,6 @@ export const PARAM_MESSAGE_KEYS = [
 export const PARAM_GROUPS = [
   { id: "account.security", moduleId: "account" },
   { id: "notify.preferences", moduleId: "notify" },
-  { id: "ai.service", moduleId: "ai" },
   { id: "demo.work", moduleId: "demo" },
 ] as const;
 export type ParamKey = (typeof PARAM_KEYS)[number];

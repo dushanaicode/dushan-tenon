@@ -18,7 +18,10 @@ it("retains verified permissions only for maintenance busy and rejects other ref
   });
   const { wrapper, client } = queryWrapper();
   const { result } = renderHook(
-    () => ({ auth: useAuthStatus(), allowed: usePermission("ai.chat.use") }),
+    () => ({
+      auth: useAuthStatus(),
+      allowed: usePermission("files.file.read"),
+    }),
     { wrapper },
   );
   await waitFor(() => expect(result.current.allowed).toBe(true));
@@ -38,7 +41,10 @@ it("initial maintenance busy cannot invent an authenticated permission grant", a
   });
   const { wrapper } = queryWrapper();
   const { result } = renderHook(
-    () => ({ auth: useAuthStatus(), allowed: usePermission("ai.chat.use") }),
+    () => ({
+      auth: useAuthStatus(),
+      allowed: usePermission("files.file.read"),
+    }),
     { wrapper },
   );
   await waitFor(() => expect(result.current.auth.isError).toBe(true));
@@ -49,7 +55,10 @@ it("shares the auth query and refuses permissions for inactive or failed auth", 
   const calls = mockAppIpc();
   const { wrapper, client } = queryWrapper();
   const { result } = renderHook(
-    () => ({ auth: useAuthStatus(), allowed: usePermission("ai.chat.use") }),
+    () => ({
+      auth: useAuthStatus(),
+      allowed: usePermission("files.file.read"),
+    }),
     { wrapper },
   );
   await waitFor(() => expect(result.current.allowed).toBe(true));

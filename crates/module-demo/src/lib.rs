@@ -45,7 +45,7 @@ pub const ERROR_CODES: &[ErrorCode] = &[
 pub const DECLARATION: ModuleDeclaration = ModuleDeclaration {
     id: "demo",
     version: env!("CARGO_PKG_VERSION"),
-    dependencies: &["account", "ai"],
+    dependencies: &["account"],
     required_capabilities: &[Capability::Job, Capability::Exchange, Capability::File],
     core: false,
     migrations: migrations::MIGRATIONS,

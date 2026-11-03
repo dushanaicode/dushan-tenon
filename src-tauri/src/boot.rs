@@ -25,14 +25,13 @@ use tenon_framework::{
     job::{JobQueue, JobRunner},
     logging::{self, LogLevelHandle, StartupRecord},
     module::{Capability, Extensions, Identity, ModuleContext, ModuleRegistry},
-    network::{ProxySecrets, ProxySnapshot},
+    network::ProxySecrets,
     param::ParamStore,
     secret::SecretStore,
     stream::StreamRegistry,
     time::Timestamp,
 };
 use tenon_module_account::AccountService;
-use tenon_module_ai::AiService;
 use tenon_module_demo::{DemoPreferences, DemoService};
 use tenon_module_notify::{DesktopNotifier, NotifyService};
 
@@ -111,7 +110,6 @@ struct Configured {
 struct Services {
     account: Arc<AccountService>,
     notify: Arc<NotifyService>,
-    ai: Arc<AiService>,
     demo: Arc<DemoService>,
     secrets: Arc<ProxySecrets>,
     translator: Arc<dyn Translator>,
@@ -297,18 +295,6 @@ async fn configure_services(
         Timestamp::now,
     ));
     let secrets = Arc::new((ports.secrets)(&configured.root)?);
-    let proxy_config = configured.config.clone();
-    let proxy_secrets = secrets.clone();
-    let ai = Arc::new(AiService::new(
-        account.clone(),
-        Arc::new(move |exact_loopback| {
-            ProxySnapshot::read(
-                ports::read(&proxy_config)?.proxy(),
-                &proxy_secrets,
-                exact_loopback,
-            )
-        }),
-    ));
     let preferences = configured.config.clone();
     let demo = Arc::new(DemoService::new(
         account.clone(),
@@ -325,14 +311,8 @@ async fn configure_services(
         .iter()
         .map(|(id, item)| (id.clone(), item.enabled))
         .collect();
-    let registry = modules::registry(
-        account.clone(),
-        notify.clone(),
-        ai.clone(),
-        demo.clone(),
-        &enabled,
-    )
-    .map_err(internal)?;
+    let registry = modules::registry(account.clone(), notify.clone(), demo.clone(), &enabled)
+        .map_err(internal)?;
     registry
         .check_capabilities(&[Capability::Job, Capability::Exchange, Capability::File])
         .map_err(internal)?;
@@ -352,7 +332,6 @@ async fn configure_services(
         services: Services {
             account,
             notify,
-            ai,
             demo,
             secrets,
             translator,
@@ -569,7 +548,6 @@ impl RuntimeReady {
             jobs: self.jobs,
             account: services.account,
             notify: services.notify,
-            ai: services.ai,
             demo: services.demo,
             network_secrets: services.secrets,
             gate: lifecycle.gate.clone(),

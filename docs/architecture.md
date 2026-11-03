@@ -39,7 +39,7 @@ Temp/               构建产物与临时文件（Git 忽略）
 | core | lib、kit |
 | visual | lib、kit、core |
 | shell | lib、kit、core |
-| modules/<id> | lib、kit、core、本模块；demo 另可导入 ai |
+| modules/<id> | lib、kit、core、本模块 |
 | app | 全部 |
 
 - 按文件路径判断所在层。静态导入、`export … from`、动态 `import()` 与 `import type` 都计入；动态导入的路径必须是字符串字面量。
@@ -61,7 +61,7 @@ Temp/               构建产物与临时文件（Git 忽略）
 
 - 只有宿主 `src-tauri` 可以依赖 `tauri` 与 `tauri-*`。
 - `tenon-framework` 不依赖任何 `tenon-*` crate。
-- 模块只依赖 framework 与声明过的模块：都可以依赖 account；demo 另依赖 ai。
+- 模块只依赖 framework 与 account（account 自身只依赖 framework）；模块之间没有其他依赖。
 - `crates/` 下的其他 crate 只能依赖 framework 与模块，只能被宿主依赖；任何 crate 都不得依赖宿主。
 - `crates/` 下每个 package 的名字都是代号加 `-` 再加目录名，即 `tenon-<目录>`。
 - 宿主只做装配与 Tauri 适配；与 Tauri 无关的服务放在 framework 子模块或宿主之外的 crate，便于脱离 Tauri 测试和复用。

@@ -37,7 +37,6 @@ tauri-plugin-single-instance.workspace = true
 tenon-desktop.workspace = true
 tenon-framework.workspace = true
 tenon-module-account.workspace = true
-tenon-module-ai.workspace = true
 tenon-module-demo.workspace = true
 tenon-module-devtools.workspace = true
 tenon-module-files.workspace = true

@@ -23,7 +23,6 @@ pub use tenon_module_account::{
     RecoverInput, RecoverResult, RecoveryCodes, RecoveryRemaining, UserPasswordChange,
     UserProfileUpdate,
 };
-pub use tenon_module_ai::{AiCancelInput, AiChatInput, AiConnectionTest, AiStreamData};
 pub use tenon_module_demo::{
     DemoDraftLease, DemoDraftOpen, DemoDraftSaved, DemoDraftWrite, DemoListInput, DemoMeasureInput,
     DemoOverview, DemoSample, DemoSampleCreate, DemoSampleDraft, DemoSampleId, DemoSampleUpdate,

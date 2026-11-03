@@ -39,10 +39,7 @@ keyring = { version = "3.6", default-features = false }
 moka = { version = "0.12", features = ["future"] }
 png = "0.18"
 redis = { version = "1.7", default-features = false, features = ["tokio-rustls-comp", "connection-manager", "script", "tls-rustls-insecure"] }
-reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider", "stream", "json"] }
 rust_xlsxwriter = { version = "0.99.1", default-features = false }
-rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
-rustls-native-certs = "0.8.5"
 sea-query = { version = "1.0", default-features = false, features = ["backend-sqlite", "backend-mysql", "backend-postgres", "thread-safe"] }
 secrecy = "0.10"
 serde = { version = "1.0", features = ["derive"] }
@@ -61,7 +58,6 @@ tempfile = "3.23"
 tenon-desktop = { path = "crates/desktop" }
 tenon-framework = { path = "crates/framework" }
 tenon-module-account = { path = "crates/module-account" }
-tenon-module-ai = { path = "crates/module-ai" }
 tenon-module-demo = { path = "crates/module-demo" }
 tenon-module-devtools = { path = "crates/module-devtools" }
 tenon-module-files = { path = "crates/module-files" }

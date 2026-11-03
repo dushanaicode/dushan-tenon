@@ -3,10 +3,6 @@
 import type { Channel } from "../ipc/invoke";
 import { invoke } from "../ipc/invoke";
 import type { StreamChannel } from "../ipc/stream";
-import type { AiCancelInput } from "./AiCancelInput";
-import type { AiChatInput } from "./AiChatInput";
-import type { AiConnectionTest } from "./AiConnectionTest";
-import type { AiStreamData } from "./AiStreamData";
 import type { AppAbout } from "./AppAbout";
 import type { AppModules } from "./AppModules";
 import type { AppSettings } from "./AppSettings";
@@ -237,21 +233,6 @@ export function appNativeSettingsUpdate(
 
 export function appWindowStateReset(): Promise<NativeSettings> {
   return invoke<NativeSettings>("app_window_state_reset");
-}
-
-export function aiChatStream(
-  input: AiChatInput,
-  channel: StreamChannel<AiStreamData>,
-): Promise<null> {
-  return invoke<null>("ai_chat_stream", { input, channel });
-}
-
-export function aiChatCancel(input: AiCancelInput): Promise<null> {
-  return invoke<null>("ai_chat_cancel", { input });
-}
-
-export function aiServiceTest(): Promise<AiConnectionTest> {
-  return invoke<AiConnectionTest>("ai_service_test");
 }
 
 export function appSettingList(

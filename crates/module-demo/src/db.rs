@@ -29,35 +29,6 @@ mod sample_contract;
 
 use exchange_adapter::{Paths, host_handlers};
 
-struct AiDependency;
-impl Module for AiDependency {
-    fn declaration(&self) -> &ModuleDeclaration {
-        static DECL: ModuleDeclaration = ModuleDeclaration {
-            id: "ai",
-            version: "0.1.0",
-            core: false,
-            dependencies: &["account"],
-            required_capabilities: &[],
-            migrations: &[],
-            error_codes: &[],
-            permissions: &[],
-            dictionaries: &[],
-            params: &[],
-            file_purposes: &[],
-            job_kinds: &[],
-            schedules: &[],
-            message_keys: &[],
-        };
-        &DECL
-    }
-    fn start<'a>(&'a self, _: ModuleContext<'a>) -> ModuleFuture<'a> {
-        Box::pin(async { Ok(()) })
-    }
-    fn stop(&self) -> ModuleFuture<'_> {
-        Box::pin(async { Ok(()) })
-    }
-}
-
 struct Fixture {
     service: Arc<DemoService>,
     registry: ModuleRegistry,
@@ -98,11 +69,9 @@ impl Fixture {
                     .map_err(|_| AppError::new(INTERNAL_UNEXPECTED))
             }),
         ));
-        let mut registry = ModuleRegistry::new(
-            vec![account.clone(), Arc::new(AiDependency), service.clone()],
-            &Default::default(),
-        )
-        .unwrap();
+        let mut registry =
+            ModuleRegistry::new(vec![account.clone(), service.clone()], &Default::default())
+                .unwrap();
         registry
             .check_capabilities(&[Capability::Job, Capability::Exchange, Capability::File])
             .unwrap();

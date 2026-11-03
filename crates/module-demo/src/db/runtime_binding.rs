@@ -21,7 +21,7 @@ async fn exchange_requires_host_handlers_and_disabled_demo_binds_none() {
             assert_eq!(handler.max_attempts(), 1);
         }
         let disabled = ModuleRegistry::new(
-            vec![f.service.account.clone(), Arc::new(AiDependency), f.service.clone()],
+            vec![f.service.account.clone(), f.service.clone()],
             &BTreeMap::from([("demo".into(), false)]),
         ).unwrap();
         let frozen = disabled.freeze(host_handlers(f.service.clone(), f.paths.clone())).unwrap();

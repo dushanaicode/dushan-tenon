@@ -8,7 +8,7 @@ use tauri::{
     test::{INVOKE_KEY, MockRuntime, get_ipc_response},
     webview::InvokeRequest,
 };
-use tenon_framework::{actor::Actor, id::Id, ipc::IpcContext};
+use tenon_framework::{actor::Actor, id::Id};
 
 mod file_data;
 mod window_controls;
@@ -516,14 +516,6 @@ fn command_permission_denial_precedes_token_consumption() {
                     .take(&token, actor, purpose, None)
                     .unwrap();
             }
-            assert_eq!(
-                state.required_permissions("ai_service_test"),
-                ["ai.service.manage", "ai.chat.use"]
-            );
-            assert_eq!(
-                invoke(window, "ai_service_test", json!({})).unwrap_err()["code"],
-                "app.permission.denied"
-            );
         },
     );
 }
