@@ -19,7 +19,6 @@ use tenon_framework::{
     stream::StreamRegistry,
 };
 use tenon_module_account::AccountService;
-use tenon_module_ai::AiService;
 use tenon_module_demo::DemoService;
 use tenon_module_notify::NotifyService;
 
@@ -51,7 +50,6 @@ pub struct AppState {
     pub jobs: JobQueue,
     pub account: Arc<AccountService>,
     pub notify: Arc<NotifyService>,
-    pub ai: Arc<AiService>,
     pub demo: Arc<DemoService>,
     pub network_secrets: Arc<ProxySecrets>,
     pub gate: OperationGate,

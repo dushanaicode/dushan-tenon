@@ -13,11 +13,11 @@ Dushan Tenon（渡山榫卯）是可装配的单人桌面工具底座：Rust + T
 ## 分层（正文见 [docs/architecture.md](docs/architecture.md)）
 
 - 前端按 lib → kit → core → visual / shell / modules → app 单向依赖；`import type` 也算依赖。
-- 模块之间不互相导入，唯一例外 demo → ai；模块注册表只由 app 读取，经 props 或 context 下发。
+- 模块之间不互相导入；模块注册表只由 app 读取，经 props 或 context 下发。
 - `window.__TENON_*__` 在 `src/` 下只出现在外观桥 `src/core/appearance-bridge.ts` 及其同名测试中，其余代码经外观桥读取。
 - shell、app、modules 不用 `document.querySelector` 等 DOM 查询驱动焦点或状态；例外登记在 check-structure 白名单并写明原因。
 - 自定义 DOM 事件经类型化事件通道收发，事件名用 `tenon:` 前缀。
-- Rust：只有宿主 `src-tauri` 依赖 `tauri*`；framework 不依赖任何 `tenon-*`；模块只依赖 framework 与声明的模块（都可依赖 account，demo 另依赖 ai）。
+- Rust：只有宿主 `src-tauri` 依赖 `tauri*`；framework 不依赖任何 `tenon-*`；模块只依赖 framework 与 account。
 - framework 内部按架构文档的模块顺序单向引用，汇总（错误码、内置字典）只在 module；不含产品身份与应用语义。
 - desktop（tenon-desktop）承载配置文件模型与设置合同，不依赖 Tauri，只被宿主依赖。
 - 单个函数不超过 300 行，测试代码除外；本文件总量不超过 30KB、单行不超过 300 字。

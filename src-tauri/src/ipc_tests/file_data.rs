@@ -366,8 +366,8 @@ fn restore_commits_after_module_validation_then_closes_before_restart() {
             let actor = Actor::User(state.account.owner_id().unwrap());
             tauri::async_runtime::block_on(state.params.set(
                 &ExecutionContext::new(actor, "test"),
-                "ai.base_url",
-                "https://private.example/v1",
+                "demo.batch_size",
+                "17",
                 None,
             ))
             .unwrap();
@@ -397,8 +397,8 @@ fn restore_commits_after_module_validation_then_closes_before_restart() {
                 tauri::async_runtime::block_on(state.params.entries())
                     .unwrap()
                     .iter()
-                    .any(|entry| entry.key == "ai.base_url"
-                        && entry.value.as_deref() == Some("https://private.example/v1"))
+                    .any(|entry| entry.key == "demo.batch_size"
+                        && entry.value.as_deref() == Some("17"))
             );
             let accepted = invoke(
                 window,
@@ -459,7 +459,8 @@ fn restore_commits_after_module_validation_then_closes_before_restart() {
                 assert!(
                     values
                         .iter()
-                        .any(|(key, value)| key == "ai.base_url" && value.as_deref() == Some(""))
+                        .any(|(key, value)| key == "demo.batch_size"
+                            && value.as_deref() == Some("17"))
                 );
                 db.close().await;
             });

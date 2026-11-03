@@ -31,13 +31,6 @@ export const MODULE_CATALOG = [
   {
     core: false,
     dependencies: ["account"],
-    id: "ai",
-    requiredCapabilities: [],
-    version: "0.1.0",
-  },
-  {
-    core: false,
-    dependencies: ["account", "ai"],
     id: "demo",
     requiredCapabilities: ["job", "exchange", "file"],
     version: "0.1.0",

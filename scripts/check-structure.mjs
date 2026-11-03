@@ -71,10 +71,7 @@ function canImport(from, to) {
   if (from === null || to === null) return false;
   if (from === to || from === "app") return true;
   if (from.startsWith("module:")) {
-    return (
-      ["lib", "kit", "core"].includes(to) ||
-      (from === "module:demo" && to === "module:ai")
-    );
+    return ["lib", "kit", "core"].includes(to);
   }
   return allowedLayers[from].includes(to);
 }
@@ -229,9 +226,7 @@ function canDepend(from, to) {
   if (from === "framework") return false;
   if (from === "other") return to === "framework" || to.startsWith("module:");
   return (
-    to === "framework" ||
-    (to === "module:account" && from !== "module:account") ||
-    (from === "module:demo" && to === "module:ai")
+    to === "framework" || (to === "module:account" && from !== "module:account")
   );
 }
 

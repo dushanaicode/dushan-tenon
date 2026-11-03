@@ -28,9 +28,6 @@ language = "zh-CN"
 theme = "system"
 developer_mode = false
 
-[modules.ai]
-enabled = true
-
 [autostart]
 enabled = false
 
