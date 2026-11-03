@@ -1,5 +1,10 @@
 export { toast } from "sonner";
 export { ICONS, type IconId } from "./icons";
+export {
+  PageTitleFocusProvider,
+  usePageTitleFocus,
+  usePageTitleRef,
+} from "./page-title-focus";
 export { TIER_BREAKPOINTS, type Tier, tierForWidth } from "./responsive";
 export {
   type ConversationMessage,
