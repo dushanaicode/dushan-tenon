@@ -26,4 +26,5 @@ export const accountManifest: ModuleManifest = {
   headerWidgets: [],
   workbenchObjects: [],
   workbenchPanels: [],
+  fileTargets: [],
 };

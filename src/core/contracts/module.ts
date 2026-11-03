@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { IconId } from "@/kit";
 import type { AuthMode } from "@/lib/generated/AuthMode";
+import type { FileIngressPurpose } from "@/lib/generated/FileIngressPurpose";
 import type { MODULE_IDS, PermissionKey } from "@/lib/generated/permissions";
 import type { NavBadge } from "./navigation";
 import type { ObjectRef } from "./workbench";
@@ -118,5 +119,12 @@ export type ModuleManifest = {
   headerWidgets: ModuleHeaderWidget[];
   workbenchObjects: WorkbenchObjectContribution[];
   workbenchPanels: WorkbenchPanelContribution[];
+  fileTargets: (Visibility & {
+    id: string;
+    labelKey: string;
+    path: string;
+    purpose: FileIngressPurpose;
+    extensions: readonly string[];
+  })[];
   commands?: ModuleCommand[];
 };
