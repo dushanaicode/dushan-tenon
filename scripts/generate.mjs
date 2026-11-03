@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { generateRelease } from "./check-release.mjs";
 import { root, run, task } from "./common.mjs";
 import { hostPackage } from "./product.mjs";
 
@@ -53,6 +54,7 @@ if (
 ) {
   await task("generate", async (env) => {
     if (process.argv.length !== 2) throw new Error("用法: pnpm generate");
+    await generateRelease();
     await generate(join(root, "src/lib/generated"), env);
   });
 }
