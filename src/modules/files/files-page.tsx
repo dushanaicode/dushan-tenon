@@ -5,7 +5,7 @@ import { authKey, useAuthStatus, usePermission } from "@/core/auth";
 import { useIncomingFile } from "@/core/file-ingress";
 import { IpcErrorMessage } from "@/core/ipc-error";
 import { usePageSession } from "@/core/page-session";
-import { Button, ScrollArea } from "@/kit";
+import { Button, PageHeader, ScrollArea } from "@/kit";
 import {
   appFilePick,
   filesFileAdd,
@@ -165,8 +165,7 @@ function FilesList({ userId }: { userId: string }) {
       className="h-full min-h-0"
       plateClassName="mx-auto max-w-7xl space-y-6 p-page"
     >
-      <h1 className="text-2xl font-semibold">{t("files.title")}</h1>
-      <p className="text-sm text-muted-foreground">{t("files.localOnly")}</p>
+      <PageHeader title={t("files.title")} description={t("files.localOnly")} />
       <FileToolbar
         purpose={purpose}
         keyword={keyword}

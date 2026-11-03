@@ -1,10 +1,14 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import {
   currentUser,
   mockAppIpc,
   queryWrapper,
 } from "@/core/core.test-support";
+import { EditSessionsProvider } from "@/core/edit-sessions";
+import { SettingsDraftProvider } from "@/core/settings/drafts";
+import { SettingsActionBar } from "@/core/settings/settings-action-bar";
 import type { AuthStatus } from "@/lib/generated/AuthStatus";
 import { PERMISSION_KEYS } from "@/lib/generated/permissions";
 import { AuthGate } from "./auth-gate";
@@ -104,6 +108,30 @@ export function fillPassword(confirm = false) {
 
 export function renderAccount(page = "/", content?: ReactNode) {
   const { client, wrapper } = queryWrapper();
+  const body =
+    page === "/settings/security" ? (
+      <RouterProvider
+        router={createMemoryRouter(
+          [
+            {
+              path: page,
+              element: (
+                <EditSessionsProvider>
+                  <SettingsDraftProvider>
+                    {content ?? <SecuritySettings />}
+                    <SettingsActionBar />
+                  </SettingsDraftProvider>
+                </EditSessionsProvider>
+              ),
+            },
+          ],
+          { initialEntries: [page] },
+        )}
+      />
+    ) : (
+      (content ??
+      (page === "/account/profile" ? <ProfilePage /> : <p>账户内容</p>))
+    );
   return {
     client,
     ...render(
@@ -111,14 +139,7 @@ export function renderAccount(page = "/", content?: ReactNode) {
         <nav aria-label="受保护内容" />
         <SessionActions />
         <button type="button">受保护操作</button>
-        {content ??
-          (page === "/settings/security" ? (
-            <SecuritySettings />
-          ) : page === "/account/profile" ? (
-            <ProfilePage />
-          ) : (
-            <p>账户内容</p>
-          ))}
+        {body}
       </AuthGate>,
       { wrapper },
     ),
