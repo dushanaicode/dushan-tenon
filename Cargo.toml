@@ -1,6 +1,6 @@
 [workspace]
 members = ["crates/*", "src-tauri"]
-exclude = ["vendor/calamine", "vendor/tauri-plugin-window-state"]
+exclude = ["vendor/calamine", "vendor/tauri-plugin-window-state", "vendor/tauri-plugin-updater"]
 resolver = "3"
 
 [workspace.package]
@@ -54,6 +54,7 @@ tauri-plugin-opener = "=2.7.0"
 tauri-plugin-window-state = { path = "vendor/tauri-plugin-window-state" }
 tauri-plugin-notification = "2.5.1"
 tauri-plugin-single-instance = "2"
+tauri-plugin-updater = { path = "vendor/tauri-plugin-updater", default-features = false, features = ["rustls-tls"] }
 tempfile = "3.23"
 tenon-desktop = { path = "crates/desktop" }
 tenon-framework = { path = "crates/framework" }

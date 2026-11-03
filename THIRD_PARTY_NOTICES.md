@@ -89,3 +89,44 @@ vendor/tauri-plugin-window-state is adapted from tauri-plugin-window-state 2.5.0
 This project elects the MIT license from the upstream MIT OR Apache-2.0 offer. Copyright notices, SPDX identifiers, and both license texts are retained in LICENSE_MIT and LICENSE_APACHE-2.0. The upstream crate SHA-256 is 5d6815cab7b212f9cfe16a9d79d8d22f9e14159e4a9460f7dec1467167a008e3.
 
 This is a substantial adaptation: explicit state-file paths, strict main-window geometry storage, corruption protection, monitor/DPI handling, atomic writes, and explicit shutdown flushing. Sources, comparison records, and all changes are documented in vendor/tauri-plugin-window-state/PATCHES.md. No guest commands or JavaScript permissions are enabled.
+
+## H4：tauri-plugin-updater 2.13.1
+
+`vendor/tauri-plugin-updater` 来自 Tauri plugins-workspace，保留既有安全补丁。
+选择 MIT，保留上游 `LICENSE_MIT`、`LICENSE_APACHE-2.0`、`LICENSE.spdx` 与版权正文；来源提交、发布包 SHA-256、补丁和验证边界见其 `PATCHES.md`。
+
+### Rust 标准库改编片段（rust-lang/rust）— LICENSE-MIT
+
+`escape_nsis_current_exe_arg` 的源码注释记录了对 [`rust-lang/rust` commit
+`1c047506f94cd2d05228eb992b0a6bbed1942349` 的 `library/std/src/sys/args/windows.rs`（第 174 行 `append_arg`）](https://github.com/rust-lang/rust/blob/1c047506f94cd2d05228eb992b0a6bbed1942349/library/std/src/sys/args/windows.rs#L174) 的改编。
+该文件无逐文件许可头；该 commit 的仓库根 [`COPYRIGHT`](https://github.com/rust-lang/rust/blob/1c047506f94cd2d05228eb992b0a6bbed1942349/COPYRIGHT)
+写明 `Apache-2.0 OR MIT` 双重许可，版权归 The Rust Project Contributors。本项目选择 **MIT**。
+核对于 2026-10-20；下附该 commit 的 [`LICENSE-MIT`](https://github.com/rust-lang/rust/blob/1c047506f94cd2d05228eb992b0a6bbed1942349/LICENSE-MIT) 全文。
+
+```text
+Copyright (c) The Rust Project Contributors
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+```
