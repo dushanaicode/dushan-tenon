@@ -22,6 +22,12 @@ function bridge(): AppearanceBridge {
   return value;
 }
 
+export function getInitialSettings(): AppSettings {
+  const initial = window.__TENON_INITIAL_SETTINGS__;
+  if (!initial) throw new Error("Host initial settings are required");
+  return initial.settings;
+}
+
 export function getSnapshot(): AppearanceSnapshot {
   return bridge().getSnapshot();
 }
