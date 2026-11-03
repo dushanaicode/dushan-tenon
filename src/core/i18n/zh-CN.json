@@ -844,6 +844,7 @@
   "showcase.appearance-behavior.catalog.accordion.title": "Accordion · 多节内容",
   "showcase.appearance-behavior.catalog.accordion.whenToUse": "章节之间需要键盘移动，且要明确单节或多节展开；headingLevel 对齐页面标题层级。",
   "showcase.appearance-behavior.catalog.accordion.notFor": "互斥视图切换使用 Tabs；单一区域用 Collapsible，不拿手风琴构造主导航。",
+  "showcase.appearance-behavior.catalog.dialog.title": "对话框的焦点与返回",
   "showcase.overview.introduction": "从要完成的事情出发：按分类找演示页，或在场景选型表中查方案、示例文件和规则。下方保留真实业务样板概览。",
   "showcase.overview.directory": "全部演示页",
   "showcase.overview.emptySection": "此分类当前没有可访问的演示页。",

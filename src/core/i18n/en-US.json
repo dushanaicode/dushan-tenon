@@ -844,6 +844,7 @@
   "showcase.appearance-behavior.catalog.accordion.title": "Accordion · Multiple sections",
   "showcase.appearance-behavior.catalog.accordion.whenToUse": "Use when sections need keyboard navigation and explicit single/multiple expansion. Match headingLevel to the page’s heading hierarchy.",
   "showcase.appearance-behavior.catalog.accordion.notFor": "Use Tabs for mutually exclusive views and Collapsible for one region. Do not use accordions as main navigation.",
+  "showcase.appearance-behavior.catalog.dialog.title": "Dialog focus and return",
   "showcase.overview.introduction": "Start with the task: browse demos by category, or search the scenario guide for solutions, example files and rules. The live business overview remains below.",
   "showcase.overview.directory": "All demo pages",
   "showcase.overview.emptySection": "No accessible demos in this category yet.",

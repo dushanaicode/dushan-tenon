@@ -40,7 +40,7 @@
   },
   {
     "id": "pattern.behavior-dialog",
-    "titleKey": "showcase.overlays.catalog.dialog.title",
+    "titleKey": "showcase.appearance-behavior.catalog.dialog.title",
     "kind": "pattern",
     "importPath": "@/kit",
     "exampleFile": "src/modules/demo/showcase/examples/dialog.tsx",
