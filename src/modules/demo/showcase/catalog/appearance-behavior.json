@@ -37,5 +37,18 @@
     "notForKey": "showcase.common.localOnly",
     "related": ["component.dialog"],
     "rule": "SC-R12"
+  },
+  {
+    "id": "pattern.behavior-dialog",
+    "titleKey": "showcase.overlays.catalog.dialog.title",
+    "kind": "pattern",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/dialog.tsx",
+    "page": "/demo/appearance-behavior",
+    "variants": ["modal", "short-form", "failed-submit-retains-input"],
+    "whenToUseKey": "showcase.overlays.catalog.dialog.whenToUse",
+    "notForKey": "showcase.overlays.catalog.dialog.notFor",
+    "related": ["component.dialog"],
+    "rule": "SC-R02"
   }
 ]

@@ -35,6 +35,12 @@ export const behaviorExamples = [
       ? () => import("../examples/window-controls.tsx?raw")
       : undefined,
   },
+  {
+    file: catalog[3].exampleFile,
+    load: import.meta.env.DEV
+      ? () => import("../examples/dialog.tsx?raw")
+      : undefined,
+  },
 ];
 
 export function AppearanceBehaviorPage() {

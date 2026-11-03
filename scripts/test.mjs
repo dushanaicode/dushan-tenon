@@ -78,6 +78,8 @@ if (targets.includes("--help") || targets.includes("-h")) {
               "scripts/check-release.test.mjs",
               "scripts/bundle.test.mjs",
               "scripts/check-kit.test.mjs",
+              "scripts/check-assembly.test.mjs",
+              "scripts/check-showcase.test.mjs",
               "scripts/check-identity.test.mjs",
               "scripts/check-licenses.test.mjs",
               "scripts/check-structure.test.mjs",
