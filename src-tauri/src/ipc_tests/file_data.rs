@@ -205,6 +205,28 @@ fn exchange_commands_round_trip_jobs_with_only_internal_handles() {
 }
 
 #[test]
+fn about_paths_use_native_separators_and_match_live_storage() {
+    with_host(
+        "ipc_tests::file_data::about_paths_use_native_separators_and_match_live_storage",
+        CONFIG,
+        |_| {},
+        |window, root| {
+            let about = invoke(window, "app_about_get", json!({})).unwrap();
+            let sep = std::path::MAIN_SEPARATOR;
+            for (field, suffix) in [
+                ("stateRoot", String::new()),
+                ("configFile", format!("{sep}config.toml")),
+                ("logDirectory", format!("{sep}logs")),
+                ("databaseLocation", format!("{sep}data{sep}app.db")),
+            ] {
+                assert_eq!(about[field], format!("{}{suffix}", root.display()));
+            }
+            assert!(Path::new(about["databaseLocation"].as_str().unwrap()).is_file());
+        },
+    );
+}
+
+#[test]
 fn diagnostics_requires_probe_and_exports_only_whitelisted_facts() {
     with_host(
         "ipc_tests::file_data::diagnostics_requires_probe_and_exports_only_whitelisted_facts",

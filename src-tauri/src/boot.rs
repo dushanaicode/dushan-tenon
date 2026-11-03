@@ -101,7 +101,6 @@ struct Configured {
     overrides: Vec<String>,
     ephemeral_webview: bool,
     explicit_root: bool,
-    safe_mode: bool,
     config: SharedConfig,
     log_level: LogLevelHandle,
     instance: InstanceId,
@@ -283,7 +282,6 @@ async fn configure<R: Runtime>(
         overrides: options.overrides,
         ephemeral_webview,
         explicit_root,
-        safe_mode: options.safe_mode,
     })
 }
 
@@ -538,7 +536,6 @@ impl RuntimeReady {
             config: configured.config,
             ephemeral_webview: configured.ephemeral_webview,
             explicit_root: configured.explicit_root,
-            safe_mode: configured.safe_mode,
             log_level: configured.log_level,
             instance: configured.instance,
             db,

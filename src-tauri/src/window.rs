@@ -99,7 +99,7 @@ pub(crate) fn setup_window<R: Runtime>(
         "tauri://localhost".into()
     };
     let script = initialization_script(&settings, &origin, &lifecycle.notice_json()?)?;
-    let mut config = app
+    let config = app
         .config()
         .app
         .windows
@@ -107,9 +107,6 @@ pub(crate) fn setup_window<R: Runtime>(
         .find(|window| window.label == "main")
         .ok_or_else(|| AppError::new(INTERNAL_UNEXPECTED))?
         .clone();
-    if state.safe_mode {
-        config.url = tauri::WebviewUrl::App("index.html?recovery=basic".into());
-    }
     let reveal = Arc::new(WindowReveal::default());
     let loaded_reveal = reveal.clone();
     let loaded_lifecycle = lifecycle.clone();

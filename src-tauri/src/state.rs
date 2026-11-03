@@ -35,7 +35,6 @@ pub struct AppState {
     pub overrides: Vec<String>,
     pub ephemeral_webview: bool,
     pub(crate) explicit_root: bool,
-    pub(crate) safe_mode: bool,
     pub config: SharedConfig,
     pub log_level: LogLevelHandle,
     pub instance: InstanceId,
