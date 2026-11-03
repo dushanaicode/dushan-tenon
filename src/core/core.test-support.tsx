@@ -68,60 +68,96 @@ export const paramEntries: ParamEntry[] = [
   ...(
     [
       {
-        key: "ai.base_url",
-        kind: { type: "text", maxChars: 1024 },
-        value: "",
+        key: "demo.batch_size",
+        kind: { type: "integer", min: 1, max: 100 },
+        value: "25",
         order: 10,
+        effect: "nextJob",
       },
       {
-        key: "ai.model",
-        kind: { type: "text", maxChars: 128 },
-        value: "",
+        key: "demo.test_text",
+        kind: { type: "text", maxChars: 4 },
+        value: "a",
         order: 20,
-      },
-      { key: "ai.api_key", kind: { type: "secret" }, value: null, order: 30 },
-      {
-        key: "ai.connect_timeout_seconds",
-        kind: { type: "integer", min: 1, max: 60 },
-        value: "10",
-        order: 40,
+        effect: "nextRead",
       },
       {
-        key: "ai.idle_timeout_seconds",
-        kind: { type: "integer", min: 1, max: 300 },
-        value: "30",
-        order: 50,
+        key: "demo.test_secret",
+        kind: { type: "secret" },
+        value: null,
+        order: 30,
+        effect: "nextRead",
       },
-      {
-        key: "ai.total_timeout_seconds",
-        kind: { type: "integer", min: 5, max: 1800 },
-        value: "300",
-        order: 60,
-      },
-      {
-        key: "ai.include_usage",
-        kind: { type: "boolean" },
-        value: "true",
-        order: 70,
-      },
-    ] satisfies Pick<ParamEntry, "key" | "kind" | "value" | "order">[]
+    ] satisfies Pick<
+      ParamEntry,
+      "key" | "kind" | "value" | "order" | "effect"
+    >[]
   ).map(
     (entry): ParamEntry => ({
       ...entry,
-      moduleId: "ai",
+      moduleId: "demo",
       default: entry.value,
       isDefault: true,
       secretSet: false,
       rowVersion: null,
       updatedAt: null,
-      group: "ai.service",
-      readPermission: "ai.service.manage",
-      writePermission: "ai.service.manage",
+      group: "demo.work",
+      readPermission: "demo.settings.manage",
+      writePermission: "demo.settings.manage",
+      source: "default",
+    }),
+  ),
+  ...(
+    [
+      {
+        key: "notify.quiet_enabled",
+        kind: { type: "boolean" },
+        value: "false",
+        order: 50,
+      },
+      {
+        key: "notify.toast_position",
+        kind: {
+          type: "choice",
+          values: [
+            "bottom-right",
+            "bottom-left",
+            "bottom-center",
+            "top-right",
+            "top-left",
+            "top-center",
+          ],
+        },
+        value: "bottom-right",
+        order: 100,
+      },
+    ] satisfies Pick<ParamEntry, "key" | "kind" | "value" | "order">[]
+  ).map(
+    (entry): ParamEntry => ({
+      ...entry,
+      moduleId: "notify",
+      default: entry.value,
+      isDefault: true,
+      secretSet: false,
+      rowVersion: null,
+      updatedAt: null,
+      group: "notify.preferences",
+      readPermission: null,
+      writePermission: null,
       effect: "nextRead",
       source: "default",
     }),
   ),
 ];
+
+i18n.addResources("zh-CN", "translation", {
+  "param.demo.test_text.name": "测试文本",
+  "param.demo.test_secret.name": "测试秘密",
+});
+i18n.addResources("en-US", "translation", {
+  "param.demo.test_text.name": "Test text",
+  "param.demo.test_secret.name": "Test secret",
+});
 
 export function mockAppIpc(
   override?: Parameters<typeof mockIpc>[0],

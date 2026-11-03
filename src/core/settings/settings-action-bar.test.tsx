@@ -15,10 +15,8 @@ const bar = () => screen.queryByRole("region", { name: "设置操作" });
 
 test("批量保存等待期间离开秘密行，不提交已卸载的本地秘密", async () => {
   const entries = structuredClone(paramEntries);
-  const timeout = entries.find(
-    (entry) => entry.key === "ai.connect_timeout_seconds",
-  );
-  if (!timeout) throw new Error("缺少 AI 超时夹具");
+  const batch = entries.find((entry) => entry.key === "demo.batch_size");
+  if (!batch) throw new Error("缺少样板批次夹具");
   let finish!: (value: ParamEntry) => void;
   const pending = new Promise<ParamEntry>((resolve) => {
     finish = resolve;
@@ -27,12 +25,12 @@ test("批量保存等待期间离开秘密行，不提交已卸载的本地秘�
     if (command === "app_setting_list") return structuredClone(entries);
     if (command === "app_setting_set") return pending;
   });
-  const { router, client } = renderSettings("/settings/ai");
+  const { router, client } = renderSettings("/settings/demo");
   fireEvent.change(
-    await screen.findByRole("textbox", { name: "连接超时（秒）" }),
+    await screen.findByRole("textbox", { name: "测量批次大小" }),
     { target: { value: "44" } },
   );
-  fireEvent.change(screen.getByLabelText("API Key", { selector: "input" }), {
+  fireEvent.change(screen.getByLabelText("测试秘密", { selector: "input" }), {
     target: { value: "local-secret-sentinel" },
   });
   fireEvent.click(screen.getByRole("button", { name: "应用" }));
@@ -43,9 +41,9 @@ test("批量保存等待期间离开秘密行，不提交已卸载的本地秘�
   );
   await act(async () => router.navigate("/settings/general"));
   await screen.findByRole("region", { name: "通用" });
-  timeout.value = "44";
-  timeout.rowVersion = 1;
-  await act(async () => finish(structuredClone(timeout)));
+  batch.value = "44";
+  batch.rowVersion = 1;
+  await act(async () => finish(structuredClone(batch)));
   await waitFor(() => expect(bar()).toBeNull());
   expect(
     calls.mock.calls.filter(([name]) => name === "app_setting_set"),
@@ -58,19 +56,17 @@ test("批量保存等待期间离开秘密行，不提交已卸载的本地秘�
         .map((mutation) => mutation.state),
     ),
   ).not.toContain("local-secret-sentinel");
-  await act(async () => router.navigate("/settings/ai"));
+  await act(async () => router.navigate("/settings/demo"));
   expect(
-    await screen.findByLabelText("API Key", { selector: "input" }),
+    await screen.findByLabelText("测试秘密", { selector: "input" }),
   ).toHaveProperty("value", "");
 });
 
 test("跨分节依次保存多个参数，失败项保留、其它项继续，离页确认仍拦截", async () => {
   const entries = structuredClone(paramEntries);
   const first = entries[0];
-  const second = entries.find(
-    (entry) => entry.key === "ai.connect_timeout_seconds",
-  );
-  if (!second) throw new Error("缺少 AI 参数夹具");
+  const second = entries.find((entry) => entry.key === "demo.batch_size");
+  if (!second) throw new Error("缺少样板参数夹具");
   let finish!: (value: ParamEntry) => void;
   const pending = new Promise<ParamEntry>((resolve) => {
     finish = resolve;
@@ -94,9 +90,9 @@ test("跨分节依次保存多个参数，失败项保留、其它项继续，�
     await screen.findByRole("textbox", { name: "空闲自动锁定（分钟）" }),
     { target: { value: "22" } },
   );
-  await act(async () => router.navigate("/settings/ai"));
+  await act(async () => router.navigate("/settings/demo"));
   fireEvent.change(
-    await screen.findByRole("textbox", { name: "连接超时（秒）" }),
+    await screen.findByRole("textbox", { name: "测量批次大小" }),
     { target: { value: "45" } },
   );
   await act(async () => router.navigate("/settings/general"));
@@ -119,9 +115,9 @@ test("跨分节依次保存多个参数，失败项保留、其它项继续，�
   expect(writes).toEqual([first.key, second.key]);
   expect(screen.queryByText("正在保存…")).toBeNull();
   expect(screen.getByText("1 项更改未应用")).toBeTruthy();
-  await act(async () => router.navigate("/settings/ai"));
+  await act(async () => router.navigate("/settings/demo"));
   expect(
-    await screen.findByRole("textbox", { name: "连接超时（秒）" }),
+    await screen.findByRole("textbox", { name: "测量批次大小" }),
   ).toHaveProperty("value", "45");
   expect(screen.getByText(/param-second-failed/)).toBeTruthy();
   expect(screen.getAllByRole("alert").length).toBeGreaterThan(0);

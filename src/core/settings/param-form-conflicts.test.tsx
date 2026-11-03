@@ -18,8 +18,8 @@ import { PERMISSION_KEYS } from "@/lib/generated/permissions";
 import type { SettingSetInput } from "@/lib/generated/SettingSetInput";
 import {
   accountName,
-  aiName,
   conflict,
+  demoName,
   edit,
   listKey,
   mount,
@@ -89,7 +89,7 @@ test("parameter conflict keeps draft and base version", async () => {
   const { client } = mount();
   await screen.findByRole("form", { name: accountName });
   edit(accountName, "20");
-  edit(aiName, "50");
+  edit(demoName, "50");
   fireEvent.click(screen.getByRole("button", { name: "应用" }));
   await row(accountName).findByText(/草稿和编辑起点版本已保留/);
   await waitFor(() =>
@@ -128,7 +128,7 @@ test("parameter conflict keeps draft and base version", async () => {
   await waitFor(() =>
     expect(row(accountName).getByRole("textbox")).toHaveProperty("value", "30"),
   );
-  expect(row(aiName).getByRole("textbox")).toHaveProperty("value", "50");
+  expect(row(demoName).getByRole("textbox")).toHaveProperty("value", "50");
   edit(accountName, "35");
   fireEvent.click(screen.getByRole("button", { name: "应用" }));
   await waitFor(() =>
