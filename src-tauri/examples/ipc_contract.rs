@@ -7,7 +7,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tenon_desktop::{
-    config::Theme,
+    config::{self, Theme},
     native::chrome::{DARK_BACKGROUND, LIGHT_BACKGROUND},
 };
 use tenon_framework::{
@@ -122,6 +122,50 @@ fn write_constants(
     Ok(())
 }
 
+fn preset_catalog() -> Result<Vec<serde_json::Value>, Box<dyn Error>> {
+    let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let temporary = fs::canonicalize(env::temp_dir())?;
+    if !temporary.starts_with(fs::canonicalize(workspace.join("Temp"))?) {
+        return Err("预设生成的 TEMP/TMP/TMPDIR 必须位于本仓 Temp/ 内".into());
+    }
+    let staging = tempfile::Builder::new()
+        .prefix("assembly-")
+        .tempdir_in(&temporary)?;
+    let mut files = fs::read_dir(workspace.join("presets"))?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<Result<Vec<_>, _>>()?;
+    files.retain(|path| {
+        path.extension()
+            .is_some_and(|extension| extension == "toml")
+    });
+    files.sort();
+    let mut catalog = Vec::new();
+    for file in files {
+        let name = file
+            .file_stem()
+            .and_then(|name| name.to_str())
+            .ok_or("预设文件名必须为 UTF-8")?;
+        let state_root = staging.path().join(name);
+        fs::create_dir(&state_root)?;
+        fs::copy(&file, state_root.join("config.toml"))?;
+        let loaded = config::load(&state_root, [], &[])
+            .map_err(|error| format!("预设 {name} 校验失败：{error}"))?;
+        let enabled: Vec<_> = DECLARATIONS
+            .iter()
+            .filter(|declaration| {
+                loaded
+                    .modules()
+                    .get(declaration.id)
+                    .is_none_or(|module| module.enabled)
+            })
+            .map(|declaration| declaration.id)
+            .collect();
+        catalog.push(serde_json::json!({ "name": name, "enabledModules": enabled }));
+    }
+    staging.close()?;
+    Ok(catalog)
+}
+
 fn write_metadata(output: &Path) -> Result<(), Box<dyn Error>> {
     use serde_json::json;
     let permissions: Vec<_> = DECLARATIONS.iter().flat_map(|d| d.permissions).collect();
@@ -142,8 +186,11 @@ fn write_metadata(output: &Path) -> Result<(), Box<dyn Error>> {
     write_constants(
         output,
         "assembly.ts",
-        &[("MODULE_CATALOG", json!(catalog))],
-        "",
+        &[
+            ("MODULE_CATALOG", json!(catalog)),
+            ("PRESET_CATALOG", json!(preset_catalog()?)),
+        ],
+        "export type PresetName = (typeof PRESET_CATALOG)[number]['name'];\n",
     )?;
     write_constants(
         output,

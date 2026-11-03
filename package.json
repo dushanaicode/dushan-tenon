@@ -12,6 +12,7 @@
     "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs",
     "generate": "node scripts/generate.mjs",
+    "preset": "node scripts/preset.mjs",
     "check": "node scripts/check.mjs",
     "test": "node scripts/test.mjs",
     "resources": "node scripts/resources.mjs",
