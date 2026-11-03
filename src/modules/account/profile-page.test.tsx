@@ -6,7 +6,7 @@ import type { AuthStatus } from "@/lib/generated/AuthStatus";
 import { renderAccount } from "./account.test-support";
 
 test("所有者更新显示名后刷新个人资料", async () => {
-  const user = { ...currentUser };
+  const user = { ...currentUser, displayName: "当前名字" };
   const calls = mockAppIpc((name, payload) => {
     if (name === "account_auth_status")
       return {
@@ -30,7 +30,9 @@ test("所有者更新显示名后刷新个人资料", async () => {
   expect(
     screen.getByRole("heading", { name: zhCN["account.profile.editName"] }),
   ).toBeTruthy();
-  fireEvent.change(screen.getByLabelText(zhCN["account.profile.displayName"]), {
+  const nameInput = screen.getByLabelText(zhCN["account.profile.displayName"]);
+  expect(nameInput).toHaveProperty("value", "当前名字");
+  fireEvent.change(nameInput, {
     target: { value: "新名字" },
   });
   fireEvent.click(
@@ -40,6 +42,10 @@ test("所有者更新显示名后刷新个人资料", async () => {
     expect(screen.getByLabelText("显示名")).toHaveProperty("value", "新名字"),
   );
   expect(await screen.findByText("显示名已保存。")).toBeTruthy();
+  expect(screen.getByLabelText("显示名")).not.toBe(nameInput);
+  expect(
+    calls.mock.calls.filter(([command]) => command === "account_auth_status"),
+  ).toHaveLength(2);
   expect(calls).toHaveBeenCalledWith("account_user_profile_update", {
     input: { displayName: "新名字" },
   });

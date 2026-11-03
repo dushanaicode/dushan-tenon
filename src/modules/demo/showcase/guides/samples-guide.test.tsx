@@ -10,6 +10,7 @@ test("dictionary and exchange guide precedes the unchanged list and leaves filte
   const { container, calls } = setupShowcase("/demo/samples", <SamplesGuide />);
   const guide = await screen.findByRole("region", { name: "导览" });
   expect(guide.querySelector("h1")).toBeNull();
+  expect(within(guide).queryByText("已有")).toBeNull();
   expect(
     within(guide).getByText("ExportButton / ImportDialog · 文件交换"),
   ).toBeTruthy();

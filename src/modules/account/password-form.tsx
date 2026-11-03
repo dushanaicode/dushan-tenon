@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { type ComponentProps, type ReactNode, useId, useState } from "react";
+import { type ComponentProps, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IpcErrorMessage } from "@/core/ipc-error";
-import { Button, Input, SettingRow } from "@/kit";
+import { Button, FormField, Input, SettingRow } from "@/kit";
 import type { CaptchaAnswer } from "@/lib/generated/CaptchaAnswer";
 import type { IpcError } from "@/lib/generated/IpcError";
 import { CaptchaField, useCaptcha } from "@/modules/account/captcha-field";
@@ -17,7 +17,6 @@ type Credentials = {
 function PasswordField({
   settingsLayout,
   label,
-  id,
   ...input
 }: ComponentProps<typeof Input> & {
   settingsLayout: boolean;
@@ -28,10 +27,9 @@ function PasswordField({
       {(control) => <Input {...input} {...control} />}
     </SettingRow>
   ) : (
-    <label htmlFor={id} className="space-y-2">
-      {label}
-      <Input id={id} {...input} />
-    </label>
+    <FormField label={label}>
+      {(control) => <Input {...input} {...control} />}
+    </FormField>
   );
 }
 
@@ -51,7 +49,6 @@ export function PasswordForm({
   onSubmit: (credentials: Credentials) => Promise<void>;
 }) {
   const { t } = useTranslation();
-  const id = useId();
   const captcha = useCaptcha();
   const [validationError, setValidationError] = useState<
     "account.auth.required" | "account.auth.passwordMismatch" | null
@@ -109,7 +106,6 @@ export function PasswordForm({
         <PasswordField
           settingsLayout={settingsLayout}
           label={t("account.auth.recoveryCode")}
-          id={`${id}-recovery`}
           name="recoveryCode"
           autoComplete="off"
           spellCheck={false}
@@ -119,7 +115,6 @@ export function PasswordForm({
         <PasswordField
           settingsLayout={settingsLayout}
           label={t("account.profile.currentPassword")}
-          id={`${id}-current`}
           name="currentPassword"
           type="password"
           autoComplete="current-password"
@@ -132,7 +127,6 @@ export function PasswordForm({
             ? "account.auth.newPassword"
             : "account.auth.password",
         )}
-        id={`${id}-password`}
         name="password"
         type="password"
         autoComplete={confirm ? "new-password" : "current-password"}
@@ -149,7 +143,6 @@ export function PasswordForm({
                 ? "account.auth.confirmNewPassword"
                 : "account.auth.confirmPassword",
             )}
-            id={`${id}-confirm`}
             name="confirm"
             type="password"
             autoComplete="new-password"

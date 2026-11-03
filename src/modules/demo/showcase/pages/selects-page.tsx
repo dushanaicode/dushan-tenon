@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, DataTable, type DataTableColumn } from "@/kit";
+import { DataTable, type DataTableColumn } from "@/kit";
 import catalog from "../catalog/selects.json";
 import { ComboboxExample } from "../examples/combobox";
 import { MultiSelectExample } from "../examples/multi-select";
@@ -107,23 +107,20 @@ export function SelectsPage() {
       preview={
         <div className="grid min-w-0 gap-6 @3xl:grid-cols-2">
           <section className="min-w-0 space-y-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.selects.selectLabel")}{" "}
-              <Badge>{t("showcase.common.existing")}</Badge>
+            <h3 className="font-semibold">
+              {t("showcase.selects.selectLabel")}
             </h3>
             <SelectExample />
           </section>
           <section className="min-w-0 space-y-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.selects.comboLabel")}{" "}
-              <Badge>{t("showcase.common.existing")}</Badge>
+            <h3 className="font-semibold">
+              {t("showcase.selects.comboLabel")}
             </h3>
             <ComboboxExample />
           </section>
           <section className="min-w-0 space-y-3 @3xl:col-span-2">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.selects.multiLabel")}{" "}
-              <Badge>{t("showcase.common.new")}</Badge>
+            <h3 className="font-semibold">
+              {t("showcase.selects.multiLabel")}
             </h3>
             <MultiSelectExample />
           </section>

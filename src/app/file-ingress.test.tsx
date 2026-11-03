@@ -31,7 +31,7 @@ test("窗口文件事件刷新真实接入队列，经目录门控后才打开�
     }
   });
   const { router } = renderApp();
-  await screen.findByRole("heading", { name: "渡山榫卯" });
+  await screen.findByRole("heading", { name: "Dushan Tenon" });
   await waitFor(() =>
     expect(calls).toHaveBeenCalledWith("app_file_ingress_list", {}),
   );

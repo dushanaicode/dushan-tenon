@@ -15,7 +15,7 @@ test("measurement guide explains all five steps and gates the settings link whil
     <MeasureGuide />,
   );
   const guide = await screen.findByRole("region", { name: "导览" });
-  expect(within(guide).getByText("已有 + 新增导览")).toBeTruthy();
+  expect(within(guide).queryByText("已有 + 新增导览")).toBeNull();
   expect(guide.querySelectorAll("ol > li")).toHaveLength(5);
   expect(
     within(guide)

@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IpcErrorMessage } from "@/core/ipc-error";
-import { Button, Input } from "@/kit";
+import { Button, FormField, Input } from "@/kit";
 import type { CaptchaAnswer } from "@/lib/generated/CaptchaAnswer";
 import type { CaptchaChallenge } from "@/lib/generated/CaptchaChallenge";
 import { accountAuthCaptcha } from "@/lib/generated/commands";
@@ -58,7 +58,6 @@ export function CaptchaField({
   disabled: boolean;
 }) {
   const { t } = useTranslation();
-  const id = useId();
   if (!captcha.required) return null;
   return (
     <div className="space-y-3">
@@ -87,17 +86,18 @@ export function CaptchaField({
       {captcha.request.isError && (
         <IpcErrorMessage error={captcha.request.error} />
       )}
-      <label htmlFor={id} className="block space-y-2">
-        {t("account.auth.captcha")}
-        <Input
-          id={id}
-          value={captcha.answer}
-          onChange={(event) => captcha.setAnswer(event.target.value)}
-          autoComplete="off"
-          autoCapitalize="characters"
-          spellCheck={false}
-        />
-      </label>
+      <FormField label={t("account.auth.captcha")}>
+        {(control) => (
+          <Input
+            {...control}
+            value={captcha.answer}
+            onChange={(event) => captcha.setAnswer(event.target.value)}
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+          />
+        )}
+      </FormField>
     </div>
   );
 }

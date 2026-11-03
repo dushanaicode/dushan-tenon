@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Badge,
   DataTable,
   type DataTableColumn,
   type DataTableSortState,
@@ -143,9 +142,8 @@ export function TablesPage() {
           <DataTableExample />
           <div className="grid min-w-0 gap-6 @3xl:grid-cols-2">
             <section className="min-w-0 space-y-3">
-              <h3 className="flex flex-wrap items-center gap-2 font-semibold">
+              <h3 className="font-semibold">
                 {t("showcase.tables.actionsHeading")}
-                <Badge>{t("showcase.tables.newPattern")}</Badge>
               </h3>
               <p className="text-sm text-muted-foreground">
                 {t("showcase.tables.visibleEntry")}

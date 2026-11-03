@@ -39,6 +39,12 @@ test("恢复表单校验、验证码及重置成功确认后进入", async () =>
   renderAccount();
   fireEvent.click(await screen.findByRole("button", { name: "忘记密码？" }));
   expect(screen.queryByLabelText("用户名")).toBeNull();
+  for (const label of ["恢复码", "新密码", "确认新密码"]) {
+    const input = screen.getByLabelText(label);
+    const field = input.closest('[data-slot="form-field"]');
+    expect(field?.classList.contains("gap-2")).toBe(true);
+    expect(field?.querySelector("label")?.nextElementSibling).toBe(input);
+  }
   expect(
     Array.from(
       screen.getByRole("main").querySelectorAll("input"),

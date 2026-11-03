@@ -75,6 +75,10 @@ test.each([
   const { calls } = mockAuth(state);
   renderAccount("/settings");
   expect(await screen.findByRole("heading", { name: heading })).toBeTruthy();
+  const password = screen.getByLabelText("密码");
+  const field = password.closest('[data-slot="form-field"]');
+  expect(field?.classList.contains("gap-2")).toBe(true);
+  expect(field?.querySelector("label")?.nextElementSibling).toBe(password);
   const scroll = screen.getByRole("main").closest('[data-kit="scroll-area"]');
   expect(scroll?.getAttribute("data-region")).toBe("content");
   expect(scroll?.getAttribute("data-axis")).toBe("y");

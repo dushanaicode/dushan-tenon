@@ -83,16 +83,7 @@ export function ShowcaseGuide({ id }: { id: keyof typeof guides }) {
         aria-label={t("showcase.samples.guideTitle")}
         className="space-y-3 rounded-lg border bg-card p-panel"
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="font-semibold">{t("showcase.samples.guideTitle")}</h2>
-          <Badge>
-            {t(
-              id === "measure"
-                ? "showcase.measure.guideStatus"
-                : "showcase.common.existing",
-            )}
-          </Badge>
-        </div>
+        <h2 className="font-semibold">{t("showcase.samples.guideTitle")}</h2>
         <p className="text-body">{t(`showcase.${id}.scene`)}</p>
         <p className="text-sm text-muted-foreground">{t(guide.description)}</p>
         <ul

@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Badge,
   DataTable,
   type DataTableColumn,
   FormField,
@@ -206,31 +205,23 @@ export function InputsPage() {
       preview={
         <div className="grid min-w-0 gap-6 @3xl:grid-cols-2">
           <section className="min-w-0 space-y-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.inputs.formTitle")}{" "}
-              <Badge>{t("showcase.common.existing")}</Badge>
-            </h3>
+            <h3 className="font-semibold">{t("showcase.inputs.formTitle")}</h3>
             <FormFieldExample />
           </section>
           <section className="min-w-0 space-y-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.inputs.numberHeading")}{" "}
-              <Badge>{t("showcase.common.mixed")}</Badge>
+            <h3 className="font-semibold">
+              {t("showcase.inputs.numberHeading")}
             </h3>
             <NumberInputExample />
           </section>
           <section className="min-w-0 space-y-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.inputs.sliderHeading")}{" "}
-              <Badge>{t("showcase.common.existing")}</Badge>
+            <h3 className="font-semibold">
+              {t("showcase.inputs.sliderHeading")}
             </h3>
             <SliderExample />
           </section>
           <section className="min-w-0 space-y-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              {t("showcase.inputs.range")}{" "}
-              <Badge>{t("showcase.common.new")}</Badge>
-            </h3>
+            <h3 className="font-semibold">{t("showcase.inputs.range")}</h3>
             <RangeSliderExample />
           </section>
         </div>

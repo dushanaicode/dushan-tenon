@@ -44,6 +44,9 @@ test("six real variants, icon names, loading exclusion and split arrow semantics
   const preview = view.container.querySelector(
     '[data-showcase-block="preview"]',
   ) as HTMLElement;
+  expect(
+    within(preview).getByRole("heading", { name: "动作组合" }),
+  ).toBeTruthy();
   for (const variant of catalog[0].variants)
     expect(preview.querySelector(`[data-variant="${variant}"]`)).toBeTruthy();
   for (const icon of preview.querySelectorAll('[data-size="icon"]'))
