@@ -8,7 +8,13 @@ export function SessionActions({ locked = false }: { locked?: boolean }) {
   const { t } = useTranslation();
   const mutation = useSessionActions();
   return (
-    <div className="flex items-center gap-2">
+    <div
+      className={
+        locked
+          ? "flex flex-col items-center gap-stack"
+          : "flex items-center gap-2"
+      }
+    >
       {!locked && (
         <Button
           variant="ghost"

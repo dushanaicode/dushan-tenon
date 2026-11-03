@@ -64,7 +64,7 @@ export function PasswordForm({
       className={
         settingsLayout
           ? "flex min-w-0 flex-col gap-4"
-          : "flex max-w-md flex-col gap-4"
+          : "flex w-full max-w-md flex-col gap-stack"
       }
       onSubmit={(event) => {
         event.preventDefault();

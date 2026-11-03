@@ -53,9 +53,14 @@ test("首页装配真实导航、静态品牌及唯一 Toaster，主题与语言
   expect(client.getQueryData(["app", "settings"])).toBeTruthy();
 });
 
-test.each(["anonymous", "locked"] as const)(
-  "认证 %s 时不挂载工作台和通知，窗口通道仍可用",
-  async (state) => {
+test.each([
+  ["anonymous", "native"],
+  ["anonymous", "hidden"],
+  ["locked", "native"],
+  ["locked", "hidden"],
+] as const)(
+  "认证 %s、标题栏 %s 时保留独立顶栏，不挂载工作台和通知",
+  async (state, titlebar) => {
     const calls = mockAppIpc((command) =>
       command === "account_auth_status"
         ? {
@@ -70,10 +75,26 @@ test.each(["anonymous", "locked"] as const)(
           }
         : undefined,
     );
-    renderApp();
+    renderApp("/", { titlebar: { value: titlebar, source: "default" } });
     await screen.findByRole("heading", {
       name: state === "locked" ? "已锁定" : "登录",
     });
+    const header = screen.getByRole("banner");
+    expect(header.closest('[data-kit="scroll-area"]')).toBeNull();
+    expect(
+      within(header).getByRole("link", { name: i18n.t("app.name") }),
+    ).toBeTruthy();
+    const controls = within(header).queryByRole("group", {
+      name: i18n.t("shell.window.controls"),
+    });
+    if (titlebar === "hidden") {
+      expect(controls).toBeTruthy();
+      expect(controls?.parentElement?.classList.contains("h-full")).toBe(true);
+      expect(header.classList.contains("pr-0")).toBe(true);
+    } else {
+      expect(controls).toBeNull();
+      expect(header.classList.contains("pr-6")).toBe(true);
+    }
     expect(screen.queryByRole("navigation", { name: "主导航" })).toBeNull();
     expect(
       calls.mock.calls.some(

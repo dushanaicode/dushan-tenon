@@ -38,13 +38,24 @@ export function SecuritySettings() {
       <ParamForm group="account.security" includeDisabled={false} />
       {codes ? (
         <SettingGroup>
-          <RecoveryCodes
-            codes={codes}
-            onSaved={() => {
-              setCodes(null);
-              void refreshAuth(client);
-            }}
-          />
+          <section
+            aria-labelledby="recovery-title"
+            className="flex flex-col gap-stack p-panel"
+          >
+            <h2 id="recovery-title" className="text-xl font-semibold">
+              {t("account.auth.recoveryTitle")}
+            </h2>
+            <p className="text-muted-foreground">
+              {t("account.auth.recoveryHint")}
+            </p>
+            <RecoveryCodes
+              codes={codes}
+              onSaved={() => {
+                setCodes(null);
+                void refreshAuth(client);
+              }}
+            />
+          </section>
         </SettingGroup>
       ) : (
         <>

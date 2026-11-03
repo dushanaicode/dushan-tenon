@@ -39,6 +39,12 @@ test("恢复表单校验、验证码及重置成功确认后进入", async () =>
   renderAccount();
   fireEvent.click(await screen.findByRole("button", { name: "忘记密码？" }));
   expect(screen.queryByLabelText("用户名")).toBeNull();
+  const title = screen.getByRole("heading", { name: "恢复账号", level: 1 });
+  const panel = title.closest('[data-kit="card"]');
+  expect(panel?.parentElement).toBe(screen.getByRole("main"));
+  const back = screen.getByRole("button", { name: "返回登录" });
+  expect(back.closest('[data-kit="card"]')).toBe(panel);
+  expect(back.closest('[data-slot="card-footer"]')).toBeTruthy();
   for (const label of ["恢复码", "新密码", "确认新密码"]) {
     const input = screen.getByLabelText(label);
     const field = input.closest('[data-slot="form-field"]');
@@ -78,7 +84,11 @@ test("恢复表单校验、验证码及重置成功确认后进入", async () =>
     ([command]) => command === "account_auth_status",
   ).length;
   fireEvent.click(screen.getByRole("button", { name: "重置密码" }));
-  await screen.findByText("密码已重置，剩余恢复码 9 个。");
+  const recovered = await screen.findByText("密码已重置，剩余恢复码 9 个。");
+  expect(recovered.closest('[data-kit="card"]')).toBe(panel);
+  expect(screen.getByRole("heading", { name: "恢复账号", level: 1 })).toBe(
+    title,
+  );
   expect(screen.queryByRole("navigation")).toBeNull();
   expect(
     calls.mock.calls.filter(([command]) => command === "account_auth_status"),

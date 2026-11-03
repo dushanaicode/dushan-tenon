@@ -40,10 +40,10 @@ export function App({
         header={
           <header
             {...dragRegion(titlebar)}
-            className="flex h-13 shrink-0 items-center justify-between gap-4 border-b border-border pl-5"
+            className={`flex h-13 shrink-0 items-center justify-between gap-3 border-b border-border pl-6 ${titlebar === "hidden" ? "pr-0" : "pr-6"}`}
           >
             <BrandLogo />
-            <div className="flex items-center gap-4">
+            <div className="flex h-full shrink-0 items-center gap-3">
               <ThemeToggle />
               <ConnectedWindowControls />
             </div>

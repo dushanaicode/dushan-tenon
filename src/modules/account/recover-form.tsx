@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { refreshAuth } from "@/core/auth";
 import { Button } from "@/kit";
 import { accountAuthRecover } from "@/lib/generated/commands";
+import { AuthLayout } from "@/modules/account/auth-layout";
 import { PasswordForm } from "@/modules/account/password-form";
 
 export function RecoverForm({ onBack }: { onBack: () => void }) {
@@ -13,9 +14,10 @@ export function RecoverForm({ onBack }: { onBack: () => void }) {
   const [entering, setEntering] = useState(false);
   if (remaining !== null)
     return (
-      <>
-        <h1 className="text-2xl font-semibold">{t("account.auth.recover")}</h1>
-        <p role="status">{t("account.auth.recovered", { count: remaining })}</p>
+      <AuthLayout title={t("account.auth.recover")}>
+        <p role="status" className="text-center text-sm text-muted-foreground">
+          {t("account.auth.recovered", { count: remaining })}
+        </p>
         <Button
           disabled={entering}
           onClick={async () => {
@@ -26,11 +28,17 @@ export function RecoverForm({ onBack }: { onBack: () => void }) {
         >
           {t("account.auth.enter")}
         </Button>
-      </>
+      </AuthLayout>
     );
   return (
-    <>
-      <h1 className="text-2xl font-semibold">{t("account.auth.recover")}</h1>
+    <AuthLayout
+      title={t("account.auth.recover")}
+      actions={
+        <Button variant="ghost" onClick={onBack}>
+          {t("account.auth.backToLogin")}
+        </Button>
+      }
+    >
       <PasswordForm
         submitLabel="account.auth.resetPassword"
         confirm
@@ -44,9 +52,6 @@ export function RecoverForm({ onBack }: { onBack: () => void }) {
           setRemaining(result.remainingCodes);
         }}
       />
-      <Button variant="ghost" onClick={onBack}>
-        {t("account.auth.backToLogin")}
-      </Button>
-    </>
+    </AuthLayout>
   );
 }

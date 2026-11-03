@@ -11,6 +11,7 @@ import {
   accountSessionUnlock,
 } from "@/lib/generated/commands";
 import { ActivityTracker } from "@/modules/account/activity-tracker";
+import { AuthLayout } from "@/modules/account/auth-layout";
 import { PasswordForm } from "@/modules/account/password-form";
 import { RecoverForm } from "@/modules/account/recover-form";
 import { RecoveryCodes } from "@/modules/account/recovery-codes";
@@ -47,15 +48,21 @@ export function AuthGate({
   }, [client, state, auth.data?.mode]);
   let content: ReactNode;
   if (auth.isPending)
-    content = <p role="status">{t("account.auth.loading")}</p>;
+    content = (
+      <AuthLayout>
+        <p role="status" className="text-center text-muted-foreground">
+          {t("account.auth.loading")}
+        </p>
+      </AuthLayout>
+    );
   else if (auth.isError && !maintenanceBusy)
     content = (
-      <>
+      <AuthLayout>
         <IpcErrorMessage error={auth.error} />
         <Button onClick={() => void auth.refetch()}>
           {t("account.auth.retry")}
         </Button>
-      </>
+      </AuthLayout>
     );
   else if (auth.data) {
     const status = auth.data;
@@ -74,15 +81,17 @@ export function AuthGate({
       content = (
         <>
           <ActivityTracker minutes={status.idleLockMinutes} />
-          <RecoveryCodes codes={codes} onSaved={() => setCodes(null)} />
+          <AuthLayout
+            title={t("account.auth.recoveryTitle")}
+            description={t("account.auth.recoveryHint")}
+          >
+            <RecoveryCodes codes={codes} onSaved={() => setCodes(null)} />
+          </AuthLayout>
         </>
       );
     else if (status.state === "initRequired")
       content = (
-        <>
-          <h1 className="text-2xl font-semibold">
-            {t("account.auth.initialize")}
-          </h1>
+        <AuthLayout title={t("account.auth.initialize")}>
           <PasswordForm
             submitLabel="account.auth.initialize"
             confirm
@@ -92,15 +101,14 @@ export function AuthGate({
               await refreshAuth(client);
             }}
           />
-        </>
+        </AuthLayout>
       );
     else if (status.state === "confirmRequired")
       content = (
-        <>
-          <h1 className="text-2xl font-semibold">
-            {t("account.auth.confirmMode")}
-          </h1>
-          <p>{t("account.auth.confirmHint")}</p>
+        <AuthLayout
+          title={t("account.auth.confirmMode")}
+          description={t("account.auth.confirmHint")}
+        >
           <PasswordForm
             submitLabel="account.auth.confirmMode"
             onSubmit={async ({ password, captcha }) => {
@@ -111,13 +119,15 @@ export function AuthGate({
               await refreshAuth(client);
             }}
           />
-        </>
+        </AuthLayout>
       );
     else if (status.state === "locked")
       content = (
-        <>
-          <h1 className="text-2xl font-semibold">{t("account.auth.locked")}</h1>
-          <p>{status.user?.displayName || t("account.user.owner")}</p>
+        <AuthLayout
+          title={t("account.auth.locked")}
+          description={status.user?.displayName || t("account.user.owner")}
+          actions={<SessionActions locked />}
+        >
           <PasswordForm
             submitLabel="account.auth.unlock"
             onSubmit={async ({ password, captcha }) => {
@@ -128,13 +138,18 @@ export function AuthGate({
               await refreshAuth(client);
             }}
           />
-          <SessionActions locked />
-        </>
+        </AuthLayout>
       );
     else
       content = (
-        <>
-          <h1 className="text-2xl font-semibold">{t("account.auth.login")}</h1>
+        <AuthLayout
+          title={t("account.auth.login")}
+          actions={
+            <Button variant="ghost" onClick={() => setRecovering(true)}>
+              {t("account.auth.forgotPassword")}
+            </Button>
+          }
+        >
           <PasswordForm
             submitLabel="account.auth.login"
             onSubmit={async ({ password, captcha }) => {
@@ -145,21 +160,21 @@ export function AuthGate({
               await refreshAuth(client);
             }}
           />
-          <Button variant="ghost" onClick={() => setRecovering(true)}>
-            {t("account.auth.forgotPassword")}
-          </Button>
-        </>
+        </AuthLayout>
       );
   }
   return (
-    <ScrollArea
-      region="content"
-      className="h-dvh bg-background text-foreground"
-    >
+    <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       {!auth.isPending && header}
-      <main className="mx-auto flex max-w-xl flex-col gap-6 px-6 py-16">
-        {content}
-      </main>
-    </ScrollArea>
+      <ScrollArea
+        region="content"
+        className="min-h-0 flex-1"
+        plateClassName="flex min-h-full"
+      >
+        <main className="flex w-full items-center justify-center p-panel">
+          {content}
+        </main>
+      </ScrollArea>
+    </div>
   );
 }

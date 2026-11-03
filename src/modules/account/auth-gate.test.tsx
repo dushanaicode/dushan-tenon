@@ -1,4 +1,10 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import { authKey } from "@/core/auth";
 import {
@@ -74,20 +80,40 @@ test.each([
 ] as const)("认证门呈现 %s 并保留公开偏好", async (state, heading) => {
   const { calls } = mockAuth(state);
   renderAccount("/settings");
-  expect(await screen.findByRole("heading", { name: heading })).toBeTruthy();
+  const title = await screen.findByRole("heading", {
+    name: heading,
+    level: 1,
+  });
+  const main = screen.getByRole("main");
+  const panel = title.closest('[data-kit="card"]');
+  expect(panel?.parentElement).toBe(main);
+  expect(within(main).getByText("Dushan Tenon")).toBeTruthy();
+  expect(panel?.querySelector('img[src="/brand/logo.svg"]')).toHaveProperty(
+    "width",
+    48,
+  );
   const password = screen.getByLabelText("密码");
   const field = password.closest('[data-slot="form-field"]');
   expect(field?.classList.contains("gap-2")).toBe(true);
   expect(field?.querySelector("label")?.nextElementSibling).toBe(password);
-  const scroll = screen.getByRole("main").closest('[data-kit="scroll-area"]');
+  const scroll = main.closest('[data-kit="scroll-area"]');
   expect(scroll?.getAttribute("data-region")).toBe("content");
   expect(scroll?.getAttribute("data-axis")).toBe("y");
-  expect(scroll?.classList.contains("h-dvh")).toBe(true);
-  expect(screen.getByRole("main").parentElement?.dataset.slot).toBe(
-    "scroll-plate",
-  );
+  expect(scroll?.parentElement?.classList.contains("h-dvh")).toBe(true);
+  expect(main.parentElement?.dataset.slot).toBe("scroll-plate");
+  const header = screen.getByRole("banner");
+  expect(header.parentElement).toBe(scroll?.parentElement);
+  expect(header.nextElementSibling).toBe(scroll);
   expect(screen.queryByRole("navigation")).toBeNull();
-  expect(screen.getByRole("banner").textContent).toBe("公开偏好");
+  expect(header.textContent).toBe("公开偏好");
+  if (state === "anonymous" || state === "locked") {
+    const action = screen.getByRole("button", {
+      name: state === "anonymous" ? "忘记密码？" : "退出登录",
+    });
+    expect(action.closest('[data-kit="card"]')).toBe(panel);
+    expect(action.closest('[data-slot="card-footer"]')).toBeTruthy();
+    expect(action.closest("form")).toBeNull();
+  }
   expect(
     calls.mock.calls.some(([command]) => command === "app_about_get"),
   ).toBe(false);
@@ -135,7 +161,16 @@ test("初始化确认密码后显示一次性恢复码，保存后进入外壳",
   ).toBe(false);
   fillPassword(true);
   fireEvent.click(screen.getByRole("button", { name: "设置所有者密码" }));
-  await screen.findByRole("heading", { name: "保存恢复码" });
+  const title = await screen.findByRole("heading", {
+    name: "保存恢复码",
+    level: 1,
+  });
+  expect(title.closest('[data-kit="card"]')?.parentElement).toBe(
+    screen.getByRole("main"),
+  );
+  expect(screen.getAllByRole("heading", { name: "保存恢复码" })).toHaveLength(
+    1,
+  );
   for (const code of codes) expect(screen.getByText(code)).toBeTruthy();
   expect(screen.queryByRole("navigation")).toBeNull();
   const writeText = vi.fn().mockResolvedValue(undefined);
