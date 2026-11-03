@@ -64,7 +64,7 @@ function ActiveSettingsSection() {
                 onClick={() => test.mutate()}
               >
                 {test.isPending && <Spinner aria-hidden="true" />}
-                {t("notify.settings.test")}
+                {t("notify.settings.testSend")}
               </Button>
               {test.data && (
                 <p role="status" className="text-body text-muted-foreground">
