@@ -1,0 +1,41 @@
+[
+  {
+    "id": "component.collapsible",
+    "titleKey": "showcase.appearance-behavior.catalog.collapsible.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/collapsible.tsx",
+    "page": "/demo/appearance-behavior",
+    "variants": ["controlled", "disabled"],
+    "whenToUseKey": "showcase.appearance-behavior.catalog.collapsible.whenToUse",
+    "notForKey": "showcase.appearance-behavior.catalog.collapsible.notFor",
+    "related": ["component.accordion"],
+    "rule": "SC-R09"
+  },
+  {
+    "id": "component.accordion",
+    "titleKey": "showcase.appearance-behavior.catalog.accordion.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/accordion.tsx",
+    "page": "/demo/appearance-behavior",
+    "variants": ["single", "multiple", "disabled"],
+    "whenToUseKey": "showcase.appearance-behavior.catalog.accordion.whenToUse",
+    "notForKey": "showcase.appearance-behavior.catalog.accordion.notFor",
+    "related": ["component.collapsible"],
+    "rule": "SC-R09"
+  },
+  {
+    "id": "pattern.window-controls",
+    "titleKey": "shell.window.samples.title",
+    "kind": "pattern",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/window-controls.tsx",
+    "page": "/demo/appearance-behavior",
+    "variants": ["default", "maximized", "pending"],
+    "whenToUseKey": "showcase.appearance-behavior.windowContract",
+    "notForKey": "showcase.common.localOnly",
+    "related": ["component.dialog"],
+    "rule": "SC-R12"
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "component.button",
+    "titleKey": "showcase.buttons.catalog.button.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/button.tsx",
+    "page": "/demo/buttons",
+    "variants": [
+      "default",
+      "secondary",
+      "outline",
+      "ghost",
+      "destructive",
+      "link"
+    ],
+    "whenToUseKey": "showcase.buttons.catalog.button.whenToUse",
+    "notForKey": "showcase.buttons.catalog.button.notFor",
+    "related": ["pattern.split-button"],
+    "rule": "SC-R01"
+  },
+  {
+    "id": "pattern.split-button",
+    "titleKey": "showcase.buttons.catalog.splitButton.title",
+    "kind": "pattern",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/split-button.tsx",
+    "page": "/demo/buttons",
+    "variants": ["primary-with-menu"],
+    "whenToUseKey": "showcase.buttons.catalog.splitButton.whenToUse",
+    "notForKey": "showcase.buttons.catalog.splitButton.notFor",
+    "related": ["component.button"],
+    "rule": "SC-R04"
+  }
+]

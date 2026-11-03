@@ -1,0 +1,80 @@
+[
+  {
+    "id": "pattern.nav-tree",
+    "titleKey": "showcase.navigation.catalog.navTree.title",
+    "kind": "pattern",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/navigation-tree.tsx",
+    "page": "/demo/navigation",
+    "variants": ["expanded", "collapsed", "popover"],
+    "whenToUseKey": "showcase.navigation.catalog.navTree.whenToUse",
+    "notForKey": "showcase.navigation.catalog.navTree.notFor",
+    "related": ["component.breadcrumb", "component.tabs"],
+    "rule": "SC-R07"
+  },
+  {
+    "id": "component.breadcrumb",
+    "titleKey": "showcase.navigation.catalog.breadcrumb.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/breadcrumb.tsx",
+    "page": "/demo/navigation",
+    "variants": ["parent-text", "current-page"],
+    "whenToUseKey": "showcase.navigation.catalog.breadcrumb.whenToUse",
+    "notForKey": "showcase.navigation.catalog.breadcrumb.notFor",
+    "related": ["pattern.nav-tree", "component.tabs"],
+    "rule": "SC-R09"
+  },
+  {
+    "id": "component.tabs",
+    "titleKey": "showcase.navigation.catalog.tabs.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/tabs.tsx",
+    "page": "/demo/navigation",
+    "variants": ["controlled", "disabled"],
+    "whenToUseKey": "showcase.navigation.catalog.tabs.whenToUse",
+    "notForKey": "showcase.navigation.catalog.tabs.notFor",
+    "related": ["pattern.nav-tree", "component.stepper"],
+    "rule": "SC-R09"
+  },
+  {
+    "id": "component.pagination",
+    "titleKey": "showcase.navigation.catalog.pagination.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/pagination.tsx",
+    "page": "/demo/navigation",
+    "variants": ["controlled", "boundary-disabled"],
+    "whenToUseKey": "showcase.navigation.catalog.pagination.whenToUse",
+    "notForKey": "showcase.navigation.catalog.pagination.notFor",
+    "related": ["component.stepper", "component.tabs"],
+    "rule": "SC-R09"
+  },
+  {
+    "id": "component.stepper",
+    "titleKey": "showcase.navigation.catalog.stepper.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/stepper.tsx",
+    "page": "/demo/navigation",
+    "variants": ["current", "completed", "pending"],
+    "whenToUseKey": "showcase.navigation.catalog.stepper.whenToUse",
+    "notForKey": "showcase.navigation.catalog.stepper.notFor",
+    "related": ["component.tabs", "component.pagination"],
+    "rule": "SC-R09"
+  },
+  {
+    "id": "component.nav-group-label",
+    "titleKey": "showcase.navigation.catalog.navGroupLabel.title",
+    "kind": "component",
+    "importPath": "@/kit",
+    "exampleFile": "src/modules/demo/showcase/examples/navigation-tree.tsx",
+    "page": "/demo/navigation",
+    "variants": ["label", "separator"],
+    "whenToUseKey": "showcase.navigation.catalog.navGroupLabel.whenToUse",
+    "notForKey": "showcase.navigation.catalog.navGroupLabel.notFor",
+    "related": ["pattern.nav-tree"],
+    "rule": "SC-R07"
+  }
+]

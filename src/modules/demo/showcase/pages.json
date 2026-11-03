@@ -1,0 +1,125 @@
+[
+  {
+    "id": "overview",
+    "path": "/demo",
+    "section": "start",
+    "order": 10,
+    "related": ["catalog", "buttons", "samples", "measure"],
+    "noCatalog": "overview"
+  },
+  {
+    "id": "catalog",
+    "path": "/demo/catalog",
+    "section": "start",
+    "order": 20,
+    "related": ["overview", "buttons"],
+    "noCatalog": "catalog"
+  },
+  {
+    "id": "navigation",
+    "path": "/demo/navigation",
+    "section": "navigation",
+    "order": 30,
+    "related": ["menus", "templates"]
+  },
+  {
+    "id": "menus",
+    "path": "/demo/menus",
+    "section": "navigation",
+    "order": 40,
+    "related": ["navigation", "overlays", "selects", "tables"]
+  },
+  {
+    "id": "buttons",
+    "path": "/demo/buttons",
+    "section": "controls",
+    "order": 50,
+    "related": ["choices", "selects", "appearance", "appearance-behavior"]
+  },
+  {
+    "id": "choices",
+    "path": "/demo/choices",
+    "section": "controls",
+    "order": 60,
+    "related": ["inputs", "selects", "buttons"]
+  },
+  {
+    "id": "inputs",
+    "path": "/demo/inputs",
+    "section": "controls",
+    "order": 70,
+    "related": ["selects", "choices", "samples", "measure"]
+  },
+  {
+    "id": "selects",
+    "path": "/demo/selects",
+    "section": "controls",
+    "order": 80,
+    "related": ["inputs", "choices", "buttons", "menus"]
+  },
+  {
+    "id": "overlays",
+    "path": "/demo/overlays",
+    "section": "overlays",
+    "order": 90,
+    "related": ["feedback", "menus", "templates"]
+  },
+  {
+    "id": "feedback",
+    "path": "/demo/feedback",
+    "section": "overlays",
+    "order": 100,
+    "related": ["overlays", "measure"]
+  },
+  {
+    "id": "tables",
+    "path": "/demo/tables",
+    "section": "data",
+    "order": 110,
+    "related": ["display", "templates", "samples", "menus"]
+  },
+  {
+    "id": "display",
+    "path": "/demo/display",
+    "section": "data",
+    "order": 120,
+    "related": ["tables", "templates"]
+  },
+  {
+    "id": "templates",
+    "path": "/demo/templates",
+    "section": "templates",
+    "order": 130,
+    "related": ["tables", "overlays", "display"]
+  },
+  {
+    "id": "samples",
+    "path": "/demo/samples",
+    "section": "samples",
+    "order": 140,
+    "related": ["tables", "inputs", "templates", "measure"],
+    "noCatalog": "business"
+  },
+  {
+    "id": "measure",
+    "path": "/demo/measure",
+    "section": "samples",
+    "order": 150,
+    "related": ["feedback", "inputs", "samples", "overview"],
+    "noCatalog": "business"
+  },
+  {
+    "id": "appearance",
+    "path": "/demo/appearance",
+    "section": "appearance",
+    "order": 160,
+    "related": ["appearance-behavior", "buttons"]
+  },
+  {
+    "id": "appearance-behavior",
+    "path": "/demo/appearance-behavior",
+    "section": "appearance",
+    "order": 170,
+    "related": ["appearance", "buttons"]
+  }
+]
