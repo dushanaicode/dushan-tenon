@@ -10,9 +10,21 @@ use tauri::{
 };
 use tenon_framework::{actor::Actor, id::Id, ipc::IpcContext};
 
+mod window_controls;
+
 fn with_host(
     name: &str,
     config: &str,
+    prepare: impl FnOnce(&mut AppState),
+    test: impl FnOnce(&WebviewWindow<MockRuntime>, &Path),
+) {
+    with_host_ports(name, config, boot::tests::ports(), prepare, test);
+}
+
+fn with_host_ports(
+    name: &str,
+    config: &str,
+    ports: boot::Ports,
     prepare: impl FnOnce(&mut AppState),
     test: impl FnOnce(&WebviewWindow<MockRuntime>, &Path),
 ) {
@@ -30,7 +42,7 @@ fn with_host(
             ..Default::default()
         },
         &lifecycle,
-        boot::tests::ports(),
+        ports,
     ))
     .unwrap();
     prepare(&mut running.state);
@@ -40,6 +52,12 @@ fn with_host(
         tauri::WebviewWindowBuilder::new(&app, "main", WebviewUrl::App("index.html".into()))
             .build()
             .unwrap();
+    window
+        .state::<AppState>()
+        .native
+        .tray
+        .start(&window.state::<AppState>().config)
+        .unwrap();
     test(&window, root.path());
     tauri::async_runtime::block_on(shutdown.shutdown());
 }
@@ -147,7 +165,17 @@ fn command_access_and_implementations_match_the_three_entry_contracts() {
             .filter(|(_, kind)| *kind == CommandAdmission::Control)
             .map(|(name, _)| *name)
             .collect::<Vec<_>>(),
-        ["app_operation_cancel"]
+        [
+            "app_operation_cancel",
+            "app_window_minimize",
+            "app_window_toggle_maximize",
+            "app_window_start_dragging",
+            "app_window_close",
+            "app_window_close_decide",
+            "app_window_watch",
+            "app_window_edit_state",
+            "app_window_edit_decide",
+        ]
     );
     assert!(
         COMMAND_NAMES

@@ -18,12 +18,12 @@ use tenon_framework::{
 
 /// 日志 subscriber 是进程全局资源；每个装配用例在独立子进程恰好运行一次。
 pub(crate) fn child(name: &str) -> bool {
-    if std::env::var("TENON_H1_TEST_CHILD").as_deref() == Ok(name) {
+    if std::env::var("TENON_HOST_TEST_CHILD").as_deref() == Ok(name) {
         return true;
     }
     let output = Command::new(std::env::current_exe().unwrap())
         .args(["--exact", name, "--nocapture"])
-        .env("TENON_H1_TEST_CHILD", name)
+        .env("TENON_HOST_TEST_CHILD", name)
         .output()
         .unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -65,6 +65,9 @@ pub(crate) fn ports() -> Ports {
         notifier: Arc::new(NoSystemNotifications),
         secrets: Box::new(move |root| {
             Ok(SecretStore::with_backend(root, credentials.clone())?.boxed())
+        }),
+        native: Box::new(|root, config, _, lifecycle| {
+            crate::native::tests::services(root, config, lifecycle, Arc::default())
         }),
     }
 }
@@ -333,7 +336,7 @@ async fn concurrent_exit_waits_for_ipc_and_log_permits_before_stopping_modules()
     assert!(state.db.begin().await.is_err());
     assert_eq!(
         closed_steps(fixture.root.path()),
-        ["ipc", "jobs", "drain", "modules", "database"]
+        ["ipc", "native", "jobs", "drain", "modules", "database"]
     );
     assert_eq!(
         serde_json::from_str::<serde_json::Value>(
@@ -367,7 +370,7 @@ async fn failure_before_first_window_uses_the_same_shutdown() {
     assert!(db.begin().await.is_err());
     assert_eq!(
         closed_steps(fixture.root.path()),
-        ["ipc", "jobs", "drain", "modules", "database"]
+        ["ipc", "native", "jobs", "drain", "modules", "database"]
     );
     assert_eq!(
         serde_json::from_str::<serde_json::Value>(
@@ -375,5 +378,33 @@ async fn failure_before_first_window_uses_the_same_shutdown() {
         )
         .unwrap()["phase"],
         "failed"
+    );
+}
+
+#[tokio::test]
+async fn native_failure_releases_jobs_modules_and_database() {
+    if !child("boot::tests::native_failure_releases_jobs_modules_and_database") {
+        return;
+    }
+    let root = root();
+    let app = app();
+    let lifecycle = Lifecycle::new();
+    let mut injected = ports();
+    injected.native = Box::new(|_, _, _, _| Err(AppError::new(INPUT_INVALID)));
+    let result = initialize(
+        app.handle(),
+        Options {
+            state_root: Some(root.path().into()),
+            ..Default::default()
+        },
+        &lifecycle,
+        injected,
+    )
+    .await;
+    assert!(matches!(result, Err(error) if error.code() == INPUT_INVALID));
+    assert!(lifecycle.gate.is_closing());
+    assert_eq!(
+        closed_steps(root.path()),
+        ["jobs", "drain", "modules", "database"]
     );
 }

@@ -1,11 +1,11 @@
 use super::*;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex};
 use tenon_desktop::config::{AppSettingsUpdate, SETTINGS_OVERRIDDEN};
 
 fn settings(root: &std::path::Path, overrides: &[String]) -> SettingsPorts {
     SettingsPorts {
         root: root.into(),
-        config: Arc::new(RwLock::new(config::load(root, [], overrides).unwrap())),
+        config: Arc::new(Mutex::new(config::load(root, [], overrides).unwrap())),
     }
 }
 
@@ -49,7 +49,7 @@ fn notification_gate_holds_read_lock_through_send_and_reads_live_switch() {
     assert_eq!(
         settings
             .with_enabled(&mut || {
-                assert!(settings.config.try_write().is_err());
+                assert!(settings.config.try_lock().is_err());
                 sends += 1;
                 Ok(DesktopDelivery::Delivered)
             })
@@ -59,7 +59,7 @@ fn notification_gate_holds_read_lock_through_send_and_reads_live_switch() {
     assert_eq!(sends, 1);
     settings
         .config
-        .write()
+        .lock()
         .unwrap()
         .update_settings(
             root.path(),
@@ -84,7 +84,7 @@ fn poisoned_configuration_is_an_error_for_both_ports() {
     let config = settings.config.clone();
     assert!(
         std::thread::spawn(move || {
-            let _lock = config.write().unwrap();
+            let _lock = config.lock().unwrap();
             panic!("poison test");
         })
         .join()

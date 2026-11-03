@@ -8,7 +8,10 @@ use std::{
 use tauri::{
     AppHandle, Manager, Runtime, WebviewWindow, WebviewWindowBuilder, webview::PageLoadEvent,
 };
-use tenon_desktop::{config::AppSettings, native::instance::secondary_root};
+use tenon_desktop::{
+    config::{AppSettings, Titlebar},
+    native::instance::secondary_root,
+};
 use tenon_framework::error::{AppError, INTERNAL_UNEXPECTED};
 
 use crate::{boot::internal, lifecycle::Lifecycle, ports, state::AppState};
@@ -107,21 +110,32 @@ pub(crate) fn setup_window<R: Runtime>(
     let loaded_lifecycle = lifecycle.clone();
     let builder = WebviewWindowBuilder::from_config(app, config)
         .map_err(internal)?
+        .decorations(cfg!(target_os = "macos") || settings.titlebar.value == Titlebar::Native)
         .visible(false)
         .data_directory(state.state_root.join("webview"));
     // 显式隔离运行在 macOS 也不得使用用户 Library 中的 WebView 存储。
     #[cfg(target_os = "macos")]
-    let builder = builder.incognito(state.ephemeral_webview);
-    let window = builder
+    let builder = builder
+        .incognito(state.ephemeral_webview)
+        .title_bar_style(crate::native::chrome::mac_titlebar_style(
+            settings.titlebar.value,
+        ))
+        .hidden_title(settings.titlebar.value == Titlebar::Hidden);
+    let builder = builder
         .initialization_script(script)
         .on_page_load(move |window, payload| {
             if matches!(payload.event(), PageLoadEvent::Finished) {
                 loaded_reveal.loaded.store(true, Ordering::Release);
                 reveal_main(&window, &loaded_reveal, &loaded_lifecycle, false);
             }
-        })
-        .build()
-        .map_err(internal)?;
+        });
+    let window = crate::native::chrome::create_hidden_window(
+        state.native.chrome.as_ref(),
+        settings.theme.value,
+        settings.titlebar.value,
+        || builder.build().map_err(internal),
+    )?;
+    state.native.tray.start(&state.config)?;
     reveal.armed.store(true, Ordering::Release);
     if reveal.loaded.load(Ordering::Acquire) {
         reveal_main(&window, &reveal, &lifecycle, false);
@@ -157,7 +171,7 @@ fn reveal_main<R: Runtime>(
     }
 }
 
-fn show_main<R: Runtime>(app: &AppHandle<R>) {
+pub(crate) fn show_main<R: Runtime>(app: &AppHandle<R>) {
     if let Some(window) = app.get_webview_window("main")
         && window.unminimize().and_then(|()| window.show()).is_err()
     {

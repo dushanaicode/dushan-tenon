@@ -18,9 +18,16 @@ pub async fn app_settings_update(
             }
             let mut config = state
                 .config
-                .write()
+                .lock()
                 .map_err(|_| AppError::new(tenon_framework::error::INTERNAL_UNEXPECTED))?;
+            let previous = config.settings();
             let settings = config.update_settings(&state.state_root, &input)?;
+            drop(config);
+            crate::native::chrome::settings_changed(
+                state.native.chrome.as_ref(),
+                &previous,
+                &settings,
+            );
             if input.log_level.is_some() {
                 state
                     .log_level

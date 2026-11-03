@@ -15,7 +15,7 @@ pub async fn app_network_settings_update(
         |state| async move {
             let mut config = state
                 .config
-                .write()
+                .lock()
                 .map_err(|_| AppError::new(tenon_framework::error::INTERNAL_UNEXPECTED))?;
             tenon_desktop::network::update(
                 &mut config,

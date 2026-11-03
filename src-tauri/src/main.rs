@@ -8,6 +8,7 @@ mod i18n;
 #[cfg(test)]
 mod ipc_tests;
 mod lifecycle;
+mod native;
 mod notification;
 mod ports;
 pub mod state;

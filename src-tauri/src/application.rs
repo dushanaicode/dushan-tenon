@@ -1,4 +1,4 @@
-use crate::{boot, commands, window};
+use crate::{boot, commands, native, ports, window};
 use clap::Parser;
 use std::sync::Arc;
 use tauri::{Manager, RunEvent, Runtime, WindowEvent};
@@ -41,13 +41,20 @@ fn build_application(options: Options, lifecycle: Arc<Lifecycle>) -> tauri::Resu
             window::secondary_launch(app, args, cwd, &secondary);
         }))
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(commands::handler())
         .on_page_load(|webview, payload| {
             if matches!(payload.event(), tauri::webview::PageLoadEvent::Started)
                 && let Some(state) = webview.try_state::<AppState>()
-                && let Err(error) = state.streams.cancel_scope(webview.label())
             {
-                tracing::warn!(code = %error.code(), "页面流取消失败");
+                if let Err(error) = state.streams.cancel_scope(webview.label()) {
+                    tracing::warn!(code = %error.code(), "页面流取消失败");
+                }
+                if webview.label() == "main"
+                    && let Err(error) = state.native.window_controls.page_loading()
+                {
+                    tracing::warn!(reason_code = %error.code(), "窗口订阅释放失败");
+                }
             }
         })
         .setup(move |app| {
@@ -55,7 +62,7 @@ fn build_application(options: Options, lifecycle: Arc<Lifecycle>) -> tauri::Resu
                 app.handle(),
                 options,
                 &lifecycle,
-                Ports::system(app.handle()),
+                Ports::system(app.handle(), lifecycle.clone()),
             ));
             match result {
                 Ok(running) => {
@@ -94,7 +101,7 @@ pub(crate) fn present_startup_failure<R: Runtime>(
     request_exit(app, lifecycle);
 }
 
-fn request_exit<R: Runtime>(app: &tauri::AppHandle<R>, lifecycle: &Arc<Lifecycle>) {
+pub(crate) fn request_exit<R: Runtime>(app: &tauri::AppHandle<R>, lifecycle: &Arc<Lifecycle>) {
     lifecycle.exit.begin();
     let app = app.clone();
     let lifecycle = lifecycle.clone();
@@ -105,7 +112,7 @@ fn request_exit<R: Runtime>(app: &tauri::AppHandle<R>, lifecycle: &Arc<Lifecycle
     });
 }
 
-fn handle_window_event<R: Runtime>(
+pub(crate) fn handle_window_event<R: Runtime>(
     app: &tauri::AppHandle<R>,
     label: &str,
     event: WindowEvent,
@@ -114,13 +121,50 @@ fn handle_window_event<R: Runtime>(
     match event {
         WindowEvent::CloseRequested { api, .. } if label == "main" => {
             api.prevent_close();
-            request_exit(app, lifecycle);
+            if app.try_state::<AppState>().is_some() {
+                if let Err(error) = native::close_requested(app) {
+                    native::window_controls::report_failure(app, error);
+                }
+            } else {
+                request_exit(app, lifecycle);
+            }
         }
         WindowEvent::Destroyed => {
+            if let Some(state) = app.try_state::<AppState>() {
+                if let Err(error) = state.streams.cancel_scope(label) {
+                    tracing::warn!(code = %error.code(), "窗口流取消失败");
+                }
+                if label == "main"
+                    && let Err(error) = state.native.window_controls.page_loading()
+                {
+                    tracing::warn!(reason_code = %error.code(), "窗口订阅释放失败");
+                }
+            }
+        }
+        WindowEvent::ThemeChanged(_) if label == "main" => {
+            if let Some(state) = app.try_state::<AppState>() {
+                match ports::read(&state.config).map(|config| config.settings()) {
+                    Ok(saved) => {
+                        native::chrome::system_theme_changed(state.native.chrome.as_ref(), &saved)
+                    }
+                    Err(error) => tracing::warn!(reason_code = %error.code(), "原生明暗读取失败"),
+                }
+            }
+        }
+        WindowEvent::Moved(position) if label == "main" => {
             if let Some(state) = app.try_state::<AppState>()
-                && let Err(error) = state.streams.cancel_scope(label)
+                && let Err(error) = state.native.window_controls.moved(position.x, position.y)
             {
-                tracing::warn!(code = %error.code(), "窗口流取消失败");
+                tracing::warn!(reason_code = %error.code(), "窗口移动推送失败");
+            }
+        }
+        WindowEvent::Resized(_) | WindowEvent::Focused(_) if label == "main" => {
+            if let Some(window) = app.get_webview_window("main")
+                && let Some(state) = app.try_state::<AppState>()
+                && let Err(error) = native::window_controls::snapshot(&window)
+                    .and_then(|snapshot| state.native.window_controls.changed(snapshot))
+            {
+                tracing::warn!(reason_code = %error.code(), "窗口状态推送失败");
             }
         }
         _ => {}
@@ -135,7 +179,15 @@ fn handle_run_event<R: Runtime>(
     match event {
         RunEvent::ExitRequested { api, .. } if !lifecycle.exit.is_finished() => {
             api.prevent_exit();
-            request_exit(app, lifecycle);
+            if let Some(state) = app.try_state::<AppState>()
+                && !lifecycle.gate.is_closing()
+            {
+                if let Err(error) = state.native.window_controls.exit_requested() {
+                    native::window_controls::report_failure(app, error);
+                }
+            } else {
+                request_exit(app, lifecycle);
+            }
         }
         RunEvent::WindowEvent { label, event, .. } => {
             handle_window_event(app, &label, event, lifecycle)

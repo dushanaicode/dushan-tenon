@@ -2,7 +2,7 @@
 
 use std::{
     path::PathBuf,
-    sync::{Arc, RwLock},
+    sync::{Arc, Mutex},
 };
 use tenon_desktop::{config::LoadedConfig, picked_files::PickedFileStore};
 use tenon_framework::{
@@ -23,9 +23,10 @@ use tenon_module_ai::AiService;
 use tenon_module_demo::DemoService;
 use tenon_module_notify::NotifyService;
 
-pub type SharedConfig = Arc<RwLock<LoadedConfig>>;
+pub type SharedConfig = Arc<Mutex<LoadedConfig>>;
 
 pub struct AppState {
+    pub(crate) native: Arc<crate::native::NativeServices>,
     pub data: tenon_desktop::data::DataService,
     pub workbench: tenon_desktop::workbench::WorkbenchStore,
     pub keyboard: tenon_desktop::keyboard::KeyboardStore,

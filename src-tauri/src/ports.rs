@@ -1,6 +1,6 @@
 //! 消费方端口的 desktop 配置适配；读写共享同一把锁。
 
-use std::{path::PathBuf, sync::RwLockReadGuard};
+use std::{path::PathBuf, sync::MutexGuard};
 
 use tenon_desktop::config::{self, LoadedConfig};
 use tenon_framework::error::{AppError, INTERNAL_UNEXPECTED};
@@ -9,9 +9,9 @@ use tenon_module_notify::{DesktopDelivery, DesktopGate};
 
 use crate::state::SharedConfig;
 
-pub(crate) fn read(config: &SharedConfig) -> Result<RwLockReadGuard<'_, LoadedConfig>, AppError> {
+pub(crate) fn read(config: &SharedConfig) -> Result<MutexGuard<'_, LoadedConfig>, AppError> {
     config
-        .read()
+        .lock()
         .map_err(|_| AppError::new(INTERNAL_UNEXPECTED))
 }
 
@@ -37,7 +37,7 @@ impl AuthSettings for SettingsPorts {
 
     fn set_mode(&self, mode: AuthMode) -> Result<(), AppError> {
         self.config
-            .write()
+            .lock()
             .map_err(|_| AppError::new(INTERNAL_UNEXPECTED))?
             .update_auth_mode(
                 &self.root,

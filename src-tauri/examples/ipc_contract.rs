@@ -60,7 +60,8 @@ macro_rules! command_input {
         let (parameter, _) = command_input!($config, $imports, $input);
         let event_type = import_type::<$event>($config, &mut $imports)?;
         tenon_framework::stream::StreamEvent::<$event>::export_all($config)?;
-        $imports.insert("import type { Channel } from '@tauri-apps/api/core';\nimport type { StreamEvent } from './StreamEvent';\n".into());
+        $imports.insert("import type { Channel } from '@tauri-apps/api/core';\n".into());
+        $imports.insert("import type { StreamEvent } from './StreamEvent';\n".into());
         (
             format!("{parameter}, channel: Channel<StreamEvent<{event_type}>>"),
             ", { input, channel }".to_owned(),
@@ -218,11 +219,23 @@ fn write_metadata(output: &Path) -> Result<(), Box<dyn Error>> {
         .chain(DECLARATIONS.iter().flat_map(|d| d.error_codes))
         .map(|c| c.as_str())
         .collect();
-    use tenon_desktop::{config, keyboard, network, picked_files, workbench};
+    use tenon_desktop::{config, keyboard, native, network, picked_files, workbench};
     codes.extend(
         [
             IPC_UNEXPECTED,
             OWNER_REQUIRED,
+            WINDOW_STATE_INVALID,
+            WINDOW_STATE_WRITE_FAILED,
+            native::UNAVAILABLE,
+            native::COMPENSATION_FAILED,
+            native::tray::UNSUPPORTED,
+            native::autostart::UNSUPPORTED,
+            native::window_controls::EDIT_UNAVAILABLE,
+            native::shortcuts::INVALID,
+            native::shortcuts::CONFLICT,
+            native::shortcuts::UNSUPPORTED,
+            native::opener::OPEN_UNAVAILABLE,
+            native::updater::UNCONFIGURED,
             config::SETTINGS_OVERRIDDEN,
             picked_files::FILE_TOKEN_INVALID,
             network::COMPENSATION_FAILED,

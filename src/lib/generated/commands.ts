@@ -49,12 +49,15 @@ import type { JobSummary } from "./JobSummary";
 import type { KeyboardSettings } from "./KeyboardSettings";
 import type { KeyboardUpdate } from "./KeyboardUpdate";
 import type { LoginInput } from "./LoginInput";
+import type { NativeSettings } from "./NativeSettings";
+import type { NativeSettingsChange } from "./NativeSettingsChange";
 import type { NetworkSettings } from "./NetworkSettings";
 import type { NetworkSettingsUpdate } from "./NetworkSettingsUpdate";
 import type { NotificationItem } from "./NotificationItem";
 import type { NotificationListInput } from "./NotificationListInput";
 import type { NotificationReadInput } from "./NotificationReadInput";
 import type { NotifyTestResult } from "./NotifyTestResult";
+import type { OpenKnownTargetInput } from "./OpenKnownTargetInput";
 import type { OperationCancelInput } from "./OperationCancelInput";
 import type { Page } from "./Page";
 import type { ParamEntry } from "./ParamEntry";
@@ -74,6 +77,10 @@ import type { StreamCancel } from "./StreamCancel";
 import type { StreamEvent } from "./StreamEvent";
 import type { UserPasswordChange } from "./UserPasswordChange";
 import type { UserProfileUpdate } from "./UserProfileUpdate";
+import type { WindowCloseDecision } from "./WindowCloseDecision";
+import type { WindowEditDecision } from "./WindowEditDecision";
+import type { WindowEditState } from "./WindowEditState";
+import type { WindowEvent } from "./WindowEvent";
 import type { WorkbenchResetLayout } from "./WorkbenchResetLayout";
 import type { WorkbenchSnapshot } from "./WorkbenchSnapshot";
 import type { WorkbenchUpdate } from "./WorkbenchUpdate";
@@ -150,6 +157,58 @@ export function demoAttachmentRemove(
 
 export function appOperationCancel(input: OperationCancelInput): Promise<null> {
   return invoke<null>("app_operation_cancel", { input });
+}
+
+export function appWindowMinimize(): Promise<null> {
+  return invoke<null>("app_window_minimize");
+}
+
+export function appWindowToggleMaximize(): Promise<null> {
+  return invoke<null>("app_window_toggle_maximize");
+}
+
+export function appWindowStartDragging(): Promise<null> {
+  return invoke<null>("app_window_start_dragging");
+}
+
+export function appWindowClose(): Promise<null> {
+  return invoke<null>("app_window_close");
+}
+
+export function appWindowCloseDecide(
+  input: WindowCloseDecision,
+): Promise<null> {
+  return invoke<null>("app_window_close_decide", { input });
+}
+
+export function appWindowWatch(onEvent: Channel<WindowEvent>): Promise<null> {
+  return invoke<null>("app_window_watch", { onEvent });
+}
+
+export function appWindowEditState(input: WindowEditState): Promise<null> {
+  return invoke<null>("app_window_edit_state", { input });
+}
+
+export function appWindowEditDecide(input: WindowEditDecision): Promise<null> {
+  return invoke<null>("app_window_edit_decide", { input });
+}
+
+export function appOpenKnownTarget(input: OpenKnownTargetInput): Promise<null> {
+  return invoke<null>("app_open_known_target", { input });
+}
+
+export function appNativeSettingsGet(): Promise<NativeSettings> {
+  return invoke<NativeSettings>("app_native_settings_get");
+}
+
+export function appNativeSettingsUpdate(
+  input: NativeSettingsChange,
+): Promise<NativeSettings> {
+  return invoke<NativeSettings>("app_native_settings_update", { input });
+}
+
+export function appWindowStateReset(): Promise<NativeSettings> {
+  return invoke<NativeSettings>("app_window_state_reset");
 }
 
 export function aiChatStream(

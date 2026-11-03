@@ -138,7 +138,7 @@ async fn real_handlers_round_trip_data_without_persisting_paths() {
     // 已提交任务继续使用保存的语言，实时偏好变化不改变执行。
     state
         .config
-        .write()
+        .lock()
         .unwrap()
         .update_settings(
             f.root.path(),
@@ -160,7 +160,7 @@ async fn real_handlers_round_trip_data_without_persisting_paths() {
     );
     state
         .config
-        .write()
+        .lock()
         .unwrap()
         .update_settings(
             f.root.path(),

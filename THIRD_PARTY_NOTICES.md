@@ -81,3 +81,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+## tauri-plugin-window-state
+
+vendor/tauri-plugin-window-state is adapted from tauri-plugin-window-state 2.5.0, from the [Tauri plugins workspace](https://github.com/tauri-apps/plugins-workspace/tree/a2364a5f216324439feedeb25b2db74e7b1eba90/plugins/window-state).
+
+This project elects the MIT license from the upstream MIT OR Apache-2.0 offer. Copyright notices, SPDX identifiers, and both license texts are retained in LICENSE_MIT and LICENSE_APACHE-2.0. The upstream crate SHA-256 is 5d6815cab7b212f9cfe16a9d79d8d22f9e14159e4a9460f7dec1467167a008e3.
+
+This is a substantial adaptation: explicit state-file paths, strict main-window geometry storage, corruption protection, monitor/DPI handling, atomic writes, and explicit shutdown flushing. Sources, comparison records, and all changes are documented in vendor/tauri-plugin-window-state/PATCHES.md. No guest commands or JavaScript permissions are enabled.

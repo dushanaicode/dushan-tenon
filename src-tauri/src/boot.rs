@@ -3,7 +3,7 @@
 use clap::Parser;
 use std::{
     path::{Path, PathBuf},
-    sync::{Arc, RwLock},
+    sync::{Arc, Mutex},
 };
 use tauri::{AppHandle, Manager, Runtime};
 use tenon_desktop::{
@@ -40,6 +40,7 @@ use crate::{
     exchange, i18n,
     lifecycle::Lifecycle,
     modules,
+    native::{self, NativeServices},
     notification::SystemNotifier,
     ports::{self, SettingsPorts},
     state::{AppState, SharedConfig},
@@ -67,17 +68,25 @@ fn parse_prepared(value: &str) -> Result<String, String> {
 }
 
 type SecretFactory = dyn Fn(&Path) -> Result<ProxySecrets, AppError> + Send + Sync;
+type NativeFactory = dyn Fn(&Path, &SharedConfig, bool, &Lifecycle) -> Result<NativeServices, AppError>
+    + Send
+    + Sync;
 
 pub(crate) struct Ports {
     pub notifier: Arc<dyn DesktopNotifier>,
     pub secrets: Box<SecretFactory>,
+    pub native: Box<NativeFactory>,
 }
 
 impl Ports {
-    pub fn system<R: Runtime>(app: &AppHandle<R>) -> Self {
+    pub fn system(app: &AppHandle, lifecycle: Arc<Lifecycle>) -> Self {
+        let native_app = app.clone();
         Self {
             notifier: Arc::new(SystemNotifier(app.clone())),
             secrets: Box::new(|root| Ok(SecretStore::new(root, CREDENTIAL_SERVICE)?.boxed())),
+            native: Box::new(move |root, config, explicit, _| {
+                native::system(&native_app, &lifecycle, root, config, explicit)
+            }),
         }
     }
 }
@@ -86,6 +95,7 @@ struct Configured {
     root: PathBuf,
     overrides: Vec<String>,
     ephemeral_webview: bool,
+    explicit_root: bool,
     config: SharedConfig,
     log_level: LogLevelHandle,
     instance: InstanceId,
@@ -156,7 +166,7 @@ pub(crate) async fn initialize<R: Runtime>(
         let data = open_data(services, &ports, &mut shutdown).await?;
         let modules = step("module-start", start_modules(data, &mut shutdown)).await?;
         let runtime = step("jobs", start_runtime(modules, lifecycle, &mut shutdown)).await?;
-        step("native", async {
+        let native = step("native", async {
             lifecycle.window.set_root(
                 runtime
                     .previous
@@ -164,11 +174,21 @@ pub(crate) async fn initialize<R: Runtime>(
                     .root
                     .canonicalize()
                     .map_err(internal)?,
-            )
+            )?;
+            let configured = &runtime.previous.configured;
+            let native = Arc::new((ports.native)(
+                &configured.root,
+                &configured.config,
+                configured.explicit_root,
+                lifecycle,
+            )?);
+            let close = native.clone();
+            shutdown.push("native", move || async move { close.shutdown() });
+            Ok(native)
         })
         .await?;
         step("ipc", async {
-            Ok(runtime.into_state(lifecycle, &mut shutdown))
+            Ok(runtime.into_state(lifecycle, &mut shutdown, native))
         })
         .await
     }
@@ -192,8 +212,9 @@ async fn configure<R: Runtime>(
     lifecycle: &Lifecycle,
     shutdown: &mut ShutdownStack,
 ) -> Result<Configured, AppError> {
-    let ephemeral_webview = cfg!(target_os = "macos")
-        && (options.state_root.is_some() || std::env::var_os("TENON_STATE_ROOT").is_some());
+    let explicit_root =
+        options.state_root.is_some() || std::env::var_os("TENON_STATE_ROOT").is_some();
+    let ephemeral_webview = cfg!(target_os = "macos") && explicit_root;
     let root = step("root", async {
         tenon_desktop::state_root::resolve(options.state_root, || {
             app.path().app_data_dir().map_err(Into::into)
@@ -243,11 +264,12 @@ async fn configure<R: Runtime>(
     let instance = step("instance", async { InstanceId::load_or_create(&root) }).await?;
     Ok(Configured {
         root,
-        config: Arc::new(RwLock::new(config)),
+        config: Arc::new(Mutex::new(config)),
         log_level,
         instance,
         overrides: options.overrides,
         ephemeral_webview,
+        explicit_root,
     })
 }
 
@@ -476,7 +498,12 @@ async fn start_runtime(
 }
 
 impl RuntimeReady {
-    fn into_state(self, lifecycle: &Lifecycle, shutdown: &mut ShutdownStack) -> AppState {
+    fn into_state(
+        self,
+        lifecycle: &Lifecycle,
+        shutdown: &mut ShutdownStack,
+        native: Arc<NativeServices>,
+    ) -> AppState {
         let ModulesReady {
             configured,
             services,
@@ -497,6 +524,7 @@ impl RuntimeReady {
         });
         let identity = extensions.identity();
         AppState {
+            native,
             data: tenon_desktop::data::DataService::new(
                 db.clone(),
                 configured.root.clone(),

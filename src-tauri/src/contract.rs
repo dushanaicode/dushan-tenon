@@ -79,6 +79,54 @@ pub const IPC_UNEXPECTED: tenon_framework::error::ErrorCode =
 pub const OWNER_REQUIRED: tenon_framework::error::ErrorCode =
     tenon_framework::error::ErrorCode::new("app.native.owner_required");
 
+pub use tenon_desktop::{
+    config::NativeSettingsChange,
+    native::{
+        opener::OpenKnownTargetInput,
+        window_controls::{WindowCloseDecision, WindowEditDecision, WindowEditState, WindowEvent},
+    },
+};
+
+pub const WINDOW_STATE_INVALID: tenon_framework::error::ErrorCode =
+    tenon_framework::error::ErrorCode::new("app.window_state.invalid");
+pub const WINDOW_STATE_WRITE_FAILED: tenon_framework::error::ErrorCode =
+    tenon_framework::error::ErrorCode::new("app.window_state.write_failed");
+
+#[derive(Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct NativeSettings {
+    pub can_edit: bool,
+    pub updater: UpdaterSettings,
+    pub tray: tenon_desktop::native::tray::TraySettings,
+    pub window: NativeWindowSettings,
+    pub autostart: tenon_desktop::native::autostart::AutostartSettings,
+    pub shortcut: tenon_desktop::native::shortcuts::ShortcutSettings,
+}
+
+#[derive(Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdaterSettings {
+    pub check_on_start: tenon_desktop::config::Setting<bool>,
+    pub configured: bool,
+}
+
+#[derive(Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct NativeWindowSettings {
+    pub restore_state: tenon_desktop::config::Setting<bool>,
+    pub state: WindowRestoreState,
+    pub error: Option<tenon_framework::error::IpcError>,
+}
+
+#[derive(Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub enum WindowRestoreState {
+    FirstRun,
+    Restored,
+    Disabled,
+    Failed,
+}
+
 macro_rules! app_commands {
     ($([$admission:ident] $level:ident $(($($permission:literal),+))? $command:ident ($($input:ty)? $(; $event:ty)?) => $output:ty),* $(,)?) => {
         pub const COMMAND_NAMES: &[&str] = &[$(stringify!($command)),*];
