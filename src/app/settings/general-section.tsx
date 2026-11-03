@@ -26,7 +26,7 @@ export function GeneralSection() {
       <h2 id="general-title" className="text-xl font-semibold">
         {t("settings.sections.general")}
       </h2>
-      <SettingGroup title={t("language.label")}>
+      <SettingGroup title={t("settings.groups.language")}>
         <SettingSelect<Language>
           label={t("language.label")}
           value={language.value}
@@ -40,7 +40,7 @@ export function GeneralSection() {
         />
         {update.isError && <IpcErrorMessage error={update.error} />}
       </SettingGroup>
-      <SettingGroup title={t("settings.groups.window")}>
+      <SettingGroup title={t("settings.groups.titlebar")}>
         <SettingRow
           label={t("settings.appearance.titlebar")}
           description={t("settings.appearance.titlebarHint")}

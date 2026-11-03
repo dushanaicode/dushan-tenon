@@ -101,37 +101,25 @@ export function NativeSettings() {
     );
   }
   if (!settings.data) return <Loading label={t("kit.loading")} />;
-  const { canEdit, window: geometry, updater } = settings.data;
+  const { canEdit, updater } = settings.data;
   const configured = status.isSuccess && status.data.status !== "unconfigured";
   return (
-    <section aria-labelledby="native-title" className="space-y-4">
-      <h3 id="native-title" className="text-lg font-semibold">
-        {t("settings.native.title")}
-      </h3>
+    <div className="space-y-4">
       <WindowSettings
         saved={settings.data}
         pending={pending}
         change={update.mutate}
+        onReset={() => update.mutate({ type: "reset" })}
       />
       <SettingGroup title={t("settings.groups.startup")}>
-        <AutostartSettings
-          saved={settings.data}
-          pending={pending}
-          change={update.mutate}
-          platform={platform}
-        />
-        <GlobalShortcut
-          saved={settings.data}
-          pending={pending}
-          change={update.mutate}
-          platform={platform}
-          binding={binding}
-          setBinding={setBinding}
-        />
-      </SettingGroup>
-      {status.isError && <IpcErrorMessage error={status.error} />}
-      <SettingGroup>
-        {update.isError && <IpcErrorMessage error={update.error} />}
+        <div className="p-4">
+          <AutostartSettings
+            saved={settings.data}
+            pending={pending}
+            change={update.mutate}
+            platform={platform}
+          />
+        </div>
         <SettingRow
           label={t("settings.update.checkOnStart")}
           description={
@@ -170,26 +158,29 @@ export function NativeSettings() {
             />
           )}
         </SettingRow>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            disabled={!canEdit || pending || !geometry.restoreState.value}
-            onClick={() => update.mutate({ type: "reset" })}
-          >
-            {t("settings.window.reset")}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={pending || settings.isFetching}
-            onClick={() =>
-              void Promise.all([settings.refetch(), status.refetch()])
-            }
-          >
-            {t("settings.native.refresh")}
-          </Button>
+      </SettingGroup>
+      <SettingGroup title={t("settings.groups.globalShortcut")}>
+        <div className="p-4">
+          <GlobalShortcut
+            saved={settings.data}
+            pending={pending}
+            change={update.mutate}
+            platform={platform}
+            binding={binding}
+            setBinding={setBinding}
+          />
         </div>
       </SettingGroup>
-    </section>
+      {status.isError && <IpcErrorMessage error={status.error} />}
+      {update.isError && <IpcErrorMessage error={update.error} />}
+      <Button
+        variant="outline"
+        disabled={pending || settings.isFetching}
+        onClick={() => void Promise.all([settings.refetch(), status.refetch()])}
+      >
+        {t("settings.native.refresh")}
+      </Button>
+    </div>
   );
 }
 
@@ -200,7 +191,14 @@ type NativeControls = {
 };
 type Platform = "windows" | "macos" | "linux";
 
-function WindowSettings({ saved, pending, change }: NativeControls) {
+function WindowSettings({
+  saved,
+  pending,
+  change,
+  onReset,
+}: NativeControls & {
+  onReset: () => void;
+}) {
   const { t } = useTranslation();
   const { canEdit, window: geometry, tray } = saved;
   const trayReadOnly =
@@ -210,37 +208,54 @@ function WindowSettings({ saved, pending, change }: NativeControls) {
     isOverridden(tray.closeAction.source) ||
     tray.error?.code === "app.native.unsupported_scope";
   return (
-    <SettingGroup title={t("settings.groups.window")}>
-      <SettingRow
-        source={geometry.restoreState.source}
-        label={t("settings.window.restore")}
-        description={t("settings.window.restoreDescription")}
-        hint={
-          <SettingSource
-            source={geometry.restoreState.source}
-            locked={!canEdit}
-            reason={!canEdit ? t("settings.native.ownerOnly") : undefined}
-          />
-        }
-      >
-        {(control) => (
-          <Switch
-            {...control}
-            checked={geometry.restoreState.value}
-            disabled={
-              !canEdit || pending || isOverridden(geometry.restoreState.source)
-            }
-            onCheckedChange={(restoreState) =>
-              change({ type: "window", restoreState })
-            }
-          />
-        )}
-      </SettingRow>
-      <p className="text-body text-muted-foreground">
-        {t(`settings.window.state.${geometry.state}`)}
-      </p>
-      {geometry.error && <IpcErrorMessage error={geometry.error} />}
-      <div className="space-y-3">
+    <>
+      <SettingGroup title={t("settings.groups.window")}>
+        <SettingRow
+          source={geometry.restoreState.source}
+          label={t("settings.window.restore")}
+          description={
+            <>
+              {t("settings.window.restoreDescription")}
+              <span className="block">
+                {t(`settings.window.state.${geometry.state}`)}
+              </span>
+            </>
+          }
+          hint={
+            <SettingSource
+              source={geometry.restoreState.source}
+              locked={!canEdit}
+              reason={!canEdit ? t("settings.native.ownerOnly") : undefined}
+            />
+          }
+        >
+          {(control) => (
+            <Switch
+              {...control}
+              checked={geometry.restoreState.value}
+              disabled={
+                !canEdit ||
+                pending ||
+                isOverridden(geometry.restoreState.source)
+              }
+              onCheckedChange={(restoreState) =>
+                change({ type: "window", restoreState })
+              }
+            />
+          )}
+        </SettingRow>
+        <div className="space-y-3 p-4">
+          {geometry.error && <IpcErrorMessage error={geometry.error} />}
+          <Button
+            variant="outline"
+            disabled={!canEdit || pending || !geometry.restoreState.value}
+            onClick={onReset}
+          >
+            {t("settings.window.reset")}
+          </Button>
+        </div>
+      </SettingGroup>
+      <SettingGroup title={t("settings.groups.tray")}>
         <SettingRow
           label={t("settings.tray.enabled")}
           description={t("settings.tray.description")}
@@ -323,27 +338,29 @@ function WindowSettings({ saved, pending, change }: NativeControls) {
             </Select>
           )}
         </SettingRow>
-        <p className="text-body text-muted-foreground">
-          {t(`settings.tray.state.${tray.state}`)}
-        </p>
-        {tray.error && <IpcErrorMessage error={tray.error} />}
-        {tray.enabled.value && tray.state === "unavailable" && (
-          <Button
-            variant="outline"
-            disabled={trayReadOnly}
-            onClick={() =>
-              change({
-                type: "tray",
-                enabled: true,
-                closeAction: tray.closeAction.value,
-              })
-            }
-          >
-            {t("settings.tray.retry")}
-          </Button>
-        )}
-      </div>
-    </SettingGroup>
+        <div className="space-y-3 p-4">
+          <p className="text-body text-muted-foreground">
+            {t(`settings.tray.state.${tray.state}`)}
+          </p>
+          {tray.error && <IpcErrorMessage error={tray.error} />}
+          {tray.enabled.value && tray.state === "unavailable" && (
+            <Button
+              variant="outline"
+              disabled={trayReadOnly}
+              onClick={() =>
+                change({
+                  type: "tray",
+                  enabled: true,
+                  closeAction: tray.closeAction.value,
+                })
+              }
+            >
+              {t("settings.tray.retry")}
+            </Button>
+          )}
+        </div>
+      </SettingGroup>
+    </>
   );
 }
 

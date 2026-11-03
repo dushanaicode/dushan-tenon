@@ -3,14 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { authKey, useAuthStatus } from "@/core/auth";
 import { IpcErrorMessage } from "@/core/ipc-error";
-import {
-  Button,
-  ConfirmDialog,
-  Loading,
-  Progress,
-  SettingGroup,
-  SettingRow,
-} from "@/kit";
+import { Button, ConfirmDialog, Loading, Progress, SettingGroup } from "@/kit";
 import {
   appBackupExport,
   appBackupPrepareRestore,
@@ -165,19 +158,19 @@ export function DataSection() {
     status.data.availability === "unsupportedStorage";
   const busy = pending || committing || accepted;
   return (
-    <section
-      className="flex flex-col gap-stack"
-      aria-label={t("settings.sections.data")}
-    >
+    <section className="space-y-4" aria-labelledby="data-title">
+      <h2 id="data-title" className="text-xl font-semibold">
+        {t("settings.sections.data")}
+      </h2>
       <SettingGroup title={t("settings.data.backup")}>
-        <p className="text-body">{t("settings.data.includesPrivateData")}</p>
-        <p className="text-body">{t("settings.data.unencrypted")}</p>
-        <p className="text-body text-muted-foreground">
-          {t("settings.data.secretsExcluded")}
-        </p>
-        <p className="text-body text-muted-foreground">
-          {t("settings.data.limits")}
-        </p>
+        <ul className="list-inside list-disc space-y-2 text-body">
+          <li>{t("settings.data.includesPrivateData")}</li>
+          <li>{t("settings.data.unencrypted")}</li>
+          <li className="text-muted-foreground">
+            {t("settings.data.secretsExcluded")}
+          </li>
+          <li className="text-muted-foreground">{t("settings.data.limits")}</li>
+        </ul>
         {unavailable && (
           <p role="status" className="text-body">
             {t(
@@ -206,36 +199,6 @@ export function DataSection() {
         {!status.data.canManage && (
           <p className="text-body">{t("settings.data.ownerRequired")}</p>
         )}
-        <SettingRow label={t("settings.data.backup")}>
-          {() => (
-            <div className="flex flex-wrap gap-2">
-              <Button
-                disabled={busy || unavailable || !status.data.canManage}
-                onClick={() => setConfirm(true)}
-              >
-                {t("settings.data.backup")}
-              </Button>
-              <Button
-                variant="outline"
-                disabled={
-                  busy ||
-                  status.data.availability !== "sqlite" ||
-                  !status.data.canManage
-                }
-                onClick={() => void start("restore")}
-              >
-                {t("settings.data.verify")}
-              </Button>
-              <Button
-                variant="outline"
-                disabled={busy}
-                onClick={() => void status.refetch()}
-              >
-                {t("settings.data.refresh")}
-              </Button>
-            </div>
-          )}
-        </SettingRow>
         {pending && (
           <div className="flex flex-col gap-2" role="status" aria-live="polite">
             <p>
@@ -285,6 +248,32 @@ export function DataSection() {
             {t("settings.data.accepted")}
           </p>
         )}
+        <div className="flex flex-wrap gap-2 p-4">
+          <Button
+            disabled={busy || unavailable || !status.data.canManage}
+            onClick={() => setConfirm(true)}
+          >
+            {t("settings.data.backup")}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={
+              busy ||
+              status.data.availability !== "sqlite" ||
+              !status.data.canManage
+            }
+            onClick={() => void start("restore")}
+          >
+            {t("settings.data.verify")}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={busy}
+            onClick={() => void status.refetch()}
+          >
+            {t("settings.data.refresh")}
+          </Button>
+        </div>
         <ConfirmDialog
           open={confirm}
           onOpenChange={setConfirm}

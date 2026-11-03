@@ -6,7 +6,7 @@ import { mockAppIpc, renderApp } from "./settings.test-support";
 test("外观仅提供明暗模式，成功后即时更新外观桥且没有草稿", async () => {
   const calls = mockAppIpc();
   renderApp("/settings/appearance");
-  const mode = await screen.findByRole("combobox", { name: "外观" });
+  const mode = await screen.findByRole("combobox", { name: "明暗模式" });
   fireEvent.click(mode);
   expect(
     screen.getAllByRole("option").map((option) => option.textContent),
@@ -26,7 +26,7 @@ test.each(["environment", "commandLine"] as const)(
     const calls = mockAppIpc(undefined, { theme: { value: "dark", source } });
     renderApp("/settings/appearance");
     expect(
-      await screen.findByRole("combobox", { name: "外观" }),
+      await screen.findByRole("combobox", { name: "明暗模式" }),
     ).toHaveProperty("disabled", true);
     expect(
       calls.mock.calls.some(([name]) => name === "app_settings_update"),
@@ -45,7 +45,7 @@ test("模式提交失败保留宿主事实并展示错误", async () => {
       : undefined,
   );
   renderApp("/settings/appearance");
-  fireEvent.click(await screen.findByRole("combobox", { name: "外观" }));
+  fireEvent.click(await screen.findByRole("combobox", { name: "明暗模式" }));
   fireEvent.click(screen.getByRole("option", { name: "深色" }));
   await screen.findByText(/mode-failed/);
   expect(getSnapshot().mode).toBe("system");

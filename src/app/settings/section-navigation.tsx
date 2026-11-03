@@ -62,7 +62,7 @@ export function SectionNavigation({
           </Fragment>
         ))}
       </ScrollArea>
-      <div className="@medium/content:hidden">
+      <div className="w-full max-w-4xl @medium/content:hidden">
         <Select
           value={selected.path}
           onValueChange={(path) => void navigate(path)}

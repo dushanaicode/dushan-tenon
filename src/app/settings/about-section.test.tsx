@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, expect, test, vi } from "vitest";
@@ -87,6 +88,7 @@ test.each([
   );
   renderAbout();
   const button = await screen.findByRole("button", { name: i18n.t(label) });
+  expect(button.textContent).toBe(i18n.t("settings.open.directory"));
   fireEvent.click(button);
   await waitFor(() => {
     expect(calls).toHaveBeenCalledWith("app_open_known_target", {
@@ -102,6 +104,58 @@ test.each([
     calls.mock.calls.filter(([name]) => name === "app_about_get"),
   ).toHaveLength(1);
 });
+
+test.each([true, false])(
+  "关于路径可选择、可折行且配置存在性用徽标表达：%s",
+  async (exists) => {
+    const stateRoot = "\\\\server\\share\\a very long directory\\state";
+    const configFile = `${stateRoot}\\config.toml`;
+    mockAppIpc((command) =>
+      command === "app_about_get"
+        ? {
+            ...about,
+            stateRoot,
+            configFile,
+            configFileExists: exists,
+          }
+        : undefined,
+    );
+    renderAbout();
+    await screen.findByText(stateRoot);
+    const terms = screen.getAllByRole("term");
+    expect(terms.map((term) => term.textContent)).toEqual([
+      "版本",
+      "状态目录",
+      "配置文件",
+      "日志目录",
+      "数据库类型",
+      "数据库位置",
+      "已执行迁移数",
+      "缓存类型",
+      "缓存位置",
+      "缓存连通状态",
+    ]);
+    const row = screen.getByText("配置文件").parentElement;
+    expect(row).not.toBeNull();
+    const path = within(row as HTMLElement).getByText(configFile);
+    expect(path.tagName).toBe("CODE");
+    expect(path.textContent).toBe(configFile);
+    expect(path.className).toContain("font-mono");
+    expect(path.className).toContain("select-text");
+    expect(path.querySelectorAll("wbr").length).toBeGreaterThan(1);
+    expect(path.className).not.toContain("break-all");
+    const badge = within(row as HTMLElement).getByText(
+      i18n.t(exists ? "settings.configExists" : "settings.configMissing"),
+    );
+    expect(badge.getAttribute("data-slot")).toBe("badge");
+    expect(badge.className).toContain("whitespace-nowrap");
+    expect(
+      within(row as HTMLElement).getByRole("button", {
+        name: i18n.t("settings.open.config"),
+      }).textContent,
+    ).toBe("打开");
+  },
+);
 
 test("open_failure_keeps_paths_and_reports_trace_without_reprobing", async () => {
   const failure = {

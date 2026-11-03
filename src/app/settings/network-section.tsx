@@ -236,7 +236,10 @@ function OwnerNetworkSection({ userId }: { userId: string }) {
     refetchOnReconnect: false,
   });
   return (
-    <div className="flex flex-col gap-stack">
+    <section aria-labelledby="network-title" className="space-y-4">
+      <h2 id="network-title" className="text-xl font-semibold">
+        {t("settings.sections.network")}
+      </h2>
       <p className="text-body">{t("settings.network.scope")}</p>
       <p className="text-body text-muted-foreground">
         {t("settings.network.directServices")}
@@ -261,7 +264,7 @@ function OwnerNetworkSection({ userId }: { userId: string }) {
       ) : (
         <Loading label={t("kit.loading")} />
       )}
-    </div>
+    </section>
   );
 }
 

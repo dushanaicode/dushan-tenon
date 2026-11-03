@@ -19,16 +19,24 @@ export function AppearanceSection() {
   if (settings.isError) return <IpcErrorMessage error={settings.error} />;
   const { theme } = settings.data;
   return (
-    <SettingGroup title={t("settings.sections.appearance")}>
-      <SettingSelect
-        label={t("theme.label")}
-        value={theme.value}
-        source={theme.source}
-        options={THEMES.map((value) => ({ value, label: t(`theme.${value}`) }))}
-        disabled={pending || isOverridden(theme.source)}
-        onValueChange={(theme) => update.mutate({ theme })}
-      />
-      {update.isError && <IpcErrorMessage error={update.error} />}
-    </SettingGroup>
+    <section aria-labelledby="appearance-title" className="space-y-4">
+      <h2 id="appearance-title" className="text-xl font-semibold">
+        {t("settings.sections.appearance")}
+      </h2>
+      <SettingGroup title={t("settings.sections.appearance")}>
+        <SettingSelect
+          label={t("settings.appearance.colorMode")}
+          value={theme.value}
+          source={theme.source}
+          options={THEMES.map((value) => ({
+            value,
+            label: t(`theme.${value}`),
+          }))}
+          disabled={pending || isOverridden(theme.source)}
+          onValueChange={(theme) => update.mutate({ theme })}
+        />
+        {update.isError && <IpcErrorMessage error={update.error} />}
+      </SettingGroup>
+    </section>
   );
 }

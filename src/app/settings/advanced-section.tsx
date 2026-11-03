@@ -97,46 +97,48 @@ function WorkbenchReset() {
   };
   return (
     <SettingGroup title={t("settings.workbench.title")}>
-      <p className="text-body">{t("settings.workbench.resetDescription")}</p>
-      <Button
-        variant="outline"
-        disabled={workbench.pending || conflict}
-        onClick={() => {
-          setDone(false);
-          setConfirm(true);
-        }}
-      >
-        {t("settings.workbench.reset")}
-      </Button>
-      {!confirm && failure}
-      {conflict && (
+      <div className="space-y-3 p-4">
+        <p className="text-body">{t("settings.workbench.resetDescription")}</p>
         <Button
           variant="outline"
-          disabled={workbench.pending}
-          onClick={workbench.reload}
-        >
-          {t("settings.workbench.reload")}
-        </Button>
-      )}
-      {done && <p role="status">{t("settings.workbench.resetDone")}</p>}
-      {conflict ? (
-        <ConfirmDialog
-          {...confirmation}
-          confirmLabel={t("settings.workbench.reload")}
-          onConfirm={workbench.reload}
-        />
-      ) : (
-        <ConfirmDialog
-          {...confirmation}
-          confirmLabel={t("settings.workbench.reset")}
-          onConfirm={async () => {
-            if (await workbench.resetLayout()) {
-              setDone(true);
-              setConfirm(false);
-            }
+          disabled={workbench.pending || conflict}
+          onClick={() => {
+            setDone(false);
+            setConfirm(true);
           }}
-        />
-      )}
+        >
+          {t("settings.workbench.reset")}
+        </Button>
+        {!confirm && failure}
+        {conflict && (
+          <Button
+            variant="outline"
+            disabled={workbench.pending}
+            onClick={workbench.reload}
+          >
+            {t("settings.workbench.reload")}
+          </Button>
+        )}
+        {done && <p role="status">{t("settings.workbench.resetDone")}</p>}
+        {conflict ? (
+          <ConfirmDialog
+            {...confirmation}
+            confirmLabel={t("settings.workbench.reload")}
+            onConfirm={workbench.reload}
+          />
+        ) : (
+          <ConfirmDialog
+            {...confirmation}
+            confirmLabel={t("settings.workbench.reset")}
+            onConfirm={async () => {
+              if (await workbench.resetLayout()) {
+                setDone(true);
+                setConfirm(false);
+              }
+            }}
+          />
+        )}
+      </div>
     </SettingGroup>
   );
 }

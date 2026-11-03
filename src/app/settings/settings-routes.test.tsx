@@ -25,6 +25,19 @@ test("split 选择器切换分节并与侧栏使用相同目录", async () => {
   mockAppIpc();
   const { router } = renderApp("/settings/appearance");
   const selector = await screen.findByRole("combobox", { name: "设置" });
+  const navigation = screen.getByRole("navigation", { name: "设置" });
+  expect(navigation.className).toContain("sticky");
+  expect(navigation.className).toContain("w-52");
+  expect(navigation.className).toContain("hidden");
+  expect(navigation.className).toContain("@medium/content:block");
+  expect(selector.parentElement?.className).toContain("@medium/content:hidden");
+  expect(selector.parentElement?.className).toContain("max-w-4xl");
+  expect(navigation.parentElement?.parentElement?.className).toContain(
+    "@container/content",
+  );
+  expect(
+    navigation.nextElementSibling?.nextElementSibling?.className,
+  ).toContain("max-w-4xl");
   fireEvent.click(selector);
   fireEvent.click(screen.getByRole("option", { name: "关于" }));
   await screen.findByText("0.1.0-alpha.1");
@@ -35,6 +48,27 @@ test("split 选择器切换分节并与侧栏使用相同目录", async () => {
       .getAttribute("aria-current"),
   ).toBe("page");
   expect(screen.queryByRole("tablist")).toBeNull();
+});
+
+test("内置分节都有且仅有一个分节标题", async () => {
+  mockAppIpc();
+  const { router } = renderApp("/settings/general");
+  for (const [id, title] of [
+    ["general", "通用"],
+    ["appearance", "外观"],
+    ["network", "网络与服务"],
+    ["advanced", "高级"],
+    ["data", "数据"],
+    ["about", "关于"],
+  ]) {
+    await act(async () => {
+      await router.navigate(`/settings/${id}`);
+    });
+    await screen.findByRole("heading", { name: title, level: 2 });
+    expect(
+      screen.getAllByRole("heading", { name: title, level: 2 }),
+    ).toHaveLength(1);
+  }
 });
 
 test.each(["disabled", "permission", "authMode", "developer"] as const)(
@@ -140,7 +174,7 @@ test("权限改变重新获取参数，未改变不重复读取", async () => {
     name === "account_auth_status" ? { ...activeAuth, permissions } : undefined,
   );
   const { client } = renderApp("/settings/appearance");
-  await screen.findByRole("combobox", { name: "外观" });
+  await screen.findByRole("combobox", { name: "明暗模式" });
   const count = () =>
     calls.mock.calls.filter(([name]) => name === "app_setting_list").length;
   const first = count();
