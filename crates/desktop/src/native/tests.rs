@@ -182,7 +182,12 @@ fn enable_failure_compensates_and_reports_actual_icon() {
     use crate::config::TraySettingsChange;
     for compensation_fails in [false, true] {
         let root = tempfile::tempdir().unwrap();
-        let config = std::sync::Mutex::new(crate::native::test_config());
+        std::fs::write(
+            root.path().join("config.toml"),
+            "[tray]\nenabled=false\n[window]\nclose_action='exit'\n",
+        )
+        .unwrap();
+        let config = std::sync::Mutex::new(crate::config::load(root.path(), [], &[]).unwrap());
         let adapter = Arc::new(FakeTray::default());
         adapter.0.lock().unwrap().visible = true;
         if compensation_fails {
@@ -316,7 +321,12 @@ fn sources_and_unsupported_platform_have_no_native_effects() {
     }
     assert!(adapter.0.lock().unwrap().events.is_empty());
     let unsupported = super::tray::Tray::new(None);
-    let config = std::sync::Mutex::new(crate::native::test_config());
+    std::fs::write(
+        root.path().join("config.toml"),
+        "[window]\nclose_action='exit'\n",
+    )
+    .unwrap();
+    let config = std::sync::Mutex::new(crate::config::load(root.path(), [], &[]).unwrap());
     unsupported.start(&config).unwrap();
     assert_eq!(
         unsupported

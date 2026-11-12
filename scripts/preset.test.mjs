@@ -239,7 +239,7 @@ test("preset files declare every module explicitly", async () => {
       "developer_mode = false",
       "check_on_start = false",
       `titlebar = "${name === "full" ? "hidden" : "native"}"`,
-      'close_action = "exit"',
+      'close_action = "ask"',
     ]) {
       assert.equal(
         text.split(/\r?\n/).filter((value) => value === line).length,
@@ -247,7 +247,7 @@ test("preset files declare every module explicitly", async () => {
         `${name}: ${line}`,
       );
     }
-    assert.match(text, /\[tray\]\r?\nenabled = false\r?\n(?:\r?\n|\[)/);
+    assert.match(text, /\[tray\]\r?\nenabled = true\r?\n(?:\r?\n|\[)/);
   }
 });
 

@@ -76,7 +76,7 @@ fn event(receiver: &mpsc::Receiver<InvokeResponseBody>) -> Value {
 fn window_controls_remain_available_while_locked_and_quiesced_but_stop_on_closing() {
     with_native(
         "ipc_tests::window_controls::window_controls_remain_available_while_locked_and_quiesced_but_stop_on_closing",
-        "",
+        "[window]\nclose_action='exit'\n",
         Arc::default(),
         |window, _| {
             invoke(
@@ -310,7 +310,7 @@ fn close_remember_uses_atomic_settings_and_respects_override_without_identity() 
             .unwrap();
             invoke(window, "account_auth_logout", json!({})).unwrap();
             invoke(window, "app_window_close", json!({})).unwrap();
-            assert!(effects.calls.lock().unwrap().contains(&"ask:false".into()));
+            assert!(effects.calls.lock().unwrap().contains(&"ask:true".into()));
             invoke(
                 window,
                 "app_window_close_decide",
@@ -447,7 +447,7 @@ fn titlebar_commit_failure_and_overrides_have_no_native_effects() {
     let effects = Arc::new(Effects::default());
     with_native(
         "ipc_tests::window_controls::titlebar_commit_failure_and_overrides_have_no_native_effects",
-        "[ui]\ntheme='dark'\n",
+        "[ui]\ntheme='dark'\n[tray]\nenabled=false\n",
         effects.clone(),
         |window, root| {
             invoke(

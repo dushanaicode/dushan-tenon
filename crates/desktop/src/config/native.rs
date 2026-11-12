@@ -30,13 +30,13 @@ pub enum Titlebar {
 #[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
 pub enum CloseAction {
+    #[default]
     Ask,
     Tray,
-    #[default]
     Exit,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub(super) struct TrayConfig {
     pub enabled: bool,
@@ -77,8 +77,14 @@ impl Default for WindowConfig {
         Self {
             restore_state: true,
             titlebar: Titlebar::Native,
-            close_action: CloseAction::Exit,
+            close_action: CloseAction::default(),
         }
+    }
+}
+
+impl Default for TrayConfig {
+    fn default() -> Self {
+        Self { enabled: true }
     }
 }
 

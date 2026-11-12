@@ -272,7 +272,7 @@ fn startup_applies_saved_appearance_before_reveal_and_tolerates_native_failure()
     let root = boot::tests::root();
     std::fs::write(
         root.path().join("config.toml"),
-        "[ui]\ntheme='dark'\n[window]\ntitlebar='hidden'\n",
+        "[ui]\ntheme='dark'\n[window]\ntitlebar='hidden'\n[tray]\nenabled=false\n",
     )
     .unwrap();
     let mut context = mock_context(noop_assets());

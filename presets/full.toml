@@ -6,10 +6,10 @@ mode = "login"
 [window]
 restore_state = true
 titlebar = "hidden"
-close_action = "exit"
+close_action = "ask"
 
 [tray]
-enabled = false
+enabled = true
 
 [modules.account]
 enabled = true

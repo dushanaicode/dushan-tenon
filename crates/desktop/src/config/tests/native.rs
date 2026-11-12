@@ -65,10 +65,10 @@ fn tray_pair_is_strict_atomic_and_device_only() {
     let root = state_root();
     let mut config = read(root.path(), &[], &[]).unwrap();
     let baseline = serde_json::to_value(config.settings()).unwrap();
-    assert!(!config.native_settings().tray_enabled.value);
+    assert!(config.native_settings().tray_enabled.value);
     assert_eq!(
         config.native_settings().close_action.value,
-        CloseAction::Exit
+        CloseAction::Ask
     );
     assert_eq!(config.native_settings().titlebar.value, Titlebar::Native);
     assert_eq!(
@@ -88,8 +88,8 @@ fn tray_pair_is_strict_atomic_and_device_only() {
         (include_str!("../../../../../presets/full.toml"), "hidden"),
     ] {
         let table = preset.parse::<toml::Table>().unwrap();
-        assert_eq!(table["tray"]["enabled"].as_bool(), Some(false));
-        assert_eq!(table["window"]["close_action"].as_str(), Some("exit"));
+        assert_eq!(table["tray"]["enabled"].as_bool(), Some(true));
+        assert_eq!(table["window"]["close_action"].as_str(), Some("ask"));
         assert_eq!(table["window"]["titlebar"].as_str(), Some(titlebar));
         assert_eq!(table["tray"].as_table().unwrap().len(), 1);
     }
@@ -102,7 +102,7 @@ fn tray_pair_is_strict_atomic_and_device_only() {
         "tray.enabled=1",
         "tray.hidden=true",
     ] {
-        assert!(read(root.path(), &[], &[value]).is_err());
+        assert!(read(root.path(), &[], &["tray.enabled=false", value]).is_err());
     }
     for input in [
         r#"{"type":"tray","enabled":true,"closeAction":"tray","window":"other"}"#,
@@ -133,7 +133,7 @@ fn tray_pair_is_strict_atomic_and_device_only() {
     let enabled = read(root.path(), &[], &[]).unwrap().native_settings();
     assert!(enabled.tray_enabled.value);
     assert_eq!(enabled.close_action.value, CloseAction::Tray);
-    assert_eq!(enabled.tray_enabled.source, ConfigSource::File);
+    assert_eq!(enabled.tray_enabled.source, ConfigSource::Default);
     assert_eq!(enabled.close_action.source, ConfigSource::File);
     let before = fs::read(root.path().join("config.toml")).unwrap();
     for (env, cli) in [
@@ -182,7 +182,12 @@ fn tray_pair_is_strict_atomic_and_device_only() {
 #[test]
 fn window_titlebar_and_close_action_parse_validate_and_track_sources() {
     let root = state_root();
-    let invalid = read(root.path(), &[], &["window.close_action=tray"]).unwrap_err();
+    let invalid = read(
+        root.path(),
+        &[],
+        &["window.close_action=tray", "tray.enabled=false"],
+    )
+    .unwrap_err();
     let ConfigError::Field { path, reason } = invalid else {
         panic!("field validation required")
     };
@@ -198,7 +203,7 @@ fn window_titlebar_and_close_action_parse_validate_and_track_sources() {
     assert_eq!(file.close_action.value, CloseAction::Ask);
     assert_eq!(file.titlebar.source, ConfigSource::File);
     assert_eq!(file.close_action.source, ConfigSource::File);
-    assert!(!file.tray_enabled.value);
+    assert!(file.tray_enabled.value);
     let env = [
         ("TENON__WINDOW__TITLEBAR", "native"),
         ("TENON__WINDOW__CLOSE_ACTION", "exit"),

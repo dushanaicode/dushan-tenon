@@ -6,10 +6,10 @@ mode = "none"
 [window]
 restore_state = true
 titlebar = "native"
-close_action = "exit"
+close_action = "ask"
 
 [tray]
-enabled = false
+enabled = true
 
 [modules.account]
 enabled = true

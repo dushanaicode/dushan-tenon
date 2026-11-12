@@ -54,7 +54,7 @@ account 即使在免登录模式也提供所有者身份。免登录不是以系
 | tool | account、notify | none | native |
 | full | 五个模块全部启用 | login | hidden |
 
-三者默认均使用标准主题的系统明暗、关闭即退出、禁用托盘和自启。配置见 [presets](../presets)，生成目录见 [assembly.ts](../src/lib/generated/assembly.ts)。
+三者默认均使用标准主题的系统明暗、启用托盘、关闭窗口时每次询问隐藏到托盘或退出，禁用自启。配置见 [presets](../presets)，生成目录见 [assembly.ts](../src/lib/generated/assembly.ts)。
 
 ```powershell
 pnpm.cmd preset tool
