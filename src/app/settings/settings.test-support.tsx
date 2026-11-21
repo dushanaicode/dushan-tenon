@@ -78,6 +78,7 @@ export const defaultNetworkSettings: NetworkSettings = {
 
 export const about = {
   version: "0.1.0-alpha.1",
+  copyright: "Copyright © 2026 Example",
   stateRoot: "E:/isolated/state",
   configFile: "E:/isolated/state/config.toml",
   configFileExists: false,

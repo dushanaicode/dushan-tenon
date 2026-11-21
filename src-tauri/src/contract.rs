@@ -206,6 +206,7 @@ pub struct SettingResetInput {
 #[serde(rename_all = "camelCase")]
 pub struct AppAbout {
     pub version: String,
+    pub copyright: Option<String>,
     pub state_root: String,
     pub config_file: String,
     pub config_file_exists: bool,

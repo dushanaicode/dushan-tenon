@@ -5,6 +5,7 @@ import type { DatabaseKind } from "./DatabaseKind";
 
 export type AppAbout = {
   version: string;
+  copyright: string | null;
   stateRoot: string;
   configFile: string;
   configFileExists: boolean;

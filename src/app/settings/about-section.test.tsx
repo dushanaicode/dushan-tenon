@@ -125,6 +125,7 @@ test.each([true, false])(
     const terms = screen.getAllByRole("term");
     expect(terms.map((term) => term.textContent)).toEqual([
       "版本",
+      "版权",
       "状态目录",
       "配置文件",
       "日志目录",
@@ -154,6 +155,25 @@ test.each([true, false])(
         name: i18n.t("settings.open.config"),
       }).textContent,
     ).toBe("打开");
+  },
+);
+
+test.each([about.copyright, null])(
+  "copyright comes from the host and its row is omitted when unset: %s",
+  async (copyright) => {
+    mockAppIpc((command) =>
+      command === "app_about_get" ? { ...about, copyright } : undefined,
+    );
+    renderAbout();
+    await screen.findByText(about.stateRoot);
+    const term = screen.queryByText(i18n.t("settings.copyright"));
+    if (copyright === null) {
+      expect(term).toBeNull();
+    } else {
+      expect(term?.parentElement?.textContent).toBe(
+        `${i18n.t("settings.copyright")}${copyright}`,
+      );
+    }
   },
 );
 

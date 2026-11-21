@@ -25,6 +25,7 @@ pub async fn app_about_get(state: tauri::State<'_, AppState>) -> Result<AppAbout
             let config = crate::ports::read(&state.config)?;
             Ok(AppAbout {
                 version: env!("CARGO_PKG_VERSION").into(),
+                copyright: option_env!("TENON_COPYRIGHT").map(Into::into),
                 state_root: state.state_root.display().to_string(),
                 config_file: state.state_root.join("config.toml").display().to_string(),
                 config_file_exists: config.file_exists(),

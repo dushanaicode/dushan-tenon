@@ -222,6 +222,9 @@ fn about_paths_use_native_separators_and_match_live_storage() {
                 assert_eq!(about[field], format!("{}{suffix}", root.display()));
             }
             assert!(Path::new(about["databaseLocation"].as_str().unwrap()).is_file());
+            let conf: Value = serde_json::from_str(include_str!("../../tauri.conf.json")).unwrap();
+            assert_eq!(about["copyright"], conf["bundle"]["copyright"]);
+            assert!(about["copyright"].is_string());
         },
     );
 }

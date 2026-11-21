@@ -1163,6 +1163,7 @@
   "logging.trace": "跟踪",
   "settings.loading": "正在加载应用信息…",
   "settings.version": "版本",
+  "settings.copyright": "版权",
   "settings.stateRoot": "状态目录",
   "settings.configFile": "配置文件",
   "settings.configExists": "已存在",

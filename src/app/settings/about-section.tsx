@@ -245,6 +245,9 @@ function AboutDetails({
     <SettingGroup>
       <dl className="divide-y divide-border" style={{ padding: 0 }}>
         <AboutRow label={t("settings.version")}>{about.version}</AboutRow>
+        {about.copyright !== null && (
+          <AboutRow label={t("settings.copyright")}>{about.copyright}</AboutRow>
+        )}
         {directories.map(({ label, path, target, action }) => (
           <AboutRow key={target} label={t(label)}>
             <div className="flex min-w-0 flex-col items-start gap-3 @medium/settings:flex-row @medium/settings:items-center">

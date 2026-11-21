@@ -1163,6 +1163,7 @@
   "logging.trace": "Trace",
   "settings.loading": "Loading application information…",
   "settings.version": "Version",
+  "settings.copyright": "Copyright",
   "settings.stateRoot": "State directory",
   "settings.configFile": "Configuration file",
   "settings.configExists": "Exists",

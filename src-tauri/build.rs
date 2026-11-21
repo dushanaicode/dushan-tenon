@@ -19,6 +19,12 @@ fn write_changed(path: &Path, content: &[u8]) -> Result<(), std::io::Error> {
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("cargo:rerun-if-changed=src/commands/list.rs");
+    // Tauri 生成运行时配置时丢弃 bundle.copyright；关于页从这里取 exe 版权栏的同一个值。
+    println!("cargo:rerun-if-changed=tauri.conf.json");
+    let config: serde_json::Value = serde_json::from_slice(&fs::read("tauri.conf.json")?)?;
+    if let Some(copyright) = config["bundle"]["copyright"].as_str() {
+        println!("cargo:rustc-env=TENON_COPYRIGHT={copyright}");
+    }
     let permissions: Vec<_> = COMMAND_NAMES
         .iter()
         .flat_map(|command| {
