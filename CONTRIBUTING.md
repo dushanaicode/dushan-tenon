@@ -37,7 +37,7 @@ pnpm test
 - `pnpm check` 检查格式、lint、类型、分层结构和生成的合同；`pnpm test` 跑 Rust、前端和脚本的全部单元测试。
 - 改动不大时，可以先跑相关的测试，例如 `pnpm test web:src/modules/notify`、`pnpm test rust:ipc_tests`，提 PR 前再完整跑一遍。
 - 格式问题用 `cargo fmt --all` 和 `pnpm exec biome check --write .` 自动修好。
-- PR 上的 CI 会在 Windows 上跑同样的两条命令。
+- PR 上的 CI 会在 Windows 上跑同样的两条命令，通过后才能合并。
 
 ## 提交说明
 

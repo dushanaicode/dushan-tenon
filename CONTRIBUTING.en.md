@@ -37,7 +37,7 @@ pnpm test
 - `pnpm check` checks formatting, lint, types, the layer structure and the generated contracts; `pnpm test` runs all Rust, frontend and script unit tests.
 - For a small change, run the related tests first, for example `pnpm test web:src/modules/notify` or `pnpm test rust:ipc_tests`, then run both commands in full before opening the pull request.
 - To fix formatting, run `cargo fmt --all` and `pnpm exec biome check --write .`.
-- CI runs the same two commands on Windows for every pull request.
+- CI runs the same two commands on Windows for every pull request, and a pull request can be merged only after they pass.
 
 ## Commit messages
 
