@@ -92,7 +92,10 @@ test("claim uses the target purpose and transfers only the host token until cons
   expect(f.calls).toHaveBeenCalledWith("app_file_ingress_claim", {
     input: { id: "file-1", purpose: "store" },
   });
-  expect(screen.getByTestId("location").textContent).toBe("/files");
+  // 跳转在过渡更新里完成，可能晚于令牌交接渲染。
+  await waitFor(() =>
+    expect(screen.getByTestId("location").textContent).toBe("/files"),
+  );
   fireEvent.click(screen.getByRole("button", { name: "consume" }));
   expect(screen.getByTestId("incoming").textContent).toBe("");
 });
