@@ -10,6 +10,7 @@ import { activeAuth } from "@/core/core.test-support";
 import { i18n } from "@/core/i18n";
 import type { NotificationListInput } from "@/lib/generated/NotificationListInput";
 import {
+  fixtureJobKind,
   item,
   jobId,
   mockNotifyIpc,
@@ -78,7 +79,7 @@ test("面板引用翻译标题正文，先标已读再跳转", async () => {
   fireEvent.click(await screen.findByRole("button", { name: "通知" }));
   const panel = within(screen.getByRole("region", { name: "通知中心" }));
   await panel.findByText(
-    `${i18n.t("jobs.kinds.demo.measure")}失败：${i18n.t("errors.app.input.invalid", { path: "payload" })}`,
+    `${i18n.t(`jobs.kinds.${fixtureJobKind}`)}失败：${i18n.t("errors.app.input.invalid", { path: "payload" })}`,
   );
   await waitFor(() => expect(view.client.isFetching()).toBe(0));
   fireEvent.click(panel.getByRole("button", { name: /任务失败/ }));

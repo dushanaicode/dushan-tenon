@@ -138,9 +138,9 @@ const layers = [
     ["lib", "kit", "core", "module:files"],
   ],
   [
-    "module:demo",
-    "src/modules/demo/file.ts",
-    ["lib", "kit", "core", "module:demo"],
+    "module:sample",
+    "src/modules/sample/file.ts",
+    ["lib", "kit", "core", "module:sample"],
   ],
   [
     "module:notify",
@@ -157,7 +157,7 @@ const layers = [
       "visual",
       "shell",
       "module:files",
-      "module:demo",
+      "module:sample",
       "module:notify",
       "app",
     ],
@@ -372,7 +372,7 @@ test("dom-query: all six methods fail in shell, app and modules", () => {
   for (const path of [
     "src/shell/file.ts",
     "src/app/file.ts",
-    "src/modules/demo/file.ts",
+    "src/modules/sample/file.ts",
   ]) {
     for (const method of [
       "querySelector",
@@ -403,7 +403,7 @@ test("dom-query: test filenames and lower layers are exempt", () => {
   for (const path of [
     "src/shell/file.test.ts",
     "src/app/file.test.tsx",
-    "src/modules/demo/file.test-support.ts",
+    "src/modules/sample/file.test-support.ts",
     "src/lib/file.ts",
     "src/kit/file.ts",
     "src/core/file.ts",
@@ -480,7 +480,7 @@ const cratePaths = [
   "crates/framework",
   "crates/module-account",
   "crates/module-notify",
-  "crates/module-demo",
+  "crates/module-sample",
   "crates/module-files",
   "crates/worker",
   "crates/utility",

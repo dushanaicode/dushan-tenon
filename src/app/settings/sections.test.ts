@@ -1,16 +1,29 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { ModuleSetting } from "@/core/contracts/module";
-import { activeAuth, paramEntries } from "@/core/core.test-support";
+import { paramEntries } from "@/core/core.test-support";
 import { testManifest } from "@/core/module-directory.test-support";
+import {
+  sampleFixture,
+  sampleParams,
+} from "@/core/settings/param-form.test-support";
 import type { VisibilityAuth } from "@/core/visibility";
 import { buildCommands } from "@/shell/commands";
 import { buildSections } from "./sections";
+
+// 参数组目录用固定夹具，不随真实模块增删变化；sample 是核心设置测试的样板模块。
+vi.mock("@/lib/generated/param-keys", () => ({
+  PARAM_GROUPS: [
+    { id: "account.security", moduleId: "account" },
+    { id: "notify.preferences", moduleId: "notify" },
+    { id: "sample.work", moduleId: "sample" },
+  ],
+}));
 
 const auth: VisibilityAuth = {
   authenticated: true,
   developerMode: false,
   mode: "none",
-  permissions: activeAuth.permissions,
+  permissions: sampleFixture.auth.permissions,
 };
 const setting: ModuleSetting = {
   id: "notify",
@@ -22,9 +35,9 @@ const setting: ModuleSetting = {
 const manifest = testManifest({ id: "notify", settings: [setting] });
 const input = {
   manifests: [manifest],
-  enabled: new Set(["account", "notify", "demo"]),
+  enabled: new Set(["account", "notify", "sample"]),
   auth,
-  params: paramEntries,
+  params: [...paramEntries, ...sampleParams],
 };
 
 test("内置、模块和未认领参数组按 order 与 id 合并，输入顺序不影响目录", () => {
@@ -35,7 +48,7 @@ test("内置、模块和未认领参数组按 order 与 id 合并，输入顺序
     "notify",
     "network",
     "param.account.security",
-    "param.demo.work",
+    "param.sample.work",
     "data",
     "advanced",
     "about",
@@ -55,7 +68,7 @@ test("内置、模块和未认领参数组按 order 与 id 合并，输入顺序
     buildSections({
       ...options,
       manifests: [...options.manifests].reverse(),
-      params: [...paramEntries].reverse(),
+      params: [...input.params].reverse(),
     }),
   ).toEqual(result);
   expect(
@@ -130,7 +143,7 @@ test("禁用和开发者隐藏返回 notFound，缺权限与不可读参数返�
     settings: [
       {
         ...setting,
-        permission: "demo.settings.manage" as const,
+        permission: "account.security.manage" as const,
         paramGroups: [],
       },
     ],
@@ -156,7 +169,7 @@ test("禁用和开发者隐藏返回 notFound，缺权限与不可读参数返�
   ).toBe("notFound");
   expect(
     buildSections({ ...input, auth: { ...auth, permissions: [] } }).access.get(
-      "param.demo.work",
+      "param.sample.work",
     ),
   ).toBe("forbidden");
 });

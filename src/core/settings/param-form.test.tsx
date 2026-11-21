@@ -6,28 +6,31 @@ import {
   within,
 } from "@testing-library/react";
 import { expect, test } from "vitest";
-import { appModules, mockAppIpc, paramEntries } from "@/core/core.test-support";
+import { mockAppIpc, paramEntries } from "@/core/core.test-support";
 import { i18n } from "@/core/i18n";
 import type { ParamEntry } from "@/lib/generated/ParamEntry";
 import {
   accountName,
-  demoName,
   edit,
   listKey,
+  mockSampleIpc,
   mount,
   row,
+  sampleFixture,
+  sampleName,
   stored,
 } from "./param-form.test-support";
 
 test.each([false, true])(
   "all parameter groups keep titles with includeDisabled=%s",
   async (includeDisabled) => {
-    mockAppIpc((command) =>
+    mockSampleIpc((command) =>
       command === "app_modules_list"
         ? {
-            modules: appModules.modules.map((module) => ({
+            modules: sampleFixture.modules.modules.map((module) => ({
               ...module,
-              enabled: module.id === "demo" ? !includeDisabled : module.enabled,
+              enabled:
+                module.id === "sample" ? !includeDisabled : module.enabled,
             })),
           }
         : undefined,
@@ -36,7 +39,7 @@ test.each([false, true])(
     await screen.findByRole("form", { name: accountName });
     for (const [title, name] of [
       ["账号安全", accountName],
-      ["样板任务", demoName],
+      ["样板参数", sampleName],
       ["通知偏好", "提示位置"],
     ]) {
       expect(screen.getAllByText(title)).toHaveLength(1);
@@ -131,12 +134,12 @@ test("parameter reset uses row existence", async () => {
 
 test.each(
   [
-    ["demo.test_text", "next"],
+    ["sample.test_text", "next"],
     ["notify.quiet_enabled", "true"],
     ["notify.toast_position", "bottom-left"],
-    ["demo.test_secret", "synthetic-password"],
+    ["sample.test_secret", "synthetic-password"],
   ].map(([key, next]) => {
-    const [entry] = paramEntries.filter((entry) => entry.key === key);
+    const [entry] = sampleFixture.params.filter((entry) => entry.key === key);
     return [entry.kind, entry, next] as const;
   }),
 )("parameter scalar editor handles %j", async (kind, fixture, next) => {
@@ -146,7 +149,7 @@ test.each(
   const pending = new Promise<ParamEntry>((resolve) => {
     finish = resolve;
   });
-  const calls = mockAppIpc((command) => {
+  const calls = mockSampleIpc((command) => {
     if (command === "app_setting_list") return [structuredClone(entry)];
     if (command === "app_setting_set") return pending;
   });

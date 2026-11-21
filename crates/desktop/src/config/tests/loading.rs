@@ -7,24 +7,24 @@ fn module_leaf_sources_follow_case_insensitive_override_keys() {
     let root = state_root();
     fs::write(
         root.path().join("config.toml"),
-        "[modules.demo]\nenabled=false\n[modules.account]\n",
+        "[modules.sample]\nenabled=false\n[modules.account]\n",
     )
     .unwrap();
     let file = read(root.path(), &[], &[]).unwrap();
-    assert_eq!(file.source("modules.demo.enabled"), ConfigSource::File);
+    assert_eq!(file.source("modules.sample.enabled"), ConfigSource::File);
     assert_eq!(
         file.source("modules.account.enabled"),
         ConfigSource::Default
     );
     assert_eq!(
         file.source_keys(ConfigSource::File),
-        ["modules.demo.enabled"]
+        ["modules.sample.enabled"]
     );
-    let environment = [("tEnOn__MoDuLeS__DeMo__EnAbLeD", "true")];
-    let config = read(root.path(), &environment, &["modules.demo.enabled=false"]).unwrap();
-    assert!(!config.modules()["demo"].enabled);
+    let environment = [("tEnOn__MoDuLeS__SaMpLe__EnAbLeD", "true")];
+    let config = read(root.path(), &environment, &["modules.sample.enabled=false"]).unwrap();
+    assert!(!config.modules()["sample"].enabled);
     assert_eq!(
-        config.source("modules.demo.enabled"),
+        config.source("modules.sample.enabled"),
         ConfigSource::CommandLine
     );
     assert!(config.source_keys(ConfigSource::Environment).is_empty());
@@ -36,20 +36,23 @@ fn module_inline_table_overrides_replace_leaf_sources() {
     let root = state_root();
     fs::write(
         root.path().join("config.toml"),
-        "[modules.demo]\nenabled=false\n",
+        "[modules.sample]\nenabled=false\n",
     )
     .unwrap();
-    let environment = [("TENON__MODULES__DEMO", "{ enabled=true }")];
+    let environment = [("TENON__MODULES__SAMPLE", "{ enabled=true }")];
     let config = read(root.path(), &environment, &[]).unwrap();
-    assert!(config.modules()["demo"].enabled);
+    assert!(config.modules()["sample"].enabled);
     assert_eq!(
-        config.source("modules.demo.enabled"),
+        config.source("modules.sample.enabled"),
         ConfigSource::Environment
     );
     assert!(config.source_keys(ConfigSource::File).is_empty());
-    let config = read(root.path(), &environment, &["modules.demo={}"]).unwrap();
-    assert!(config.modules()["demo"].enabled);
-    assert_eq!(config.source("modules.demo.enabled"), ConfigSource::Default);
+    let config = read(root.path(), &environment, &["modules.sample={}"]).unwrap();
+    assert!(config.modules()["sample"].enabled);
+    assert_eq!(
+        config.source("modules.sample.enabled"),
+        ConfigSource::Default
+    );
     assert!(config.source_keys(ConfigSource::Environment).is_empty());
     assert!(config.source_keys(ConfigSource::CommandLine).is_empty());
 }

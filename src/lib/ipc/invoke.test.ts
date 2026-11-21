@@ -6,8 +6,8 @@ test("invoke 原样传递命令、参数和成功结果", async () => {
   const input = { name: "test" };
   const result = { saved: true };
   const calls = mockIpc(() => result);
-  await expect(invoke("demo_sample_create", { input })).resolves.toBe(result);
-  expect(calls).toHaveBeenCalledExactlyOnceWith("demo_sample_create", {
+  await expect(invoke("sample_item_create", { input })).resolves.toBe(result);
+  expect(calls).toHaveBeenCalledExactlyOnceWith("sample_item_create", {
     input,
   });
 });

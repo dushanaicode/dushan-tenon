@@ -19,11 +19,13 @@ import type { SettingSetInput } from "@/lib/generated/SettingSetInput";
 import {
   accountName,
   conflict,
-  demoName,
   edit,
   listKey,
+  mockSampleIpc,
   mount,
   row,
+  sampleFixture,
+  sampleName,
   stored,
 } from "./param-form.test-support";
 
@@ -65,10 +67,10 @@ test("account parameter reload refreshes the authentication readout", async () =
 });
 
 test("parameter conflict keeps draft and base version", async () => {
-  const entries = structuredClone(paramEntries);
+  const entries = structuredClone([...sampleFixture.params]);
   entries[0] = stored(entries[0], "15", 3);
   let writes = 0;
-  const calls = mockAppIpc((command, payload) => {
+  const calls = mockSampleIpc((command, payload) => {
     if (command === "app_setting_list") return structuredClone(entries);
     if (command === "app_setting_set") {
       const { input } = payload as { input: SettingSetInput };
@@ -89,7 +91,7 @@ test("parameter conflict keeps draft and base version", async () => {
   const { client } = mount();
   await screen.findByRole("form", { name: accountName });
   edit(accountName, "20");
-  edit(demoName, "50");
+  edit(sampleName, "50");
   fireEvent.click(screen.getByRole("button", { name: "应用" }));
   await row(accountName).findByText(/草稿和编辑起点版本已保留/);
   await waitFor(() =>
@@ -128,7 +130,7 @@ test("parameter conflict keeps draft and base version", async () => {
   await waitFor(() =>
     expect(row(accountName).getByRole("textbox")).toHaveProperty("value", "30"),
   );
-  expect(row(demoName).getByRole("textbox")).toHaveProperty("value", "50");
+  expect(row(sampleName).getByRole("textbox")).toHaveProperty("value", "50");
   edit(accountName, "35");
   fireEvent.click(screen.getByRole("button", { name: "应用" }));
   await waitFor(() =>

@@ -68,48 +68,6 @@ export const paramEntries: ParamEntry[] = [
   ...(
     [
       {
-        key: "demo.batch_size",
-        kind: { type: "integer", min: 1, max: 100 },
-        value: "25",
-        order: 10,
-        effect: "nextJob",
-      },
-      {
-        key: "demo.test_text",
-        kind: { type: "text", maxChars: 4 },
-        value: "a",
-        order: 20,
-        effect: "nextRead",
-      },
-      {
-        key: "demo.test_secret",
-        kind: { type: "secret" },
-        value: null,
-        order: 30,
-        effect: "nextRead",
-      },
-    ] satisfies Pick<
-      ParamEntry,
-      "key" | "kind" | "value" | "order" | "effect"
-    >[]
-  ).map(
-    (entry): ParamEntry => ({
-      ...entry,
-      moduleId: "demo",
-      default: entry.value,
-      isDefault: true,
-      secretSet: false,
-      rowVersion: null,
-      updatedAt: null,
-      group: "demo.work",
-      readPermission: "demo.settings.manage",
-      writePermission: "demo.settings.manage",
-      source: "default",
-    }),
-  ),
-  ...(
-    [
-      {
         key: "notify.quiet_enabled",
         kind: { type: "boolean" },
         value: "false",
@@ -150,22 +108,25 @@ export const paramEntries: ParamEntry[] = [
   ),
 ];
 
-i18n.addResources("zh-CN", "translation", {
-  "param.demo.test_text.name": "测试文本",
-  "param.demo.test_secret.name": "测试秘密",
-});
-i18n.addResources("en-US", "translation", {
-  "param.demo.test_text.name": "Test text",
-  "param.demo.test_secret.name": "Test secret",
-});
+// 宿主会返回的模块、参数和身份；默认是真实目录里的模块，测试可以换成自己的夹具。
+export type AppFixture = {
+  modules: AppModules;
+  params: readonly ParamEntry[];
+  auth: AuthStatus;
+};
 
 export function mockAppIpc(
   override?: Parameters<typeof mockIpc>[0],
   settingsPatch: Partial<AppSettings> = {},
+  fixture: AppFixture = {
+    modules: appModules,
+    params: paramEntries,
+    auth: activeAuth,
+  },
 ) {
   let settings = structuredClone({ ...defaultSettings, ...settingsPatch });
-  const parameters = structuredClone(paramEntries);
-  let auth = structuredClone(activeAuth);
+  const parameters = structuredClone([...fixture.params]);
+  let auth = structuredClone(fixture.auth);
   let keyboard: KeyboardSettings = {
     canEdit: true,
     snapshot: { schemaVersion: 1, revision: 0, bindings: [] },
@@ -188,7 +149,7 @@ export function mockAppIpc(
         auth = { ...auth, state: "anonymous", user: null, permissions: [] };
         return null;
       case "app_modules_list":
-        return structuredClone(appModules);
+        return structuredClone(fixture.modules);
       case "app_settings_get":
         return structuredClone(settings);
       case "app_settings_update": {

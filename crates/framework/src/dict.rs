@@ -130,11 +130,18 @@ mod tests {
         for value in ["", "1a", "A", "a.b", "a-b", "a ", "中文"] {
             assert!(!valid_value(value), "{value}");
         }
-        assert!(valid_code("demo.a.b_2", "demo"));
-        assert!(valid_code(&format!("demo.{}", "a".repeat(91)), "demo"));
-        assert!(!valid_code(&format!("demo.{}", "a".repeat(92)), "demo"));
-        for code in ["demo", "demo.", "demo.a.", "demo..a", "demo.A", "system.a"] {
-            assert!(!valid_code(code, "demo"), "{code}");
+        assert!(valid_code("sample.a.b_2", "sample"));
+        assert!(valid_code(&format!("sample.{}", "a".repeat(89)), "sample"));
+        assert!(!valid_code(&format!("sample.{}", "a".repeat(90)), "sample"));
+        for code in [
+            "sample",
+            "sample.",
+            "sample.a.",
+            "sample..a",
+            "sample.A",
+            "system.a",
+        ] {
+            assert!(!valid_code(code, "sample"), "{code}");
         }
     }
 }

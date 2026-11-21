@@ -19,7 +19,7 @@ it("顶栏优先导航名，无导航时同步页面标题，无标题时留空"
   expect(title?.textContent).toBe("");
 });
 
-it.each(["/notify", "/account/profile", "/missing", "/demo/details/42"])(
+it.each(["/notify", "/account/profile", "/missing", "/sample/details/42"])(
   "%s 没有导航匹配时显示 PageHeader 标题",
   async (path) => {
     mockShellIpc();

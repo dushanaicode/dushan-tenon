@@ -114,7 +114,7 @@ async fn compiled_declarations_export_all_three_ddl_dialects_without_services() 
             .unwrap();
         let sql = String::from_utf8(output).unwrap();
         assert!(sql.contains("CREATE TABLE"));
-        for name in ["fw_job", "account_user", "demo_sample"] {
+        for name in ["fw_job", "account_user", "notify_notification"] {
             assert!(
                 sql.contains(&format!("{quotes}{name}{quotes}")),
                 "{dialect}: {name}"

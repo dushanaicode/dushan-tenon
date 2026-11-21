@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 use std::{collections::BTreeSet, fs, path::Path, process::Command};
 use tauri::{Manager, WebviewWindow, test::MockRuntime};
 use tenon_desktop::config;
-use tenon_framework::ipc;
+use tenon_framework::{ipc, job::SubmitJob, time::Timestamp};
 
 fn workspace() -> &'static Path {
     Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap()
@@ -150,30 +150,26 @@ fn check_runtime(window: &WebviewWindow<MockRuntime>, preset: &str, mode: &str) 
             .map(|m| (m.info.module, m.info.version))
             .collect::<Vec<_>>()
     );
-    let frozen = state
-        .modules
-        .freeze(crate::exchange::handlers(
-            state.account.clone(),
-            state.demo.clone(),
-            state.picked_files.clone(),
-        ))
-        .unwrap();
-    let jobs: BTreeSet<_> = strings(&generated["jobs"])
-        .into_iter()
-        .filter(|name| enabled.contains(name.split_once('.').unwrap().0))
-        .collect();
-    assert_eq!(
-        frozen
-            .job_handlers()
-            .iter()
-            .map(|h| h.kind())
-            .collect::<BTreeSet<_>>(),
-        jobs
-    );
-    assert_eq!(
-        frozen.job_completion_hooks().len(),
-        usize::from(enabled.contains("notify"))
-    );
+    // 运行中的任务队列只接受启用模块的任务种类；任务排在一小时后，测试期间不会执行。
+    for kind in strings(&generated["jobs"]) {
+        let submitted = tauri::async_runtime::block_on(state.jobs.submit(
+            &state.db,
+            SubmitJob {
+                kind: kind.into(),
+                payload: json!({}),
+                priority: 0,
+                run_after: Some(
+                    Timestamp::from_millis(Timestamp::now().as_millis() + 3_600_000).unwrap(),
+                ),
+                submitted_by: None,
+            },
+        ));
+        assert_eq!(
+            submitted.is_ok(),
+            enabled.contains(kind.split_once('.').unwrap().0),
+            "{kind}"
+        );
+    }
     assert_eq!(
         invoke(window, "account_auth_status", json!({})).unwrap()["state"],
         if mode == "login" {
@@ -230,8 +226,8 @@ fn check_runtime(window: &WebviewWindow<MockRuntime>, preset: &str, mode: &str) 
             "account.auth.init_required"
         );
         assert_eq!(
-            invoke(window, "demo_overview_get", json!({})).unwrap_err()["code"],
-            if enabled.contains("demo") {
+            invoke(window, "notify_unread_count", json!({})).unwrap_err()["code"],
+            if enabled.contains("notify") {
                 "account.auth.init_required"
             } else {
                 "app.module.disabled"
@@ -253,14 +249,6 @@ fn check_runtime(window: &WebviewWindow<MockRuntime>, preset: &str, mode: &str) 
             json!({"input":{"developerMode":developer}}),
         )
         .unwrap();
-        let overview = invoke(window, "demo_overview_get", json!({}));
-        if !enabled.contains("demo") {
-            assert_eq!(overview.unwrap_err()["code"], "app.module.disabled");
-        } else if !developer {
-            assert_eq!(overview.unwrap_err()["code"], "demo.mode.disabled");
-        } else {
-            assert!(overview.is_ok());
-        }
         let visible = invoke(
             window,
             "app_setting_list",

@@ -436,8 +436,8 @@ fn message_keys_accept_only_module_or_consumed_shared_prefixes() {
             "notify",
             &[
                 "notify.job.succeeded.title",
-                "jobs.kinds.demo.done",
-                "errors.demo.failed",
+                "jobs.kinds.sample.done",
+                "errors.sample.failed",
                 "exchange.progress.writing",
             ][..],
         ),

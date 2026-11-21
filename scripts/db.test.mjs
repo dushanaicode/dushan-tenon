@@ -38,11 +38,11 @@ test("database commands route through the derived CLI with explicit state and ba
 test("snapshot crates derive from direct crate snapshot directories", () => {
   assert.deepEqual(
     snapshotCrates([
-      "crates/module-demo/sql-snapshots",
+      "crates/module-sample/sql-snapshots",
       "crates/framework/sql-snapshots",
       "crates/desktop/src",
     ]),
-    ["tenon-framework", "tenon-module-demo"],
+    ["tenon-framework", "tenon-module-sample"],
   );
 });
 

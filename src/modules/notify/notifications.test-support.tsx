@@ -7,12 +7,12 @@ import {
   queryWrapper,
 } from "@/core/core.test-support";
 import { EditSessionsProvider } from "@/core/edit-sessions";
+import { i18n } from "@/core/i18n";
 import { ModuleDirectoryProvider } from "@/core/module-directory";
 import { testManifest } from "@/core/module-directory.test-support";
 import { SettingsDraftProvider } from "@/core/settings/drafts";
 import { SettingsActionBar } from "@/core/settings/settings-action-bar";
 import { Toaster } from "@/kit";
-import { JOB_KINDS } from "@/lib/generated/job-kinds";
 import type { NotificationItem } from "@/lib/generated/NotificationItem";
 import { notifyManifest } from "./manifest";
 import { NotificationBell, NotificationsPage } from "./notifications";
@@ -21,13 +21,21 @@ import { NotifySettingsSection } from "./settings-section";
 import { NotificationToasts } from "./toasts";
 
 export const jobId = "01999000-1234-7000-8000-123456789abd";
+// 测试专用的任务种类，不依赖任何真实模块声明的任务。
+export const fixtureJobKind = "sample.test_task";
+i18n.addResources("zh-CN", "translation", {
+  [`jobs.kinds.${fixtureJobKind}`]: "测试任务",
+});
+i18n.addResources("en-US", "translation", {
+  [`jobs.kinds.${fixtureJobKind}`]: "Test task",
+});
 export const item: NotificationItem = {
   id: "notification-1",
   category: "job",
   titleKey: "notify.job.failed.title",
   bodyKey: "notify.job.failed.body",
   params: {
-    kind: { $t: `jobs.kinds.${JOB_KINDS[0]}` },
+    kind: { $t: `jobs.kinds.${fixtureJobKind}` },
     error: { $t: "errors.app.input.invalid" },
     path: "payload",
   },

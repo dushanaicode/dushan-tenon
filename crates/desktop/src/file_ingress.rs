@@ -913,12 +913,12 @@ mod tests {
             )
             .unwrap();
         for invalid in [
-            "demo",
-            "/demo/../files",
+            "sample",
+            "/sample/../files",
             "/%2e%2e/files",
-            "/demo?command=delete",
-            "/demo#fragment",
-            "/demo//files",
+            "/sample?command=delete",
+            "/sample#fragment",
+            "/sample//files",
         ] {
             assert_eq!(
                 ingress.enqueue_route(invalid, None).unwrap_err().code(),
@@ -926,9 +926,9 @@ mod tests {
             );
         }
         assert!(ingress.list(root.path(), owner).unwrap().pending.is_empty());
-        ingress.enqueue_route("/demo/samples", None).unwrap();
+        ingress.enqueue_route("/sample/items", None).unwrap();
         assert!(
-            matches!(&ingress.list(root.path(), owner).unwrap().pending[0], FileIngressItem::Route { path, .. } if path == "/demo/samples")
+            matches!(&ingress.list(root.path(), owner).unwrap().pending[0], FileIngressItem::Route { path, .. } if path == "/sample/items")
         );
     }
 
@@ -948,7 +948,7 @@ mod tests {
             )
             .unwrap();
         ingress
-            .enqueue_route("/demo/samples", Some(other.canonicalize().unwrap()))
+            .enqueue_route("/sample/items", Some(other.canonicalize().unwrap()))
             .unwrap();
         ingress
             .enqueue_paths(

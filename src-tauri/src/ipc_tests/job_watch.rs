@@ -1,3 +1,6 @@
+//! 任务观察的宿主测试。底座里只有 demo 声明了任务种类，这里排队的任务用 demo.measure；
+//! 删 demo 时整个文件一起删，加了自己的任务种类后可以照着重写。
+
 use super::{invoke, with_host};
 use crate::{commands, lifecycle::Lifecycle, state::AppState};
 use dushan_tenon_lib::contract::StreamCancel;

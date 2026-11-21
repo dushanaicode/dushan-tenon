@@ -5,7 +5,7 @@ use serde_json::json;
 fn parameter_inputs_versions_and_disabled_modules_are_enforced() {
     with_host(
         "ipc_tests::settings::parameter_inputs_versions_and_disabled_modules_are_enforced",
-        "[modules.demo]\nenabled=false\n",
+        "[modules.notify]\nenabled=false\n",
         |_| {},
         |window, _| {
             for command in ["app_setting_set", "app_setting_reset"] {
@@ -29,7 +29,7 @@ fn parameter_inputs_versions_and_disabled_modules_are_enforced() {
                         Some("rowVersion"),
                     ),
                     ("unknown.setting", 1, "app.input.invalid", Some("key")),
-                    ("demo.batch_size", 1, "app.module.disabled", None),
+                    ("notify.toast_seconds", 1, "app.module.disabled", None),
                 ] {
                     let mut input = json!({"key":key,"rowVersion":version});
                     if command == "app_setting_set" {
@@ -78,32 +78,12 @@ fn parameter_inputs_versions_and_disabled_modules_are_enforced() {
 
 #[test]
 fn parameter_listing_and_writes_check_each_declared_permission() {
-    struct DenySettings;
-    impl tenon_framework::job::PermissionLookup for DenySettings {
-        fn has_permission<'a>(
-            &'a self,
-            _: tenon_framework::actor::Actor,
-            key: &'a str,
-        ) -> std::pin::Pin<
-            Box<
-                dyn std::future::Future<Output = Result<bool, tenon_framework::error::AppError>>
-                    + Send
-                    + 'a,
-            >,
-        > {
-            Box::pin(async move {
-                Ok(!matches!(
-                    key,
-                    "demo.settings.manage" | "account.security.manage"
-                ))
-            })
-        }
-    }
     with_host(
         "ipc_tests::settings::parameter_listing_and_writes_check_each_declared_permission",
         "[ui]\ndeveloper_mode=true\n",
         |state| {
-            state.identity.permission_lookup = Arc::new(DenySettings);
+            state.identity.permission_lookup =
+                Arc::new(DenyPermissions(&["account.security.manage"]));
         },
         |window, _| {
             for inspect in [true, false] {
@@ -118,29 +98,17 @@ fn parameter_listing_and_writes_check_each_declared_permission() {
                         .as_array()
                         .unwrap()
                         .iter()
-                        .all(|p| p["key"] != "demo.batch_size")
-                );
-                assert!(
-                    entries
-                        .as_array()
-                        .unwrap()
-                        .iter()
                         .any(|p| p["key"] == "account.idle_lock_minutes")
                 );
             }
-            for (key, permission) in [
-                ("demo.batch_size", "demo.settings.manage"),
-                ("account.idle_lock_minutes", "account.security.manage"),
-            ] {
-                for command in ["app_setting_set", "app_setting_reset"] {
-                    let mut input = json!({"key":key,"rowVersion":null});
-                    if command == "app_setting_set" {
-                        input["value"] = json!("5");
-                    }
-                    let error = invoke(window, command, json!({"input":input})).unwrap_err();
-                    assert_eq!(error["code"], "app.permission.denied");
-                    assert_eq!(error["params"]["permission"], permission);
+            for command in ["app_setting_set", "app_setting_reset"] {
+                let mut input = json!({"key":"account.idle_lock_minutes","rowVersion":null});
+                if command == "app_setting_set" {
+                    input["value"] = json!("5");
                 }
+                let error = invoke(window, command, json!({"input":input})).unwrap_err();
+                assert_eq!(error["code"], "app.permission.denied");
+                assert_eq!(error["params"]["permission"], "account.security.manage");
             }
             let state = window.state::<AppState>();
             assert!(
@@ -297,11 +265,11 @@ fn application_commands_round_trip_settings_parameters_and_modules() {
 fn module_guard_precedes_identity_and_control_remains_available_when_locked() {
     with_host(
         "ipc_tests::settings::module_guard_precedes_identity_and_control_remains_available_when_locked",
-        "[auth]\nmode='login'\n[modules.demo]\nenabled=false\n",
+        "[auth]\nmode='login'\n[modules.notify]\nenabled=false\n",
         |_| {},
         |window, _| {
             assert_eq!(
-                invoke(window, "demo_overview_get", json!({})).unwrap_err()["code"],
+                invoke(window, "notify_unread_count", json!({})).unwrap_err()["code"],
                 "app.module.disabled"
             );
             assert!(invoke(window, "account_auth_status", json!({})).is_ok());

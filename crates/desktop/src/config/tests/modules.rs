@@ -178,30 +178,30 @@ fn auth_and_module_configuration_defaults_overrides_and_field_paths() {
     assert!(default.modules().is_empty());
     fs::write(
         root.path().join("config.toml"),
-        "[auth]\nmode = 'none'\n[modules.demo]\nenabled = false\n[modules.system]\n",
+        "[auth]\nmode = 'none'\n[modules.sample]\nenabled = false\n[modules.system]\n",
     )
     .unwrap();
     let file = read(root.path(), &[], &[]).unwrap();
-    assert!(!file.modules()["demo"].enabled);
+    assert!(!file.modules()["sample"].enabled);
     assert!(file.modules()["system"].enabled);
     let env = read(
         root.path(),
-        &[("TENON__MODULES__DEMO__ENABLED", "true")],
+        &[("TENON__MODULES__SAMPLE__ENABLED", "true")],
         &[],
     )
     .unwrap();
-    assert!(env.modules()["demo"].enabled);
+    assert!(env.modules()["sample"].enabled);
     let cli = read(
         root.path(),
-        &[("TENON__MODULES__DEMO__ENABLED", "true")],
-        &["modules.demo.enabled=false"],
+        &[("TENON__MODULES__SAMPLE__ENABLED", "true")],
+        &["modules.sample.enabled=false"],
     )
     .unwrap();
-    assert!(!cli.modules()["demo"].enabled);
+    assert!(!cli.modules()["sample"].enabled);
     for (value, expected) in [
         ("auth.mode=invalid", "auth.mode"),
-        ("modules.demo.enabled=maybe", "modules.demo.enabled"),
-        ("modules.demo.unknown=true", "modules.demo.unknown"),
+        ("modules.sample.enabled=maybe", "modules.sample.enabled"),
+        ("modules.sample.unknown=true", "modules.sample.unknown"),
     ] {
         let error = read(root.path(), &[], &[value]).unwrap_err();
         assert!(

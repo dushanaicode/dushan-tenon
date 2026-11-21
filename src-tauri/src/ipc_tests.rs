@@ -9,6 +9,7 @@ use tauri::{
 };
 
 mod capability;
+mod demo;
 mod file_data;
 mod files;
 mod job_watch;
@@ -19,6 +20,41 @@ mod settings;
 mod updater;
 mod window_controls;
 mod workbench;
+
+/// 命令权限检查一律拒绝。
+struct DenyAll;
+
+impl tenon_framework::ipc::PermissionChecker for DenyAll {
+    fn check(
+        &self,
+        _: &tenon_framework::ipc::ActiveActor,
+        key: &str,
+    ) -> Result<(), tenon_framework::error::AppError> {
+        Err(
+            tenon_framework::error::AppError::new(tenon_framework::error::PERMISSION_DENIED)
+                .with_param("permission", key),
+        )
+    }
+}
+
+/// 只拒绝列出的权限，其余放行。
+struct DenyPermissions(&'static [&'static str]);
+
+impl tenon_framework::job::PermissionLookup for DenyPermissions {
+    fn has_permission<'a>(
+        &'a self,
+        _: tenon_framework::actor::Actor,
+        key: &'a str,
+    ) -> std::pin::Pin<
+        Box<
+            dyn std::future::Future<Output = Result<bool, tenon_framework::error::AppError>>
+                + Send
+                + 'a,
+        >,
+    > {
+        Box::pin(async move { Ok(!self.0.contains(&key)) })
+    }
+}
 
 fn with_host(
     name: &str,

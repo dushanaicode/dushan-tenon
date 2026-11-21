@@ -42,7 +42,7 @@ fn projection_uses_file_values_not_overrides_or_comments() {
 fn merge_preserves_target_device_fields_and_developer_mode() {
     let source = state_root();
     let target = state_root();
-    fs::write(source.path().join("config.toml"), "[ui]\ntheme='dark'\nlanguage='en-US'\ndeveloper_mode=false\n[auth]\nmode='login'\n[notify]\ndesktop=false\n[jobs]\nmax_concurrency=9\nlease_seconds=100\n[logging]\nlevel='debug'\nretention_days=4\n[modules.demo]\nenabled=false\n").unwrap();
+    fs::write(source.path().join("config.toml"), "[ui]\ntheme='dark'\nlanguage='en-US'\ndeveloper_mode=false\n[auth]\nmode='login'\n[notify]\ndesktop=false\n[jobs]\nmax_concurrency=9\nlease_seconds=100\n[logging]\nlevel='debug'\nretention_days=4\n[modules.sample]\nenabled=false\n").unwrap();
     let text = "# target device\n[ui]\ntheme='light'\nlanguage='zh-CN'\ndeveloper_mode=true # local\n[window]\nrestore_state=false\ntitlebar='hidden'\nclose_action='tray'\n[tray]\nenabled=true\n[autostart]\nenabled=true\n[shortcuts]\nshow_main='Ctrl+Shift+Y'\n[updater]\ncheck_on_start=true\n[network]\nproxy_mode='manual'\nproxy_endpoint='https://target.invalid'\nproxy_auth=true\n[database]\nbackup_keep=11\n[cache]\nprovider='redis'\nhost='localhost'\nport=6379\nkey_prefix='device'\n[auth]\nmode='none'\nsession_max_hours=48\ncaptcha_after_failures=4\nlock_after_failures=20\nlock_minutes=30\n[modules.obsolete]\nenabled=true\n";
     let path = target.path().join("config.toml");
     fs::write(&path, text).unwrap();
@@ -92,9 +92,9 @@ fn merge_preserves_target_device_fields_and_developer_mode() {
             .keys()
             .map(String::as_str)
             .collect::<Vec<_>>(),
-        ["demo"]
+        ["sample"]
     );
-    assert!(!loaded.modules()["demo"].enabled);
+    assert!(!loaded.modules()["sample"].enabled);
 }
 
 #[test]

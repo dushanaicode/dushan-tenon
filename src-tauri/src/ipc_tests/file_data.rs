@@ -21,7 +21,11 @@ use tenon_framework::{
 
 const CONFIG: &str = "[ui]\ndeveloper_mode=true\n[notify]\ndesktop=false\n";
 
-fn token(window: &WebviewWindow<MockRuntime>, purpose: FilePurpose, path: &Path) -> String {
+pub(super) fn token(
+    window: &WebviewWindow<MockRuntime>,
+    purpose: FilePurpose,
+    path: &Path,
+) -> String {
     let state = window.state::<AppState>();
     state
         .picked_files
@@ -46,27 +50,6 @@ fn archive(
         command,
         json!({"input":{"fileToken":token(window, purpose, path)}, "channel":"__CHANNEL__:83"}),
     )
-}
-
-fn wait_job(window: &WebviewWindow<MockRuntime>, id: &Value) -> tenon_framework::job::JobSnapshot {
-    tauri::async_runtime::block_on(async {
-        let state = window.state::<AppState>();
-        tokio::time::timeout(Duration::from_secs(10), async {
-            loop {
-                let job = state
-                    .jobs
-                    .get(serde_json::from_value(id.clone()).unwrap())
-                    .await
-                    .unwrap();
-                if job.status.is_terminal() {
-                    return job;
-                }
-                tokio::time::sleep(Duration::from_millis(10)).await;
-            }
-        })
-        .await
-        .unwrap()
-    })
 }
 
 #[test]
@@ -145,60 +128,6 @@ fn file_claim_recent_and_dismiss_never_expose_paths() {
                     json!({"input":{"path":file}})
                 )
                 .is_err()
-            );
-        },
-    );
-}
-
-#[test]
-fn exchange_commands_round_trip_jobs_with_only_internal_handles() {
-    with_host(
-        "ipc_tests::file_data::exchange_commands_round_trip_jobs_with_only_internal_handles",
-        CONFIG,
-        |_| {},
-        |window, _| {
-            let output = boot::tests::root();
-            let path = output.path().join("private-exchange-sentinel.json");
-            let sample = invoke(
-                window,
-                "demo_sample_create",
-                json!({"input":{"code":"exported","title":"Exported","note":"round trip"}}),
-            )
-            .unwrap();
-            let picked = token(window, FilePurpose::Export, &path);
-            let job = invoke(
-                window,
-                "demo_sample_export",
-                json!({"input":{"fileToken":picked,"format":"json"}}),
-            )
-            .unwrap();
-            let done = wait_job(window, &job["jobId"]);
-            assert_eq!(done.status, tenon_framework::job::JobStatus::Succeeded);
-            assert!(!done.payload.to_string().contains("sentinel"));
-            assert_ne!(done.payload["handle"], picked);
-            assert!(done.payload.get("path").is_none());
-            assert!(
-                invoke(
-                    window,
-                    "demo_sample_export",
-                    json!({"input":{"fileToken":picked,"format":"json"}})
-                )
-                .is_err()
-            );
-            invoke(
-                window,
-                "demo_sample_delete",
-                json!({"input":{"id":sample["id"],"rowVersion":sample["rowVersion"]}}),
-            )
-            .unwrap();
-            let job = invoke(window, "demo_sample_import", json!({"input":{"fileToken":token(window, FilePurpose::Import, &path),"mode":"error"}})).unwrap();
-            let done = wait_job(window, &job["jobId"]);
-            assert_eq!(done.status, tenon_framework::job::JobStatus::Succeeded);
-            assert!(done.payload["format"].is_null());
-            assert!(!done.payload.to_string().contains("sentinel"));
-            assert_eq!(
-                invoke(window, "demo_overview_get", json!({})).unwrap()["total"],
-                1
             );
         },
     );
@@ -391,7 +320,7 @@ fn restore_commits_after_module_validation_then_closes_before_restart() {
             let actor = Actor::User(state.account.owner_id().unwrap());
             tauri::async_runtime::block_on(state.params.set(
                 &ExecutionContext::new(actor, "test"),
-                "demo.batch_size",
+                "notify.toast_seconds",
                 "17",
                 None,
             ))
@@ -422,7 +351,7 @@ fn restore_commits_after_module_validation_then_closes_before_restart() {
                 tauri::async_runtime::block_on(state.params.entries())
                     .unwrap()
                     .iter()
-                    .any(|entry| entry.key == "demo.batch_size"
+                    .any(|entry| entry.key == "notify.toast_seconds"
                         && entry.value.as_deref() == Some("17"))
             );
             let accepted = invoke(
@@ -484,7 +413,7 @@ fn restore_commits_after_module_validation_then_closes_before_restart() {
                 assert!(
                     values
                         .iter()
-                        .any(|(key, value)| key == "demo.batch_size"
+                        .any(|(key, value)| key == "notify.toast_seconds"
                             && value.as_deref() == Some("17"))
                 );
                 db.close().await;
@@ -586,14 +515,6 @@ fn all_file_commands_are_main_only_and_reject_raw_path_inputs() {
                     "app_diagnostics_export",
                     json!({"input":{"fileToken":"id"}}),
                 ),
-                (
-                    "demo_sample_export",
-                    json!({"input":{"fileToken":"id","format":"json"}}),
-                ),
-                (
-                    "demo_sample_import",
-                    json!({"input":{"fileToken":"id","mode":"error"}}),
-                ),
             ];
             for (command, body) in requests {
                 assert!(invoke(&other, command, body).is_err(), "{command}");
@@ -615,8 +536,6 @@ fn all_file_commands_are_main_only_and_reject_raw_path_inputs() {
                 "app_backup_export",
                 "app_backup_prepare_restore",
                 "app_diagnostics_export",
-                "demo_sample_import",
-                "demo_sample_export",
             ] {
                 assert!(
                     invoke(
@@ -627,56 +546,6 @@ fn all_file_commands_are_main_only_and_reject_raw_path_inputs() {
                     .is_err()
                 );
             }
-        },
-    );
-}
-
-#[test]
-fn exchange_submission_failure_consumes_selection_without_persisting_a_job() {
-    with_host(
-        "ipc_tests::file_data::exchange_submission_failure_consumes_selection_without_persisting_a_job",
-        CONFIG,
-        |state| {
-            state.jobs = tenon_framework::job::JobQueue::new(
-                state.db.clone(),
-                vec![],
-                vec![],
-                vec![],
-                state.instance,
-            )
-            .unwrap();
-        },
-        |window, root| {
-            let path = root.join("failure.json");
-            let picked = token(window, FilePurpose::Export, &path);
-            assert!(
-                invoke(
-                    window,
-                    "demo_sample_export",
-                    json!({"input":{"fileToken":picked,"format":"json"}})
-                )
-                .is_err()
-            );
-            let state = window.state::<AppState>();
-            assert!(
-                state
-                    .picked_files
-                    .take(
-                        &picked,
-                        Actor::User(state.account.owner_id().unwrap()),
-                        FilePurpose::Export,
-                        None
-                    )
-                    .is_err()
-            );
-            assert!(!path.exists());
-            let jobs = invoke(
-                window,
-                "devtools_job_list",
-                json!({"input":{"page":1,"pageSize":20}}),
-            )
-            .unwrap();
-            assert_eq!(jobs["total"], 0);
         },
     );
 }

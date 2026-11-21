@@ -1,29 +1,27 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect, test } from "vitest";
 import { authKey } from "@/core/auth";
-import {
-  appModules,
-  currentUser,
-  mockAppIpc,
-  paramEntries,
-} from "@/core/core.test-support";
+import { currentUser, mockAppIpc } from "@/core/core.test-support";
 import type { ParamEntry } from "@/lib/generated/ParamEntry";
 import { PERMISSION_KEYS } from "@/lib/generated/permissions";
 import type { SettingSetInput } from "@/lib/generated/SettingSetInput";
 import {
   accountName,
-  demoName,
   edit,
   listKey,
+  mockSampleIpc,
   mount,
   row,
+  sampleFixture,
+  sampleName,
+  samplePermission,
   stored,
 } from "./param-form.test-support";
 
 test("parameter list honours read and write grants", async () => {
   let permissions: string[] = [];
-  let modules = structuredClone(appModules);
-  const calls = mockAppIpc((command) => {
+  let modules = structuredClone(sampleFixture.modules);
+  const calls = mockSampleIpc((command) => {
     if (command === "account_auth_status") {
       return {
         state: "active",
@@ -37,23 +35,26 @@ test("parameter list honours read and write grants", async () => {
   });
   const { client } = mount(true);
   await screen.findByRole("form", { name: accountName });
-  expect(screen.queryByRole("form", { name: demoName })).toBeNull();
+  expect(screen.queryByRole("form", { name: sampleName })).toBeNull();
   expect(row(accountName).getByRole("textbox")).toHaveProperty(
     "disabled",
     true,
   );
   expect(row(accountName).getByText(/需要“管理账号安全设置”权限/)).toBeTruthy();
-  permissions = ["demo.settings.manage"];
+  permissions = [samplePermission];
   await act(async () => {
     await client.invalidateQueries({ queryKey: authKey });
   });
-  await screen.findByRole("form", { name: demoName });
-  expect(row(demoName).getByRole("textbox")).toHaveProperty("disabled", false);
-  permissions = [...PERMISSION_KEYS];
+  await screen.findByRole("form", { name: sampleName });
+  expect(row(sampleName).getByRole("textbox")).toHaveProperty(
+    "disabled",
+    false,
+  );
+  permissions = [...sampleFixture.auth.permissions];
   modules = {
-    modules: appModules.modules.map((module) => ({
+    modules: sampleFixture.modules.modules.map((module) => ({
       ...module,
-      enabled: module.id !== "demo",
+      enabled: module.id !== "sample",
     })),
   };
   await act(async () => {
@@ -61,10 +62,13 @@ test("parameter list honours read and write grants", async () => {
     await client.invalidateQueries({ queryKey: authKey });
   });
   await waitFor(() =>
-    expect(row(demoName).getByRole("textbox")).toHaveProperty("disabled", true),
+    expect(row(sampleName).getByRole("textbox")).toHaveProperty(
+      "disabled",
+      true,
+    ),
   );
   expect(
-    await row(demoName).findByText("所属模块已停用，此设置只读。"),
+    await row(sampleName).findByText("所属模块已停用，此设置只读。"),
   ).toBeTruthy();
   expect(row(accountName).getByRole("textbox")).toHaveProperty(
     "disabled",
@@ -77,7 +81,7 @@ test("parameter list honours read and write grants", async () => {
   });
   await waitFor(() => {
     expect(row(accountName).getByRole("textbox")).toHaveProperty("value", "15");
-    expect(screen.queryByRole("form", { name: demoName })).toBeNull();
+    expect(screen.queryByRole("form", { name: sampleName })).toBeNull();
   });
   expect(calls).toHaveBeenCalledWith("app_setting_list", {
     input: { includeDisabled: true },
@@ -126,19 +130,21 @@ test("identity changes clear drafts and isolate queries", async () => {
 });
 
 test("apply saves keys sequentially and invalidates user lists", async () => {
-  const entries = structuredClone(paramEntries);
-  const demoIndex = entries.findIndex(({ key }) => key === "demo.batch_size");
+  const entries = structuredClone([...sampleFixture.params]);
+  const sampleIndex = entries.findIndex(
+    ({ key }) => key === "sample.batch_size",
+  );
   let finish!: (entry: ParamEntry) => void;
   const pending = new Promise<ParamEntry>((resolve) => {
     finish = resolve;
   });
-  const calls = mockAppIpc((command, payload) => {
+  const calls = mockSampleIpc((command, payload) => {
     if (command === "app_setting_list") return structuredClone(entries);
     if (command === "app_setting_set") {
       const { input } = payload as { input: SettingSetInput };
       if (input.key === entries[0].key) return pending;
-      entries[demoIndex] = stored(entries[demoIndex], input.value, 1);
-      return structuredClone(entries[demoIndex]);
+      entries[sampleIndex] = stored(entries[sampleIndex], input.value, 1);
+      return structuredClone(entries[sampleIndex]);
     }
   });
   const { client } = mount();
@@ -146,7 +152,7 @@ test("apply saves keys sequentially and invalidates user lists", async () => {
   const inspectKey = ["app", "setting", currentUser.id, true];
   client.setQueryData(inspectKey, structuredClone(entries));
   edit(accountName, "20");
-  edit(demoName, "50");
+  edit(sampleName, "50");
   fireEvent.click(screen.getByRole("button", { name: "应用" }));
   await screen.findByText("正在保存…");
   expect(screen.getByRole("button", { name: "应用" })).toHaveProperty(
@@ -176,9 +182,9 @@ test("apply saves keys sequentially and invalidates user lists", async () => {
   await waitFor(() =>
     expect(screen.queryByRole("region", { name: "设置操作" })).toBeNull(),
   );
-  expect(client.getQueryData<ParamEntry[]>(inspectKey)?.[demoIndex].value).toBe(
-    "50",
-  );
+  expect(
+    client.getQueryData<ParamEntry[]>(inspectKey)?.[sampleIndex].value,
+  ).toBe("50");
   expect(client.getQueryState(inspectKey)?.isInvalidated).toBe(true);
   expect(
     calls.mock.calls.filter(([name]) => name === "account_auth_status").length,

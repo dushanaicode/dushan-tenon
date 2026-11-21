@@ -19,30 +19,31 @@ export const builtinSections: readonly ModuleSetting[] = [
 ];
 `;
 
-test("partial demo removal is rejected by the real catalog", async () => {
+test("partial module removal is rejected by the real catalog", async () => {
   const files = await readAssemblyFiles(resolve("."));
   assert.deepEqual(scanAssembly(files), []);
   const missingFiles = new Map(
-    [...files].filter(([path]) => !path.startsWith("src/modules/demo/")),
+    [...files].filter(([path]) => !path.startsWith("src/modules/devtools/")),
   );
   assert.ok(scanAssembly(missingFiles).some(({ rule }) => rule === "A1"));
   const missingRegistration = new Map(files);
   missingRegistration.set(
     indexPath,
-    files.get(indexPath).replace("  demoManifest,\n", ""),
+    files.get(indexPath).replace("  devtoolsManifest,\n", ""),
   );
   assert.ok(
     scanAssembly(missingRegistration).some(({ rule }) => rule === "A1"),
   );
 });
 
-test("real demo manifest participates in assembly validation", async () => {
+test("real manifests participate in assembly validation", async () => {
   const files = await readAssemblyFiles(resolve("."));
   assert.deepEqual(scanAssembly(files), []);
-  const demo = files.get("src/modules/demo/manifest.ts");
-  assert.match(demo, /basePath: "\/demo"/);
-  assert.match(demo, /paramGroups: \["demo.work"\]/);
-  assert.match(demo, /developerOnly: true/);
+  const account = files.get("src/modules/account/manifest.ts");
+  assert.match(account, /basePath: "\/account"/);
+  assert.match(account, /paramGroups: \["account.security"\]/);
+  const devtools = files.get("src/modules/devtools/manifest.ts");
+  assert.match(devtools, /developerOnly: true/);
 });
 
 async function fixture(t) {
