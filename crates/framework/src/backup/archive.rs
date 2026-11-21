@@ -430,7 +430,10 @@ pub(super) fn read_archive(
         let mut file = archive
             .by_index(i)
             .map_err(|_| AppError::new(INVALID_ARCHIVE))?;
-        let name = file.name().to_owned();
+        let name = file
+            .name()
+            .map_err(|_| AppError::new(INVALID_ARCHIVE))?
+            .into_owned();
         let limit = entry_limit(&name)?;
         if !names.insert(name.clone())
             || !file.is_file()

@@ -87,7 +87,7 @@ fn validate(path: &Path, text: &[u8]) -> Result<(u64, String), AppError> {
         let entry = zip
             .by_index(index)
             .map_err(|_| AppError::new(EXPORT_FAILED))?;
-        if entry.name() != name
+        if entry.name().map_err(|_| AppError::new(EXPORT_FAILED))? != name
             || entry.compression() != CompressionMethod::Stored
             || entry.size() > MAX_ARCHIVE
             || entry.is_dir()

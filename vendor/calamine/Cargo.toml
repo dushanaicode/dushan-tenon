@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.88"
 name = "calamine"
-version = "0.36.1"
+version = "0.37.0"
 publish = false
 authors = ["Johann Tuffe <tafia973@gmail.com>"]
 build = false
@@ -86,14 +86,14 @@ version = "0.2"
 version = "0.4"
 
 [dependencies.quick-xml]
-version = "0.41"
+version = "0.42"
 features = ["encoding"]
 
 [dependencies.serde]
 version = "1.0"
 
 [dependencies.zip]
-version = "8.6"
+version = "9.0"
 features = ["deflate"]
 default-features = false
 

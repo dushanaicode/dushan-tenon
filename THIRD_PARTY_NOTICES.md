@@ -48,14 +48,14 @@ OFL 的保留字体名称、不得单独售卖及衍生字体继续采用 OFL �
 
 ## vendor/calamine
 
-`vendor/calamine` 来自 calamine **0.36.1** 的 crates.io 发布包，采用 **MIT** 许可。
+`vendor/calamine` 来自 calamine **0.37.0** 的 crates.io 发布包，采用 **MIT** 许可。
 上游：[tafia/calamine](https://github.com/tafia/calamine)，发布包记录 commit
-`0a24c2a9f1e38c0932c1299e633270dc730db505`，发布包 SHA-256 为
-`5fa68281b1a76b54a62156474adb06bb380a67e07dd60656e3217152b42183f3`。
+`f2c5948242fdfe390e292313a1f87f9db19b9633`，发布包 SHA-256 为
+`c9ca341b94bc4b29e08970b1a03914fad2dfe177e2ecb67fcd6de9046004aafb`。
 
 源码补丁移除了按不可信共享字符串 `uniqueCount` 预分配内存的提示；独立 manifest
 去除示例、基准及开发依赖，并禁止发布、独立于 workspace。补丁、来源和逐字节对照办法见
-[PATCHES.md](vendor/calamine/PATCHES.md)。没有升级版本或更改既有源码补丁。
+[PATCHES.md](vendor/calamine/PATCHES.md)。2026-11-20 从 0.36.1 升级到 0.37.0（改用 zip 9），源码补丁原样重新应用。
 原始 [LICENSE-MIT.md](vendor/calamine/LICENSE-MIT.md) 逐字节保留，正文如下：
 
 The MIT License (MIT)

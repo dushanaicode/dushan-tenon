@@ -643,8 +643,9 @@ async fn restore_rejects_untrusted_archive_and_schema() {
         let mut zip = zip::ZipWriter::new(fs::File::create(&compressed).unwrap());
         for index in 0..source.len() {
             let mut entry = source.by_index(index).unwrap();
+            let name = entry.name().unwrap().into_owned();
             zip.start_file(
-                entry.name(),
+                name,
                 zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated),
             ).unwrap();
             std::io::copy(&mut entry, &mut zip).unwrap();

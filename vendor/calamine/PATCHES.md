@@ -1,13 +1,14 @@
 # Calamine adapter
 
-Source: the crates.io `calamine 0.36.1` release package, upstream
+Source: the crates.io `calamine 0.37.0` release package, upstream
 <https://github.com/tafia/calamine>, repository-root commit
-`0a24c2a9f1e38c0932c1299e633270dc730db505`.
+`f2c5948242fdfe390e292313a1f87f9db19b9633`.
 Published crate SHA-256:
-`5fa68281b1a76b54a62156474adb06bb380a67e07dd60656e3217152b42183f3`.
+`c9ca341b94bc4b29e08970b1a03914fad2dfe177e2ecb67fcd6de9046004aafb`.
 The package hash matches the crates.io sparse-index `cksum`, verified on
-2026-10-20. The extracted release files were also compared byte-for-byte
-with the local registry cache; only the cache's `.cargo-ok` marker is extra.
+2026-11-20, and the recorded commit is the package's `.cargo_vcs_info.json`.
+The release was upgraded from 0.36.1 because calamine 0.37.0 moves to `zip`
+9; every `zip` 8.x release was yanked upstream for security advisories.
 
 The upstream package uses the single MIT license; no dual-license selection
 is needed. `LICENSE-MIT.md` is preserved byte-for-byte, including its
@@ -39,28 +40,28 @@ the changelog is included to preserve the release history.
 Reproduce the comparison from the repository root:
 
 ```sh
-curl -fL -o calamine-0.36.1.crate https://crates.io/api/v1/crates/calamine/0.36.1/download
-sha256sum calamine-0.36.1.crate # Must match the SHA-256 above before continuing.
-mkdir original && tar -xzf calamine-0.36.1.crate -C original --strip-components=1
+curl -fL -o calamine-0.37.0.crate https://crates.io/api/v1/crates/calamine/0.37.0/download
+sha256sum calamine-0.37.0.crate # Must match the SHA-256 above before continuing.
+mkdir original && tar -xzf calamine-0.37.0.crate -C original --strip-components=1
 git diff --no-index --name-status original vendor/calamine
 ```
 
 Windows PowerShell equivalent:
 
 ```powershell
-curl.exe -fL -o calamine-0.36.1.crate https://crates.io/api/v1/crates/calamine/0.36.1/download
-if ((Get-FileHash calamine-0.36.1.crate -Algorithm SHA256).Hash -ne "5fa68281b1a76b54a62156474adb06bb380a67e07dd60656e3217152b42183f3") { throw "SHA-256 mismatch" }
+curl.exe -fL -o calamine-0.37.0.crate https://crates.io/api/v1/crates/calamine/0.37.0/download
+if ((Get-FileHash calamine-0.37.0.crate -Algorithm SHA256).Hash -ne "c9ca341b94bc4b29e08970b1a03914fad2dfe177e2ecb67fcd6de9046004aafb") { throw "SHA-256 mismatch" }
 New-Item -ItemType Directory original | Out-Null
-tar -xzf calamine-0.36.1.crate -C original --strip-components=1
+tar -xzf calamine-0.37.0.crate -C original --strip-components=1
 git diff --no-index --name-status original vendor/calamine
 ```
 
 The command exits 1 because the following intentional differences exist:
 
 - Release-only: `benches/`, `examples/`, `Cargo.lock`, `Cargo.toml.orig`,
-  `.cargo_vcs_info.json`, `.github/`, `.gitignore` and `.typos.toml`.
-  The last three are upstream development metadata, outside the retained
-  source/documentation set.
+  `.cargo_vcs_info.json`, `.gitattributes`, `.github/`, `.gitignore` and
+  `.typos.toml`. The last four are upstream development metadata, outside
+  the retained source/documentation set.
 - Changed: `Cargo.toml` and `src/xlsx/mod.rs` only.
 - Vendor-only: this `PATCHES.md`.
 - Every other retained file, including every other file under `src/`, is

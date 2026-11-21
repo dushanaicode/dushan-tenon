@@ -188,12 +188,13 @@ fn xlsx_shared_string_fixture(
         let mut entry = archive.by_index(index).unwrap();
         let mut data = Vec::new();
         entry.read_to_end(&mut data).unwrap();
-        match entry.name() {
+        let name = entry.name().unwrap().into_owned();
+        match name.as_str() {
             "xl/worksheets/sheet1.xml" => data = sheet.as_bytes().to_vec(),
             "xl/sharedStrings.xml" => data = shared.as_bytes().to_vec(),
             _ => {}
         }
-        entries.push((entry.name().to_owned(), data));
+        entries.push((name, data));
     }
     let entries: Vec<_> = entries
         .iter()
@@ -362,9 +363,15 @@ fn xlsx_preflight_bounds_actual_inflation_even_when_declared_size_is_small() {
             zip_declared_size(&mut bytes, 1);
         }
         // 直接预检无工作簿结构的 ZIP，不经 Calamine 分配字符串。
+        // 声明偏小时，ZIP 库读到超过声明值就报错，按无效文件拒绝；两种情况都不会解压出全部数据。
         let error = xlsx::preflight(&bytes, &budget).unwrap_err();
-        assert_eq!(error.code(), FILE_TOO_LARGE);
-        assert!(error.params.is_empty());
+        if lie {
+            assert_eq!(error.code(), INPUT_INVALID);
+            assert_eq!(error.params["path"], "file");
+        } else {
+            assert_eq!(error.code(), FILE_TOO_LARGE);
+            assert!(error.params.is_empty());
+        }
     }
 }
 
@@ -421,7 +428,7 @@ fn xlsx_preflight_rejects_duplicate_names_hidden_by_zip_archive() {
     bytes[local + 30..local + 35].copy_from_slice(b"a.xml");
     bytes[central + 46..central + 51].copy_from_slice(b"a.xml");
     let archive = zip::ZipArchive::new(std::io::Cursor::new(&bytes)).unwrap();
-    assert_eq!(archive.len(), 1); // ZIP 8.6 合并了两个同名记录。
+    assert_eq!(archive.len(), 1); // ZIP 库合并了两个同名记录。
     let error = xlsx::preflight(&bytes, &xlsx::XlsxBudget::default()).unwrap_err();
     assert_eq!(error.code(), INPUT_INVALID);
     assert_eq!(error.params["path"], "file");
@@ -440,13 +447,8 @@ fn xlsx_preflight_rejects_declared_sizes_that_disagree_with_actual_bytes() {
         let mut bytes = deflated_zip(&[("a.xml", &payload)]);
         zip_declared_size(&mut bytes, declared);
         let mut archive = zip::ZipArchive::new(std::io::Cursor::new(&bytes)).unwrap();
-        let mut entry = archive.by_index(0).unwrap();
-        assert_eq!(entry.size(), u64::from(declared));
-        // ZIP 8.6 的 Deflate 读取仍成功；尺寸一致性由框架预检检查。
-        assert_eq!(
-            std::io::copy(&mut entry, &mut std::io::sink()).unwrap(),
-            payload.len() as u64
-        );
+        // 不依赖 ZIP 库读取时是否核对尺寸；声明与实际不一致由框架预检拒绝。
+        assert_eq!(archive.by_index(0).unwrap().size(), u64::from(declared));
         let error = xlsx::preflight(&bytes, &budget).unwrap_err();
         assert_eq!(error.code(), INPUT_INVALID);
         assert_eq!(error.params["path"], "file");

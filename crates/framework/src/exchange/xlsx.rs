@@ -64,7 +64,7 @@ pub(super) fn preflight(bytes: &[u8], budget: &XlsxBudget) -> Result<(), AppErro
     let mut total = 0;
     for index in 0..archive.len() {
         let entry = archive.by_index(index).map_err(|_| invalid("file"))?;
-        if !names.insert(entry.name().to_owned()) {
+        if !names.insert(entry.name().map_err(|_| invalid("file"))?.into_owned()) {
             return Err(invalid("file"));
         }
         let declared = entry.size();
