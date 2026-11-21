@@ -1406,7 +1406,7 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "dushan-tenon"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 dependencies = [
  "base64 0.22.1",
  "clap",
@@ -5642,7 +5642,7 @@ dependencies = [
 
 [[package]]
 name = "tenon-desktop"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 dependencies = [
  "serde",
  "serde_json",
@@ -5660,7 +5660,7 @@ dependencies = [
 
 [[package]]
 name = "tenon-framework"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 dependencies = [
  "calamine",
  "croner",
@@ -5690,7 +5690,7 @@ dependencies = [
 
 [[package]]
 name = "tenon-module-account"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 dependencies = [
  "ab_glyph",
  "argon2",
@@ -5711,7 +5711,7 @@ dependencies = [
 
 [[package]]
 name = "tenon-module-demo"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 dependencies = [
  "sea-query",
  "serde",
@@ -5726,7 +5726,7 @@ dependencies = [
 
 [[package]]
 name = "tenon-module-devtools"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 dependencies = [
  "sea-query",
  "serde",
@@ -5739,7 +5739,7 @@ dependencies = [
 
 [[package]]
 name = "tenon-module-files"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 dependencies = [
  "serde",
  "serde_json",
@@ -5751,7 +5751,7 @@ dependencies = [
 
 [[package]]
 name = "tenon-module-notify"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 dependencies = [
  "jiff",
  "sea-query",
