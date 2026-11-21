@@ -31,7 +31,7 @@ Dushan Tenon（渡山榫卯）是可装配的单人桌面工具底座：Rust + T
 ## 工程
 
 - 技术栈：Rust stable ≥ 1.98（edition 2024）、Tauri 2、React 19、TypeScript strict、Vite、Tailwind CSS 4；Node 24，pnpm 固定 11.16.0。
-- 命令：`pnpm dev` 开发窗口，`pnpm build` 构建可执行文件，`pnpm check` 全部检查，`pnpm test [目标...]` 单元测试，`pnpm preset` 创建预设配置，`pnpm bundle` 打 Windows 安装包（[发布](docs/release.md)）；PowerShell 用 `pnpm.cmd`。
+- 命令：`pnpm dev` 开发窗口，`pnpm build` 构建可执行文件，`pnpm check` 全部检查，`pnpm test [目标...]` 单元测试，`pnpm preset` 创建预设配置，`pnpm rename` 派生时改名（[派生](docs/derive.md)），`pnpm bundle` 打 Windows 安装包（[发布](docs/release.md)）；PowerShell 用 `pnpm.cmd`。
 - 自动化代理先加载 `node scripts/environment.mjs` 输出的隔离环境，再运行 pnpm 或 cargo；不重写 HOME 或 USERPROFILE。
 - 构建输出与缓存放 `Temp/`；Tauri 固定生成的 `src-tauri/gen/` 是唯一例外，已被 Git 忽略。
 - 测试辅助放在能提供它的最低一层，命名为 `*.test-support.ts(x)`。

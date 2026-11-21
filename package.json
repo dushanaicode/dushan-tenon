@@ -14,6 +14,7 @@
     "bundle": "node scripts/bundle.mjs",
     "generate": "node scripts/generate.mjs",
     "preset": "node scripts/preset.mjs",
+    "rename": "node scripts/rename.mjs",
     "check": "node scripts/check.mjs",
     "test": "node scripts/test.mjs",
     "resources": "node scripts/resources.mjs",
