@@ -1,0 +1,69 @@
+name: Bug 报告 / Bug report
+description: 程序出错或行为不对 / Something is broken or behaves wrongly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提交前请先搜索已有的 Issue。安全问题请不要在这里提，按 [SECURITY.md](https://github.com/dushanaicode/dushan-tenon/blob/main/SECURITY.md) 私下报告。
+        Please search existing issues first. Do not report security issues here; follow [SECURITY.en.md](https://github.com/dushanaicode/dushan-tenon/blob/main/SECURITY.en.md) to report them privately.
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么 / What happened
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望的结果 / Expected behavior
+  - type: dropdown
+    id: run
+    attributes:
+      label: 运行方式 / How you ran it
+      options:
+        - pnpm dev
+        - pnpm build 构建的程序 / Program built with pnpm build
+        - 安装包 / Installer
+        - 派生项目 / A derived project
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本或提交 / Version or commit
+      placeholder: v0.1.0-alpha.1 / 16562c8
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows 版本 / Windows version
+      placeholder: Windows 11 24H2
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 诊断信息 / Diagnostic information
+      description: |
+        设置 → 关于 → 复制诊断信息，粘贴到这里。诊断信息已经脱敏，不含路径和账号。
+        Settings → About → Copy diagnostic information, then paste it here. It is redacted and contains no paths or account names.
+      render: text
+  - type: textarea
+    id: more
+    attributes:
+      label: 其他 / Anything else
+      description: |
+        截图、日志片段等。贴日志前请删掉凭据和个人数据。
+        Screenshots, log excerpts and so on. Remove credentials and personal data before pasting logs.

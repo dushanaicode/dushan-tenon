@@ -190,7 +190,8 @@ When an AI coding agent works on the code, have it read [AGENTS.md](AGENTS.md) f
 
 - Please file issues and suggestions on GitHub: <https://github.com/dushanaicode/dushan-tenon/issues>. The Gitee repository is a read-only mirror of GitHub, so please send all issues and pull requests to GitHub.
 - When reporting a problem, include your Windows version, the steps to reproduce, and the text from "Settings → About → Copy diagnostic information". The diagnostic text is redacted and contains no paths or account names.
-- A contributing guide and instructions for reporting security issues are being written and will be linked here.
+- To contribute, please read the [contributing guide](CONTRIBUTING.en.md) first.
+- Do not report security issues in a public issue. Report them privately as described in the [security policy](SECURITY.en.md).
 
 ## License
 

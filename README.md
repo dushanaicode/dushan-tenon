@@ -188,7 +188,8 @@ vendor/           随仓库附带的第三方代码，许可见 THIRD_PARTY_NOTI
 
 - 问题和建议请到 GitHub 提 Issue：<https://github.com/dushanaicode/dushan-tenon/issues>。Gitee 仓库是 GitHub 的只读镜像，Issue 和 PR 请都提到 GitHub。
 - 报告问题时，请写上 Windows 版本和复现步骤，并附上“设置 → 关于 → 复制诊断信息”的内容。诊断信息已经脱敏，不含路径和账号。
-- 贡献指南和安全问题的报告方式还在编写，写好后会放在这里。
+- 想参与开发，请先读[贡献指南](CONTRIBUTING.md)。
+- 安全问题请不要公开提 Issue，按[安全说明](SECURITY.md)私下报告。
 
 ## 许可
 

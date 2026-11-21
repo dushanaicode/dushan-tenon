@@ -56,7 +56,8 @@ pnpm rename --name "Example Notes" --binary example-notes --identifier com.examp
 - **中文名**：用 `git grep -n "渡山榫卯"` 找出来，换成你的中文名。会出现在 `AGENTS.md`、`README.md`、`docs/architecture.md` 和 `src-tauri/Cargo.toml` 的 description 里。
 - **版权**：把 `src-tauri/tauri.conf.json` 里的 `bundle.copyright` 改成你的版权。关于页和 exe 属性里显示的就是它。
 - **LICENSE**：MIT 许可要求保留原来的版权行 `Copyright (c) 2026 渡山源码`。不要删它，在它下面加一行你自己的版权。
-- **仓库地址**：`README.md` 和 `README.en.md` 里的 GitHub 地址要换成你的。`.github/workflows/gitee-sync.yml` 是本仓库同步 Gitee 镜像用的，用不上就删掉。
+- **仓库地址**：README、CONTRIBUTING、SECURITY（各有中英文两份）和 `.github/ISSUE_TEMPLATE/` 里的 GitHub 地址要换成你的，用 `git grep -n dushanaicode` 可以全部找出来（`scripts/check-structure.mjs` 里那处属于下面的品牌规则）。`.github/workflows/gitee-sync.yml` 是本仓库同步 Gitee 镜像用的，用不上就删掉。
+- **贡献和安全说明**：`CONTRIBUTING` 和 `SECURITY` 写的是本仓库的约定，按你自己项目的做法改写。
 - **标志和图标**：换掉 `public/brand/logo.svg` 和 `src-tauri/icons/` 里的 5 个文件，文件名和尺寸保持不变。
 - **README**：改成介绍你自己产品的内容。
 - **品牌规则**：`AGENTS.md` 和 `docs/architecture.md` 里讲“品牌拼音（渡山）”的两段，以及 `scripts/check-structure.mjs` 的 legacy-brand 规则，原本用来防止本仓库的旧品牌残留。改名以后，这条规则还能拦住漏改的旧名字，可以先留着；要改写或删掉，由你决定。
