@@ -1,5 +1,6 @@
 import { createServer } from "node:net";
-import { runBin, task } from "./common.mjs";
+import { join } from "node:path";
+import { root, runBin, task } from "./common.mjs";
 
 await task("dev", async (env) => {
   // 探测 IPv4/IPv6 的占用；Vite 的 strictPort 还会拒绝检查后的竞争占用。
@@ -18,5 +19,9 @@ await task("dev", async (env) => {
       });
     });
   }
-  await runBin("Tauri 开发窗口", "@tauri-apps/cli", "tauri", ["dev"], env);
+  // 开发窗口固定使用仓库里的 Temp/dev-state，不碰安装版放在系统应用数据目录里的状态。
+  await runBin("Tauri 开发窗口", "@tauri-apps/cli", "tauri", ["dev"], {
+    ...env,
+    TENON_STATE_ROOT: join(root, "Temp/dev-state"),
+  });
 });
