@@ -363,12 +363,8 @@ impl Updater {
         let count = AtomicU64::new(0);
         let last = AtomicU64::new(0);
         let report: DownloadProgress = Arc::new(move |length, total| {
-            let previous = count
-                .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |n| {
-                    Some(n.saturating_add(length as u64))
-                })
-                .unwrap_or_else(|n| n);
-            let current = previous.saturating_add(length as u64);
+            // 超过 DOWNLOAD_LIMIT 即停止，计数远到不了 u64 上限，直接相加。
+            let current = count.fetch_add(length as u64, Ordering::SeqCst) + length as u64;
             if current > DOWNLOAD_LIMIT || total.is_some_and(|total| total > DOWNLOAD_LIMIT) {
                 stop.send_replace(DownloadStop::TooLarge);
                 return;
