@@ -45,7 +45,7 @@ pub type BeforeExit = Arc<dyn Fn() + Send + Sync>;
 pub type DownloadProgress = Arc<dyn Fn(usize, Option<u64>) + Send + Sync>;
 
 pub trait UpdateDriver: Send + Sync {
-    /// HTTPS、精确下载 host、禁止重定向；manifest 实际读取最多 MANIFEST_LIMIT。
+    /// HTTPS、精确下载 host、只跟随到下载 host 名单内的跳转；manifest 实际读取最多 MANIFEST_LIMIT。
     /// 只返回高于当前版本的候选，requireSignedVersion=true、allowDowngrades=false。
     /// 保存同一受限代理快照与候选，供 download 使用，不能重新读取设置。
     fn check(

@@ -49,13 +49,25 @@ fn ui_defaults_sources_and_strict_values() {
             _ => panic!("unexpected preset"),
         };
         assert_eq!(enabled, expected);
+        let ui = text.parse::<Table>().unwrap()["ui"]
+            .as_table()
+            .unwrap()
+            .clone();
         assert_eq!(
-            text.parse::<Table>().unwrap()["ui"]
-                .as_table()
-                .unwrap()
-                .len(),
-            3
+            ui.keys().map(String::as_str).collect::<Vec<_>>(),
+            [
+                "accent",
+                "density",
+                "developer_mode",
+                "language",
+                "motion",
+                "theme",
+                "theme_style"
+            ],
+            "{name}"
         );
+        assert_eq!(seed.settings().theme_style.value, ThemeStyle::Standard);
+        assert_eq!(seed.settings().theme_style.source, ConfigSource::File);
     }
 }
 

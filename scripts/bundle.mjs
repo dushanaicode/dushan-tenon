@@ -32,6 +32,33 @@ export function installerName(program, version) {
   return `${program}-${version}-x64-setup.exe`;
 }
 
+const GITHUB_LATEST =
+  /^(https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/releases)\/latest\/download\/latest\.json$/;
+
+/**
+ * 按 GitHub Releases 的地址约定生成更新清单：端点是
+ * `…/releases/latest/download/latest.json`，安装包在 `…/releases/download/v<版本>/`。
+ * 换用其他发行源时改这里。
+ */
+export function updateManifest({ release, version, name, signature, date }) {
+  const base = release.endpoints
+    .map((endpoint) => GITHUB_LATEST.exec(endpoint)?.[1])
+    .find(Boolean);
+  if (!base)
+    throw new Error(
+      "发行端点不是 GitHub Releases 的 latest/download/latest.json",
+    );
+  const url = `${base}/download/v${version}/${name}`;
+  if (!release.downloadHosts.includes(new URL(url).host))
+    throw new Error(`安装包地址的主机不在 downloadHosts：${url}`);
+  return {
+    version,
+    notes: `${base}/tag/v${version}`,
+    pub_date: date.toISOString(),
+    platforms: { [release.target]: { signature: signature.trim(), url } },
+  };
+}
+
 export function checksumFile(artifacts) {
   return artifacts.map(({ name, sha256 }) => `${sha256}  ${name}\n`).join("");
 }
@@ -47,6 +74,13 @@ if (
     const { version } = JSON.parse(
       await readFile(join(root, "src-tauri/tauri.conf.json"), "utf8"),
     );
+    const release = JSON.parse(
+      await readFile(join(root, "src-tauri/release.json"), "utf8"),
+    );
+    if (release !== null && !env.TAURI_SIGNING_PRIVATE_KEY)
+      throw new Error(
+        "已配置自动更新：请先设置 TAURI_SIGNING_PRIVATE_KEY（私钥文件路径）与 TAURI_SIGNING_PRIVATE_KEY_PASSWORD",
+      );
     const directory = join(root, "Temp/release");
     const notices = join(directory, "THIRD_PARTY_LICENSES.md");
     const { missing } = await checkLicenses(notices);
@@ -78,11 +112,28 @@ if (
     const name = installerName(hostPackage, version);
     await copyFile(join(nsis, installers[0]), join(out, name));
     await copyFile(notices, join(out, "THIRD_PARTY_LICENSES.md"));
+    const published = [name, "THIRD_PARTY_LICENSES.md"];
+    if (release !== null) {
+      const signature = await readFile(
+        join(nsis, `${installers[0]}.sig`),
+        "utf8",
+      );
+      await writeFile(join(out, `${name}.sig`), signature);
+      const manifest = updateManifest({
+        release,
+        version,
+        name,
+        signature,
+        date: new Date(),
+      });
+      await writeFile(
+        join(out, "latest.json"),
+        `${JSON.stringify(manifest, null, 2)}\n`,
+      );
+      published.push(`${name}.sig`, "latest.json");
+    }
     const artifacts = [];
-    for (const name of [
-      installerName(hostPackage, version),
-      "THIRD_PARTY_LICENSES.md",
-    ]) {
+    for (const name of published) {
       const data = await readFile(join(out, name));
       artifacts.push({
         name,

@@ -36,7 +36,7 @@
 | `window.restore_state`、`window.titlebar`、`window.close_action` | 窗口状态恢复、系统标题栏、关闭行为，见 [native.rs](../crates/desktop/src/config/native.rs) |
 | `tray.enabled`、`autostart.enabled`、`shortcuts.show_main` | 托盘、自启意图、显示主窗口的全局快捷键；系统实际状态另行返回 |
 | `network.proxy_mode`、`network.proxy_endpoint`、`network.proxy_auth` | 显式 HTTP 代理配置；凭据不写此文件 |
-| `updater.check_on_start` | 启动更新检查；未配置发行源时不可启用 |
+| `updater.check_on_start` | 启动后检查更新（默认关闭）；`release.json` 为 `null` 时不可启用 |
 | `database` | SQLite 或远端 MySQL/PostgreSQL；远端密码只配置秘密键，见 [database loader](../crates/desktop/src/config/loader/database.rs) |
 | `cache` | 本地缓存或 Redis，见 [cache loader](../crates/desktop/src/config/loader/cache.rs) |
 | `jobs.max_concurrency`、`jobs.lease_seconds` | 任务执行器并发与租期，见 [JobsConfig](../crates/framework/src/job/config.rs) |

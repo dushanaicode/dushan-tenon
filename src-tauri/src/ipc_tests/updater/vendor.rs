@@ -1,4 +1,4 @@
-use crate::native::updater::proxy_policy;
+use crate::native::updater::{client_policy, redirect_allowed};
 use std::{
     io::{Read, Write},
     net::{TcpListener, TcpStream},
@@ -169,7 +169,15 @@ fn builder(
     endpoint: &str,
     snapshot: Arc<ProxySnapshot>,
 ) -> UpdaterBuilder {
-    let policy = proxy_policy(snapshot);
+    builder_with(app, endpoint, snapshot, Arc::from([]))
+}
+fn builder_with(
+    app: &tauri::App<tauri::test::MockRuntime>,
+    endpoint: &str,
+    snapshot: Arc<ProxySnapshot>,
+    redirect_hosts: Arc<[String]>,
+) -> UpdaterBuilder {
+    let policy = client_policy(snapshot, redirect_hosts);
     app.updater_builder()
         .target("windows-x86_64-nsis")
         .endpoints(vec![endpoint.parse().unwrap()])
@@ -286,6 +294,107 @@ async fn real_vendor_no_downgrade_or_redirect() {
     assert!(
         matches!(unused.accept(), Err(error) if error.kind() == std::io::ErrorKind::WouldBlock)
     );
+}
+
+fn redirect(location: &str) -> Response {
+    Response::Bytes(
+        format!(
+            "HTTP/1.1 302 Found
+Location: {location}
+Content-Length: 0
+Connection: close
+
+"
+        )
+        .into_bytes(),
+    )
+}
+
+#[tokio::test]
+async fn real_vendor_follows_redirects_only_to_release_hosts() {
+    let download = server(vec![ok(PAYLOAD)]);
+    let moved = server(vec![redirect(&format!("{}/setup.exe", download.url))]);
+    let manifest_host = server(vec![manifest(
+        &format!("{}/setup.exe", moved.url),
+        SIGNATURE,
+        "0.2.0",
+    )]);
+    let metadata = server(vec![redirect(&format!(
+        "{}/latest.json",
+        manifest_host.url
+    ))]);
+    let app = fixture_app();
+    let update = builder_with(
+        &app,
+        &metadata.url,
+        Arc::new(ProxySnapshot::Direct),
+        Arc::from(["127.0.0.1".to_owned()]),
+    )
+    .build()
+    .unwrap()
+    .check()
+    .await
+    .unwrap()
+    .unwrap();
+    assert_eq!(update.download(|_, _| {}, || {}).await.unwrap(), PAYLOAD);
+    for server in [&download, &moved, &manifest_host, &metadata] {
+        assert_eq!(server.requests.lock().unwrap().len(), 1);
+    }
+    // 同一台机器换个主机名也不在名单里，不跟随。
+    let target = server(vec![ok(b"{}")]);
+    let port = target.url.rsplit(':').next().unwrap();
+    let away = server(vec![redirect(&format!(
+        "http://localhost:{port}/latest.json"
+    ))]);
+    let app = fixture_app();
+    assert!(
+        builder_with(
+            &app,
+            &away.url,
+            Arc::new(ProxySnapshot::Direct),
+            Arc::from(["127.0.0.1".to_owned()]),
+        )
+        .build()
+        .unwrap()
+        .check()
+        .await
+        .is_err()
+    );
+    assert!(target.requests.lock().unwrap().is_empty());
+}
+
+#[test]
+fn redirects_need_a_listed_host_the_same_scheme_and_few_hops() {
+    let hosts = [
+        "github.com".to_owned(),
+        "release-assets.githubusercontent.com".to_owned(),
+    ];
+    let url = |value: &str| tauri::Url::parse(value).unwrap();
+    let latest = url("https://github.com/o/r/releases/latest/download/latest.json");
+    let tagged = url("https://github.com/o/r/releases/download/v0.1.0/latest.json");
+    let asset =
+        url("https://release-assets.githubusercontent.com/github-production-release-asset/1?sig=x");
+    assert!(redirect_allowed(&hosts, &latest, &tagged, 0));
+    assert!(redirect_allowed(&hosts, &tagged, &asset, 1));
+    assert!(!redirect_allowed(&hosts, &tagged, &asset, 5));
+    assert!(!redirect_allowed(
+        &hosts,
+        &tagged,
+        &url("http://release-assets.githubusercontent.com/x"),
+        1
+    ));
+    assert!(!redirect_allowed(
+        &hosts,
+        &tagged,
+        &url("https://example.com/x"),
+        1
+    ));
+    assert!(!redirect_allowed(
+        &hosts,
+        &tagged,
+        &url("https://github.com.example.com/x"),
+        1
+    ));
 }
 
 fn manual(endpoint: &str) -> Arc<ProxySnapshot> {

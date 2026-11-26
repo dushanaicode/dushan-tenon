@@ -48,9 +48,9 @@
 
 ## 更新器
 
-更新器代码已具备检查、下载、验签与安装流程，但当前 [src-tauri/release.json](../src-tauri/release.json)为 `null`，状态为未配置，不联网；界面不呈现更新操作。此时不能启用 `updater.check_on_start`，直接调用检查也不会开始联网。
+更新器负责检查、下载、验签与安装。发行配置在 [src-tauri/release.json](../src-tauri/release.json)：本仓库从 GitHub Releases 取 `latest.json`（端点 `…/releases/latest/download/latest.json`），下载主机限定 `github.com` 与 `release-assets.githubusercontent.com`，公钥是发布者 minisign 密钥的公钥。派生项目要换成自己的仓库地址和自己的密钥对；把 `release.json` 设为 `null` 即回到未配置状态：不联网、界面不呈现更新操作，也不能启用 `updater.check_on_start`。
 
-发行源与公钥来自编译时唯一发行配置，生产入口不接受界面传入任意 URL、公钥或安装包路径。配置校验绑定产品、渠道、目标、HTTPS 端点及精确下载主机；禁止重定向。清单上限 1 MiB，下载上限 250 MiB，仅接受高于当前版本的候选，必须通过 minisign 及签名版本匹配，禁止降级。
+发行源与公钥来自编译时唯一发行配置，生产入口不接受界面传入任意 URL、公钥或安装包路径。配置校验绑定产品、渠道、目标、HTTPS 端点及精确下载主机；只跟随到 `downloadHosts` 中主机的跳转，协议不得变化，最多 5 次（GitHub Releases 的下载地址会从 `github.com` 跳到 `release-assets.githubusercontent.com`）。清单上限 1 MiB，下载上限 250 MiB，仅接受高于当前版本的候选，必须通过 minisign 及签名版本匹配，禁止降级。
 
 检查时保存代理快照与候选，下载沿用同一快照。候选 ID 绑定主体和窗口，安装只接受已验证候选；安装走维护准入，完成命令日志并关闭全部应用资源后才运行安装器或重启。安装失败保留停止状态，不恢复业务入口。实现见 [Updater](../crates/desktop/src/native/updater.rs)、[宿主 driver](../src-tauri/src/native/updater.rs)与[发行校验](../src-tauri/src/native/updater/release.rs)。
 

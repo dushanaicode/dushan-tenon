@@ -16,10 +16,11 @@ pub(super) struct ReleaseConfig {
 }
 
 impl ReleaseConfig {
-    pub(super) fn validate(&self, product: &str) -> Result<(), AppError> {
+    /// `identifier` 来自 tauri.conf.json，发行配置的 productId 必须与之相同。
+    pub(super) fn validate(&self, identifier: &str) -> Result<(), AppError> {
         use base64::Engine;
         let invalid = || AppError::new(INVALID_RELEASE);
-        if self.product_id != product
+        if self.product_id != identifier
             || self.channel != "stable"
             || !matches!(
                 self.target.as_str(),
@@ -118,7 +119,7 @@ mod tests {
     #[test]
     fn production_release_requires_https_hosts_and_bare_installer() {
         let mut config = ReleaseConfig {
-            product_id: "fixture".into(),
+            product_id: "com.example.fixture".into(),
             channel: "stable".into(),
             endpoints: vec!["https://updates.example.test/stable".into()],
             pubkey: include_str!(
@@ -129,7 +130,7 @@ mod tests {
             download_hosts: vec!["downloads.example.test".into()],
             target: "windows-x86_64-nsis".into(),
         };
-        config.validate("fixture").unwrap();
+        config.validate("com.example.fixture").unwrap();
         config
             .download_url(&"https://downloads.example.test/update.exe".parse().unwrap())
             .unwrap();
@@ -141,7 +142,7 @@ mod tests {
         ] {
             assert!(config.download_url(&url.parse().unwrap()).is_err());
         }
-        assert!(config.validate("different").is_err());
+        assert!(config.validate("Fixture App").is_err());
         for (target, suffix) in [
             ("darwin-x86_64-app", ".app.tar.gz"),
             ("darwin-aarch64-app", ".app.tar.gz"),
@@ -149,7 +150,7 @@ mod tests {
             ("linux-aarch64-appimage", ".AppImage"),
         ] {
             config.target = target.into();
-            config.validate("fixture").unwrap();
+            config.validate("com.example.fixture").unwrap();
             config
                 .download_url(
                     &format!("https://downloads.example.test/update{suffix}")

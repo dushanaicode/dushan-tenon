@@ -23,17 +23,22 @@ pub(crate) fn create<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     scratch: PathBuf,
 ) -> Result<Updater, AppError> {
-    let release: Option<ReleaseConfig> = serde_json::from_str(include_str!("../../release.json"))
-        .map_err(|_| AppError::new(INVALID_RELEASE))?;
+    create_from(app, scratch, include_str!("../../release.json"))
+}
+
+/// `release` 是 release.json 的文本；生产只由 `create` 传入编译时内容。
+pub(crate) fn create_from<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    scratch: PathBuf,
+    release: &str,
+) -> Result<Updater, AppError> {
+    let release: Option<ReleaseConfig> =
+        serde_json::from_str(release).map_err(|_| AppError::new(INVALID_RELEASE))?;
     let Some(release) = release else {
         return Ok(Updater::new(None, scratch));
     };
-    release.validate(
-        app.config()
-            .product_name
-            .as_deref()
-            .ok_or_else(|| AppError::new(INVALID_RELEASE))?,
-    )?;
+    // 与 check-release 一致：发行产品绑定 tauri.conf.json 的 identifier。
+    release.validate(&app.config().identifier)?;
     let expected = serde_json::json!({
         "endpoints": release.endpoints,
         "pubkey": release.pubkey,
@@ -88,8 +93,28 @@ impl<R: tauri::Runtime> SystemUpdater<R> {
     }
 }
 
+/// 跳转上限；GitHub 的 latest 地址经两次跳转到资源主机。
+const MAX_REDIRECTS: usize = 5;
+
+/// 只跟随到发行配置 `downloadHosts` 里的主机，协议不得变化（生产只有 HTTPS），并限制次数。
+pub(crate) fn redirect_allowed(
+    hosts: &[String],
+    previous: &tauri::Url,
+    next: &tauri::Url,
+    hops: usize,
+) -> bool {
+    hops < MAX_REDIRECTS
+        && next.scheme() == previous.scheme()
+        && next
+            .host_str()
+            .is_some_and(|host| hosts.iter().any(|allowed| allowed == host))
+}
+
 #[cfg(any(windows, target_os = "macos", target_os = "linux"))]
-pub(crate) fn proxy_policy(snapshot: Arc<ProxySnapshot>) -> tauri_plugin_updater::OnBeforeRequest {
+pub(crate) fn client_policy(
+    snapshot: Arc<ProxySnapshot>,
+    redirect_hosts: Arc<[String]>,
+) -> tauri_plugin_updater::OnBeforeRequest {
     use secrecy::ExposeSecret;
     use tauri_plugin_updater::{Policy, Proxy};
     let proxy = match snapshot.as_ref() {
@@ -116,7 +141,17 @@ pub(crate) fn proxy_policy(snapshot: Arc<ProxySnapshot>) -> tauri_plugin_updater
         }
     };
     Arc::new(move |client| {
-        let client = client.no_proxy().redirect(Policy::none());
+        let hosts = redirect_hosts.clone();
+        let client = client.no_proxy().redirect(Policy::custom(move |attempt| {
+            let follow = attempt.previous().last().is_some_and(|previous| {
+                redirect_allowed(&hosts, previous, attempt.url(), attempt.previous().len())
+            });
+            if follow {
+                attempt.follow()
+            } else {
+                attempt.stop()
+            }
+        }));
         match &proxy {
             Some(proxy) => client.proxy(proxy.clone()),
             None => client,
@@ -148,7 +183,7 @@ impl<R: tauri::Runtime> UpdateDriver for SystemUpdater<R> {
         use tauri_plugin_updater::UpdaterExt;
         Box::pin(async move {
             *self.candidate()? = None;
-            let policy = proxy_policy(proxy);
+            let policy = client_policy(proxy, self.release.download_hosts.clone().into());
             let updater = self
                 .app
                 .updater_builder()

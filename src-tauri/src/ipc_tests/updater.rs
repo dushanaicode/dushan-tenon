@@ -147,9 +147,10 @@ fn null_configuration_has_no_plugin_consumer_or_scratch() {
         "",
         |_| {},
         |window, root| {
-            let updater = crate::native::updater::create(
+            let updater = crate::native::updater::create_from(
                 window.app_handle().clone(),
                 root.join("Temp/updates"),
+                "null",
             )
             .unwrap();
             assert!(!updater.configured());
@@ -174,6 +175,18 @@ fn null_configuration_has_no_plugin_consumer_or_scratch() {
                 .unwrap_err()["code"],
                 UNCONFIGURED.as_str()
             );
+            // 仓库的发行配置绑定 identifier 与生成的插件配置；测试宿主两者都不同，拒绝且不注册插件。
+            assert_eq!(
+                crate::native::updater::create_from(
+                    window.app_handle().clone(),
+                    root.join("Temp/updates"),
+                    include_str!("../../release.json"),
+                )
+                .err()
+                .map(|error| error.code()),
+                Some(INVALID_RELEASE)
+            );
+            assert!(!window.app_handle().remove_plugin("updater"));
             assert!(!root.join("Temp/updates").exists());
         },
     );
