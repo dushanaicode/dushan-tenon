@@ -11,7 +11,12 @@ import {
 } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
-import { parseIdentity, renameRepository, renamer } from "./rename.mjs";
+import {
+  parseIdentity,
+  renameRepository,
+  renamer,
+  resetRelease,
+} from "./rename.mjs";
 
 const from = {
   product: "Old Board",
@@ -194,5 +199,46 @@ test("rename refuses a working tree with uncommitted changes", async (t) => {
   assert.match(
     await readFile(join(directory, "src-tauri/tauri.conf.json"), "utf8"),
     /Old Board/,
+  );
+});
+
+test("rename leaves no inherited release channel or updater fields", async (t) => {
+  const temporary = resolve(process.env.TEMP, "rename-test");
+  await mkdir(temporary, { recursive: true });
+  const directory = await mkdtemp(join(await realpath(temporary), "release-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const files = {
+    "Cargo.toml": '[workspace.package]\nversion = "1.2.3"\n',
+    "package.json": JSON.stringify({ version: "1.2.3" }),
+    "src-tauri/release.json": JSON.stringify({
+      productId: "com.example.notes",
+    }),
+    "src-tauri/tauri.conf.json": JSON.stringify({
+      identifier: "com.example.notes",
+      version: "1.2.3",
+      bundle: { targets: ["nsis"], createUpdaterArtifacts: true },
+      plugins: {
+        updater: { endpoints: ["https://example.invalid/latest.json"] },
+      },
+    }),
+  };
+  for (const [path, content] of Object.entries(files)) {
+    await mkdir(dirname(join(directory, path)), { recursive: true });
+    await writeFile(join(directory, path), content);
+  }
+  await resetRelease(directory);
+  assert.equal(
+    await readFile(join(directory, "src-tauri/release.json"), "utf8"),
+    "null\n",
+  );
+  assert.deepEqual(
+    JSON.parse(
+      await readFile(join(directory, "src-tauri/tauri.conf.json"), "utf8"),
+    ),
+    {
+      identifier: "com.example.notes",
+      version: "1.2.3",
+      bundle: { targets: ["nsis"] },
+    },
   );
 });

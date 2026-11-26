@@ -3,6 +3,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
+import { generateRelease } from "./check-release.mjs";
 import { root, run, runBin, task } from "./common.mjs";
 
 const usage = `用法: pnpm rename --name <产品名> --binary <程序名> --identifier <identifier>
@@ -139,6 +140,15 @@ export async function renameRepository(directory, to) {
   return { from, edited, moved };
 }
 
+/**
+ * 发行渠道和更新公钥属于原产品：改名后设为 null，并清掉 tauri.conf.json 里生成的更新器字段。
+ * 不清的话，派生出的程序会去原仓库取更新，装上原产品的安装包。
+ */
+export async function resetRelease(directory) {
+  await writeFile(join(directory, "src-tauri/release.json"), "null\n");
+  await generateRelease(directory);
+}
+
 if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(resolve(process.argv[1])).href
@@ -153,6 +163,10 @@ if (
       `改了 ${edited.length} 个文件的内容，改名 ${moved.length} 个文件`,
     );
     for (const [path, target] of moved) console.log(`  ${path} → ${target}`);
+    await resetRelease(root);
+    console.log(
+      "src-tauri/release.json 已设为 null：自动更新要换成你自己的发行地址和密钥，见 docs/release.md。",
+    );
     // 包名换了以后 Cargo.lock 的顺序和代码换行都会变，不重排 pnpm check 过不了。
     await run("更新 Cargo.lock", "cargo", ["update", "--workspace"], env);
     await run("Rust 格式", "cargo", ["fmt", "--all"], env);

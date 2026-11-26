@@ -45,7 +45,8 @@ pnpm rename --name "Example Notes" --binary example-notes --identifier com.examp
 1. 从 `src-tauri/tauri.conf.json` 读出现在的产品名、程序名和 identifier；
 2. 在 Git 跟踪的全部文本文件里，一次换掉产品名、identifier、程序名（包括下划线写法，例如 `example_notes_lib`）和代号。代号不分大小写，`tenon`、`Tenon`、`TENON` 分别换成 `notes`、`Notes`、`NOTES`；
 3. 文件名里带旧名字的跟着改名，例如 `src-tauri/src/bin/dushan-tenon-cli.rs`；
-4. 运行 `cargo update --workspace`、`cargo fmt` 和 Biome。名字的长度变了，Cargo.lock 的顺序和代码的换行也要跟着重排。
+4. 把 `src-tauri/release.json` 设为 `null`，并清掉 `tauri.conf.json` 里生成的更新器字段。发行地址和更新公钥属于原产品，留着的话，你的程序会去原仓库取更新；
+5. 运行 `cargo update --workspace`、`cargo fmt` 和 Biome。名字的长度变了，Cargo.lock 的顺序和代码的换行也要跟着重排。
 
 图片等二进制文件的内容不会被改动。脚本也会改到这份指南本身，所以改名以后再看这份指南，里面的旧名字已经换成了你的新名字。
 
@@ -57,6 +58,7 @@ pnpm rename --name "Example Notes" --binary example-notes --identifier com.examp
 - **版权**：把 `src-tauri/tauri.conf.json` 里的 `bundle.copyright` 改成你的版权。关于页和 exe 属性里显示的就是它。
 - **LICENSE**：MIT 许可要求保留原来的版权行 `Copyright (c) 2026 渡山源码`。不要删它，在它下面加一行你自己的版权。
 - **仓库地址**：README、CONTRIBUTING、SECURITY（各有中英文两份）和 `.github/ISSUE_TEMPLATE/` 里的 GitHub 地址要换成你的，用 `git grep -n dushanaicode` 可以全部找出来（`scripts/check-structure.mjs` 里那处属于下面的品牌规则）。`.github/workflows/gitee-sync.yml` 是本仓库同步 Gitee 镜像用的，用不上就删掉。
+- **自动更新**：改名后 `src-tauri/release.json` 是 `null`，程序不联网检查更新。要开自动更新，用 `pnpm tauri signer generate` 生成你自己的密钥对（私钥离线保管，不进仓库），把发行端点、下载主机和公钥写进 `release.json`，再运行 `pnpm generate`，见[发布](release.md#自动更新的签名与清单)。
 - **贡献和安全说明**：`CONTRIBUTING` 和 `SECURITY` 写的是本仓库的约定，按你自己项目的做法改写。
 - **标志和图标**：换掉 `public/brand/logo.svg` 和 `src-tauri/icons/` 里的 5 个文件，文件名和尺寸保持不变。
 - **README**：改成介绍你自己产品的内容。
