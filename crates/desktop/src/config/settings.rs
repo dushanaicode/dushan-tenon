@@ -11,7 +11,7 @@ use tenon_framework::{
 use ts_rs::TS;
 
 use super::{
-    AuthMode, ConfigSource, LoadedConfig, Theme, Titlebar,
+    Accent, AuthMode, ConfigSource, Density, LoadedConfig, Theme, ThemeStyle, Titlebar,
     persist::{change, invalid},
 };
 
@@ -31,6 +31,10 @@ pub struct AppSettings {
     pub language: Setting<Language>,
     pub log_level: Setting<LogLevel>,
     pub theme: Setting<Theme>,
+    pub theme_style: Setting<ThemeStyle>,
+    pub accent: Setting<Accent>,
+    pub density: Setting<Density>,
+    pub motion: Setting<bool>,
     pub developer_mode: Setting<bool>,
 }
 
@@ -47,6 +51,14 @@ pub struct AppSettingsUpdate {
     pub log_level: Option<LogLevel>,
     #[ts(optional)]
     pub theme: Option<Theme>,
+    #[ts(optional)]
+    pub theme_style: Option<ThemeStyle>,
+    #[ts(optional)]
+    pub accent: Option<Accent>,
+    #[ts(optional)]
+    pub density: Option<Density>,
+    #[ts(optional)]
+    pub motion: Option<bool>,
     #[ts(optional)]
     pub developer_mode: Option<bool>,
 }
@@ -66,6 +78,10 @@ impl LoadedConfig {
             language: self.setting("ui.language", self.values.ui.language),
             log_level: self.setting("logging.level", self.values.logging.level),
             theme: self.setting("ui.theme", self.values.ui.theme),
+            theme_style: self.setting("ui.theme_style", self.values.ui.theme_style),
+            accent: self.setting("ui.accent", self.values.ui.accent),
+            density: self.setting("ui.density", self.values.ui.density),
+            motion: self.setting("ui.motion", self.values.ui.motion),
             developer_mode: self.setting("ui.developer_mode", self.values.ui.developer_mode),
         }
     }
@@ -119,6 +135,42 @@ impl LoadedConfig {
                 &mut changes,
                 "ui.theme",
                 &mut values.ui.theme,
+                value,
+            )?;
+        }
+        if let Some(value) = input.theme_style {
+            change(
+                &self.sources,
+                &mut changes,
+                "ui.theme_style",
+                &mut values.ui.theme_style,
+                value,
+            )?;
+        }
+        if let Some(value) = input.accent {
+            change(
+                &self.sources,
+                &mut changes,
+                "ui.accent",
+                &mut values.ui.accent,
+                value,
+            )?;
+        }
+        if let Some(value) = input.density {
+            change(
+                &self.sources,
+                &mut changes,
+                "ui.density",
+                &mut values.ui.density,
+                value,
+            )?;
+        }
+        if let Some(value) = input.motion {
+            change(
+                &self.sources,
+                &mut changes,
+                "ui.motion",
+                &mut values.ui.motion,
                 value,
             )?;
         }

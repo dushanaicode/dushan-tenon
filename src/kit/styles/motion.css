@@ -168,6 +168,18 @@
 }
 
 @layer appearance-a11y {
+  /* 外观设置“动效”关闭时与系统减动相同：全部静止。 */
+  :root[data-motion="off"] *,
+  :root[data-motion="off"] ::before,
+  :root[data-motion="off"] ::after {
+    /* biome-ignore lint/complexity/noImportantStyles: 用户关闭动效须覆盖供应商动画与内联动画。 */
+    animation: none !important;
+    /* biome-ignore lint/complexity/noImportantStyles: 同时停止控件、伪元素及 Sonner 的过渡。 */
+    transition: none !important;
+    /* biome-ignore lint/complexity/noImportantStyles: 关闭动效时不平滑滚动。 */
+    scroll-behavior: auto !important;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,

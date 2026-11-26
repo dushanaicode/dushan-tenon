@@ -5,7 +5,10 @@ use std::{collections::BTreeMap, path::Path};
 use serde::{Deserialize, Serialize};
 use tenon_framework::{i18n::Language, logging::LoggingConfig};
 
-use super::{AuthMode, ConfigError, ModuleConfig, NotifyConfig, Theme, UiConfig, loader, persist};
+use super::{
+    Accent, AuthMode, ConfigError, Density, ModuleConfig, NotifyConfig, Theme, ThemeStyle,
+    UiConfig, loader, persist,
+};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -23,6 +26,10 @@ pub struct BackupConfig {
 #[serde(deny_unknown_fields)]
 pub struct BackupUi {
     pub theme: Theme,
+    pub theme_style: ThemeStyle,
+    pub accent: Accent,
+    pub density: Density,
+    pub motion: bool,
     pub language: Language,
     pub developer_mode: bool,
 }
@@ -53,6 +60,10 @@ pub fn project_backup(root: &Path) -> Result<BackupConfig, ConfigError> {
     Ok(BackupConfig {
         ui: BackupUi {
             theme: file.values.ui.theme,
+            theme_style: file.values.ui.theme_style,
+            accent: file.values.ui.accent,
+            density: file.values.ui.density,
+            motion: file.values.ui.motion,
             language: file.values.ui.language,
             developer_mode: file.values.ui.developer_mode,
         },
@@ -80,6 +91,10 @@ pub fn merge_backup(target: &Path, backup: &BackupConfig) -> Result<String, Conf
     values.jobs = loader::jobs_config(backup.jobs.max_concurrency, backup.jobs.lease_seconds)?;
     values.ui = UiConfig {
         theme: backup.ui.theme,
+        theme_style: backup.ui.theme_style,
+        accent: backup.ui.accent,
+        density: backup.ui.density,
+        motion: backup.ui.motion,
         language: backup.ui.language,
         developer_mode: values.ui.developer_mode,
     };
@@ -92,6 +107,10 @@ pub fn merge_backup(target: &Path, backup: &BackupConfig) -> Result<String, Conf
         .parse::<toml_edit::DocumentMut>()
         .map_err(|error| ConfigError::field("config.toml", error.to_string()))?;
     set(&mut document, "ui", "theme", &values.ui.theme)?;
+    set(&mut document, "ui", "theme_style", &values.ui.theme_style)?;
+    set(&mut document, "ui", "accent", &values.ui.accent)?;
+    set(&mut document, "ui", "density", &values.ui.density)?;
+    set(&mut document, "ui", "motion", &values.ui.motion)?;
     set(&mut document, "ui", "language", &values.ui.language)?;
     set(&mut document, "auth", "mode", &values.auth.mode)?;
     set(

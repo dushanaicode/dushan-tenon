@@ -101,7 +101,10 @@ fn settings_dto_rejects_invalid_and_deferred_fields() {
         r#"{"developerMode":1}"#,
         r#"{"unknown":true}"#,
         r#"{"userAdjustable":[]}"#,
-        r#"{"accent":"azure"}"#,
+        r#"{"accent":"teal"}"#,
+        r#"{"themeStyle":"glass"}"#,
+        r#"{"density":"cozy"}"#,
+        r#"{"motion":"on"}"#,
     ] {
         assert!(
             serde_json::from_str::<AppSettingsUpdate>(input).is_err(),
@@ -111,13 +114,60 @@ fn settings_dto_rejects_invalid_and_deferred_fields() {
     let root = state_root();
     for value in [
         "ui.user_adjustable=[]",
-        "ui.accent=azure",
-        "ui.theme_style=standard",
+        "ui.accent=teal",
+        "ui.theme_style=glass",
+        "ui.density=cozy",
+        "ui.motion=on",
         "ui.preset=console",
         "ui.background=solid",
     ] {
         assert!(read(root.path(), &[], &[value]).is_err(), "{value}");
     }
+}
+
+#[test]
+fn appearance_settings_default_persist_and_report_overrides() {
+    let root = state_root();
+    let mut config = read(root.path(), &[], &[]).unwrap();
+    let settings = config.settings();
+    assert_eq!(settings.theme_style.value, ThemeStyle::Standard);
+    assert_eq!(settings.accent.value, Accent::Neutral);
+    assert_eq!(settings.density.value, Density::Comfortable);
+    assert!(settings.motion.value);
+    assert_eq!(settings.motion.source, ConfigSource::Default);
+    for style in THEME_STYLES.into_iter().rev() {
+        let saved = config
+            .update_settings(
+                root.path(),
+                &AppSettingsUpdate {
+                    theme_style: Some(style),
+                    accent: Some(Accent::Rose),
+                    density: Some(Density::Compact),
+                    motion: Some(false),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+        assert_eq!(saved.theme_style.value, style);
+        assert_eq!(saved.theme_style.source, ConfigSource::File);
+        let reopened = read(root.path(), &[], &[]).unwrap().settings();
+        assert_eq!(reopened.theme_style.value, style);
+        assert_eq!(reopened.accent.value, Accent::Rose);
+        assert_eq!(reopened.density.value, Density::Compact);
+        assert!(!reopened.motion.value);
+    }
+    let overridden = read(
+        root.path(),
+        &[("TENON__UI__THEME_STYLE", "cyber")],
+        &["ui.motion=true"],
+    )
+    .unwrap()
+    .settings();
+    assert_eq!(overridden.theme_style.value, ThemeStyle::Cyber);
+    assert_eq!(overridden.theme_style.source, ConfigSource::Environment);
+    assert!(overridden.motion.value);
+    assert_eq!(overridden.motion.source, ConfigSource::CommandLine);
+    assert_eq!(overridden.density.source, ConfigSource::File);
 }
 
 #[test]

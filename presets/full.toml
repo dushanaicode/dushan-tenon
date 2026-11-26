@@ -26,6 +26,10 @@ enabled = true
 [ui]
 language = "zh-CN"
 theme = "system"
+theme_style = "standard"
+accent = "neutral"
+density = "comfortable"
+motion = true
 developer_mode = false
 
 [autostart]

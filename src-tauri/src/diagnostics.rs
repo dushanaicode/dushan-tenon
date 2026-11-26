@@ -26,6 +26,7 @@ pub(crate) fn snapshot(state: &AppState) -> Result<DiagnosticSnapshot, AppError>
         }),
         language: config.language(),
         theme: config.settings().theme.value,
+        theme_style: config.settings().theme_style.value,
         modules: state
             .modules
             .list(&state.migrations.applied)

@@ -18,15 +18,24 @@ function useSettings() {
     pending: useSettingsPending(),
   };
 }
-it("queries direct host settings and applies language and mode", async () => {
+it("queries direct host settings and applies language and appearance", async () => {
   mockAppIpc(undefined, {
     theme: { value: "dark", source: "file" },
+    themeStyle: { value: "ink", source: "file" },
+    motion: { value: false, source: "file" },
     language: { value: "en-US", source: "file" },
   });
   const { wrapper } = queryWrapper();
   const { result } = renderHook(useSettings, { wrapper });
   await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
-  expect(getSnapshot()).toEqual({ mode: "dark", dark: true });
+  expect(getSnapshot()).toEqual({
+    mode: "dark",
+    dark: true,
+    style: "ink",
+    accent: "neutral",
+    density: "comfortable",
+    motion: false,
+  });
   expect(i18n.language).toBe("en-US");
   expect(result.current.query.data?.theme.value).toBe("dark");
 });

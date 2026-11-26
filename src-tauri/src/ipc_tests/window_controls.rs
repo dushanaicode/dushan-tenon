@@ -375,7 +375,7 @@ fn native_settings_known_targets_and_saved_chrome_use_real_host_contracts() {
                     .calls
                     .lock()
                     .unwrap()
-                    .contains(&"theme:Dark:Hidden".into())
+                    .contains(&"theme:Dark:Standard:Hidden".into())
             );
             invoke(
                 window,
@@ -504,9 +504,9 @@ fn titlebar_commit_failure_and_overrides_have_no_native_effects() {
                 *effects.calls.lock().unwrap(),
                 [
                     "titlebar:Hidden",
-                    "theme:Dark:Hidden",
+                    "theme:Dark:Standard:Hidden",
                     "titlebar:Native",
-                    "theme:Dark:Native",
+                    "theme:Dark:Standard:Native",
                 ]
             );
         },

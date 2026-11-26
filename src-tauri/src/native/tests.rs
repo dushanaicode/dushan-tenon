@@ -7,7 +7,7 @@ use std::{
     },
 };
 use tenon_desktop::{
-    config::{Theme, Titlebar},
+    config::{Theme, ThemeStyle, Titlebar},
     native::{
         autostart::{AutostartScope, AutostartUnsupportedReason},
         tray::TrayAdapter,
@@ -26,7 +26,7 @@ pub(crate) struct Effects {
 }
 
 impl chrome::WindowChrome for Effects {
-    fn apply(&self, theme: Theme, titlebar: Titlebar) -> Result<(), AppError> {
+    fn apply(&self, theme: Theme, style: ThemeStyle, titlebar: Titlebar) -> Result<(), AppError> {
         if let Some(config) = self.config_probe.lock().unwrap().as_ref() {
             assert!(
                 config.try_lock().is_ok(),
@@ -36,7 +36,7 @@ impl chrome::WindowChrome for Effects {
         self.calls
             .lock()
             .unwrap()
-            .push(format!("theme:{theme:?}:{titlebar:?}"));
+            .push(format!("theme:{theme:?}:{style:?}:{titlebar:?}"));
         if self.fail_chrome.load(Ordering::SeqCst) {
             Err(AppError::new(UNAVAILABLE))
         } else {
@@ -159,7 +159,7 @@ fn saved_theme_and_titlebar_changes_apply_together_even_after_native_failure() {
     chrome::settings_changed(&effects, &before, &saved);
     assert_eq!(
         *effects.calls.lock().unwrap(),
-        ["titlebar:Hidden", "theme:Dark:Hidden"]
+        ["titlebar:Hidden", "theme:Dark:Standard:Hidden"]
     );
     assert_eq!(config.settings().titlebar.value, Titlebar::Hidden);
     assert_eq!(config.settings().theme.value, Theme::Dark);
@@ -171,7 +171,19 @@ fn saved_theme_and_titlebar_changes_apply_together_even_after_native_failure() {
     chrome::system_theme_changed(&effects, &system);
     assert_eq!(
         effects.calls.lock().unwrap().last().unwrap(),
-        "theme:System:Native"
+        "theme:System:Standard:Native"
+    );
+    let styled = config
+        .update_settings(
+            root.path(),
+            &serde_json::from_value::<AppSettingsUpdate>(serde_json::json!({"themeStyle":"ink"}))
+                .unwrap(),
+        )
+        .unwrap();
+    chrome::settings_changed(&effects, &saved, &styled);
+    assert_eq!(
+        effects.calls.lock().unwrap().last().unwrap(),
+        "theme:Dark:Ink:Hidden"
     );
 }
 
@@ -308,7 +320,10 @@ fn startup_applies_saved_appearance_before_reveal_and_tolerates_native_failure()
     .unwrap();
     app.manage(running.state);
     crate::window::setup_window(app.handle(), lifecycle.clone()).unwrap();
-    assert_eq!(*effects.calls.lock().unwrap(), ["theme:Dark:Hidden"]);
+    assert_eq!(
+        *effects.calls.lock().unwrap(),
+        ["theme:Dark:Standard:Hidden"]
+    );
     assert!(app.get_webview_window("main").is_some());
     tauri::async_runtime::block_on(running.shutdown.shutdown());
     assert!(lifecycle.gate.is_closing());
@@ -316,9 +331,23 @@ fn startup_applies_saved_appearance_before_reveal_and_tolerates_native_failure()
 
 #[test]
 fn hidden_window_creation_applies_appearance_before_returning_to_reveal() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::write(
+        root.path().join("config.toml"),
+        "[ui]
+theme='dark'
+theme_style='cyber'
+[window]
+titlebar='hidden'
+",
+    )
+    .unwrap();
+    let settings = tenon_desktop::config::load(root.path(), [], &[])
+        .unwrap()
+        .settings();
     let effects = Effects::default();
     effects.fail_chrome.store(true, Ordering::SeqCst);
-    let window = chrome::create_hidden_window(&effects, Theme::Dark, Titlebar::Hidden, || {
+    let window = chrome::create_hidden_window(&effects, &settings, || {
         effects.calls.lock().unwrap().push("create:hidden".into());
         Ok(7)
     })
@@ -327,10 +356,10 @@ fn hidden_window_creation_applies_appearance_before_returning_to_reveal() {
     effects.calls.lock().unwrap().push("reveal".into());
     assert_eq!(
         *effects.calls.lock().unwrap(),
-        ["create:hidden", "theme:Dark:Hidden", "reveal"]
+        ["create:hidden", "theme:Dark:Cyber:Hidden", "reveal"]
     );
     effects.calls.lock().unwrap().clear();
-    let failed = chrome::create_hidden_window(&effects, Theme::Dark, Titlebar::Hidden, || {
+    let failed = chrome::create_hidden_window(&effects, &settings, || {
         Err::<(), _>(AppError::new(UNAVAILABLE))
     });
     assert!(failed.is_err());

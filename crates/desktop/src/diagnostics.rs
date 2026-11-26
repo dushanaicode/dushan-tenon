@@ -10,7 +10,10 @@ use tenon_framework::{
     i18n::Language,
 };
 
-use crate::{config::Theme, data::FileArtifact};
+use crate::{
+    config::{Theme, ThemeStyle},
+    data::FileArtifact,
+};
 
 pub const NEEDS_PROBE: ErrorCode = ErrorCode::new("app.diagnostics.needs_probe");
 pub const EXPORT_FAILED: ErrorCode = ErrorCode::new("app.diagnostics.export_failed");
@@ -36,6 +39,7 @@ pub struct DiagnosticSnapshot {
     pub cache_status: Option<CacheStatus>,
     pub language: Language,
     pub theme: Theme,
+    pub theme_style: ThemeStyle,
     pub modules: Vec<DiagnosticModule>,
 }
 
@@ -106,6 +110,14 @@ pub fn render(snapshot: &DiagnosticSnapshot) -> Result<String, AppError> {
                 Theme::System => "system",
             }
         ),
+        format!(
+            "ui.theme_style: {}",
+            match snapshot.theme_style {
+                ThemeStyle::Standard => "standard",
+                ThemeStyle::Ink => "ink",
+                ThemeStyle::Cyber => "cyber",
+            }
+        ),
         "modules:".into(),
     ]);
     let mut modules: Vec<_> = snapshot.modules.iter().collect();
@@ -161,6 +173,7 @@ mod tests {
             cache_status: Some(CacheStatus::Connected),
             language: Language::EnUs,
             theme: Theme::System,
+            theme_style: ThemeStyle::Ink,
             modules: vec![
                 DiagnosticModule {
                     id: "notify".into(),
@@ -198,6 +211,7 @@ mod tests {
                 "cache.status: connected",
                 "ui.language: en-US",
                 "ui.theme: system",
+                "ui.theme_style: ink",
                 "modules:",
                 "  Z_test 1.0.0 enabled optional",
                 "  account 0.1.0 enabled core",

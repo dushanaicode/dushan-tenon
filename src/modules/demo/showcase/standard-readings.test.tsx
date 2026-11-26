@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
-import { applyMode, getSnapshot } from "@/core/appearance-bridge";
+import { applyAppearance, getSnapshot } from "@/core/appearance-bridge";
 import "@/core/core.test-support";
 import { i18n } from "@/core/i18n";
 import * as contrast from "./contrast";
@@ -38,7 +38,7 @@ test("contrast reads actual root colors, keeps unavailable values distinct, and 
   expect(within(row).getByText("通过")).toBeTruthy();
   expect(screen.getAllByText("未读取到值").length).toBeGreaterThan(0);
   root.style.setProperty("--foreground", "rgb(255, 255, 255)");
-  act(() => applyMode("dark"));
+  act(() => applyAppearance({ ...getSnapshot(), mode: "dark" }));
   expect(within(row).getByText("1.00:1")).toBeTruthy();
   expect(within(row).getByText("不通过")).toBeTruthy();
 });

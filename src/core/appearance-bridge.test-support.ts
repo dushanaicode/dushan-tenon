@@ -1,8 +1,18 @@
-import type { Theme } from "@/lib/generated/Theme";
+import type { Appearance, AppearanceSnapshot } from "./appearance-bridge";
+
+const standard: Appearance = {
+  mode: "system",
+  style: "standard",
+  accent: "neutral",
+  density: "comfortable",
+  motion: true,
+};
 
 /** Ordinary core tests do not load the first-paint script or a whole application. */
-export function installAppearanceStub(mode: Theme = "system") {
-  let snapshot = Object.freeze({ mode, dark: mode === "dark" });
+export function installAppearanceStub(initial: Partial<Appearance> = {}) {
+  const freeze = (value: Appearance): AppearanceSnapshot =>
+    Object.freeze({ ...value, dark: value.mode === "dark" });
+  let snapshot = freeze({ ...standard, ...initial });
   const listeners = new Set<() => void>();
   window.__TENON_APPEARANCE__ = {
     getSnapshot: () => snapshot,
@@ -12,9 +22,15 @@ export function installAppearanceStub(mode: Theme = "system") {
         listeners.delete(listener);
       };
     },
-    applyMode(next) {
-      if (snapshot.mode === next) return;
-      snapshot = Object.freeze({ mode: next, dark: next === "dark" });
+    apply(next) {
+      const value = freeze(next);
+      if (
+        (Object.keys(value) as (keyof AppearanceSnapshot)[]).every(
+          (key) => value[key] === snapshot[key],
+        )
+      )
+        return;
+      snapshot = value;
       for (const listener of listeners) listener();
     },
   };

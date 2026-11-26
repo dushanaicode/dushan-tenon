@@ -17,7 +17,7 @@ mod persist;
 mod settings;
 mod source;
 
-pub use appearance::Theme;
+pub use appearance::{ACCENTS, Accent, DENSITIES, Density, THEME_STYLES, Theme, ThemeStyle};
 pub use backup::{
     BackupAuth, BackupConfig, BackupDatabase, BackupJobs, BackupUi, merge_backup, project_backup,
 };

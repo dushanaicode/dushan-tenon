@@ -68,7 +68,21 @@ it.each(["light", "dark"] as const)(
   },
 );
 
-it("固定 Console 几何、字体和图标，不依赖偏好属性", () => {
+it("紧凑密度只收紧控件、行高与间距，放在偏好覆盖层", () => {
+  const rule = findRule(loadCss("tokens.css"), ':root[data-density="compact"]');
+  expect(ancestors(rule)).toContainEqual(
+    expect.objectContaining({ name: "layer", params: "appearance-overrides" }),
+  );
+  expect(declarations(rule)).toEqual({
+    "--control-h": "32px",
+    "--row-h": "38px",
+    "--panel-pad": "14px",
+    "--stack-gap": "12px",
+    "--page-padding": "18px",
+  });
+});
+
+it("默认（宽松）Console 几何、字体和图标", () => {
   expect(tokensFor("light")).toMatchObject({
     "--r-sm": "6px",
     "--r-md": "9px",
@@ -212,11 +226,15 @@ it("强制色彩直接使用系统颜色，不以主题或偏好属性门控", (
   );
 });
 
-it("没有外观轴、未消费的图表色或主题特效令牌", () => {
+it("kit 只认密度与动效两个外观轴，没有未消费的图表色或主题特效令牌", () => {
   for (const name of cssFiles()) {
     const source = readCss(name);
+    if (name !== "tokens.css")
+      expect(source, name).not.toContain("data-density");
+    if (name !== "motion.css")
+      expect(source, name).not.toContain("data-motion");
     expect(source, name).not.toMatch(
-      /data-(?:accent|density|motion|preset|theme-style|theme-pack|follow-system-motion|radius|font-family|font-size|line-height|icon-size|icon-stroke|nav-icons|icon-accent|scrollbar|focus-ring|text-contrast|background|fx)[\s=\]]/,
+      /data-(?:accent|preset|theme-style|theme-pack|follow-system-motion|radius|font-family|font-size|line-height|icon-size|icon-stroke|nav-icons|icon-accent|scrollbar|focus-ring|text-contrast|background|fx)[\s=\]]/,
     );
     expect(source, name).not.toMatch(
       /--(?:chart-|fx-|standard-|palette-|theme-)|--sidebar-(?:primary-foreground|ring)/,
@@ -226,5 +244,6 @@ it("没有外观轴、未消费的图表色或主题特效令牌", () => {
   expect(rules(loadCss("tokens.css")).map((rule) => rule.selector)).toEqual([
     ":root",
     ".dark",
+    ':root[data-density="compact"]',
   ]);
 });

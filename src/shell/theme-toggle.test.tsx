@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { applyMode } from "@/core/appearance-bridge";
+import { applyAppearance, getSnapshot } from "@/core/appearance-bridge";
 import {
   defaultSettings,
   mockAppIpc,
@@ -23,7 +23,7 @@ it.each(["environment", "commandLine"] as const)(
   "%s 来源固定时禁用切换",
   async (source) => {
     mockAppIpc(undefined, { theme: { ...defaultSettings.theme, source } });
-    applyMode("light");
+    applyAppearance({ ...getSnapshot(), mode: "light" });
     render(<ThemeToggle />, { wrapper: queryWrapper().wrapper });
     expect((await screen.findByRole("button")).hasAttribute("disabled")).toBe(
       true,

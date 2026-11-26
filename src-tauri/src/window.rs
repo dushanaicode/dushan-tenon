@@ -67,6 +67,10 @@ pub(crate) fn initialization_script(
     if (!root) return false;
     root.classList.toggle('dark', dark);
     root.style.colorScheme = dark ? 'dark' : 'light';
+    root.dataset.themeStyle = settings.themeStyle.value;
+    root.dataset.accent = settings.accent.value;
+    root.dataset.density = settings.density.value;
+    root.dataset.motion = settings.motion.value ? 'on' : 'off';
     return true;
   }};
   if (!apply()) {{
@@ -131,8 +135,7 @@ pub(crate) fn setup_window<R: Runtime>(
         });
     let window = crate::native::chrome::create_hidden_window(
         state.native.chrome.as_ref(),
-        settings.theme.value,
-        settings.titlebar.value,
+        &settings,
         || builder.build().map_err(internal),
     )?;
     state.native.tray.start(&state.config)?;

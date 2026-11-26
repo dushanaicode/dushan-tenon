@@ -1,0 +1,179 @@
+/* 水墨：宣纸、浓淡墨与朱红印章。只改令牌和材质，结构与交互沿用套件。 */
+@layer appearance-themes {
+  :root[data-theme-style="ink"] {
+    --background: #f4efe4;
+    --foreground: #1f1b16;
+    --card: rgb(251 248 240 / 92%);
+    --card-foreground: var(--foreground);
+    --popover: #fbf8f0;
+    --popover-foreground: var(--foreground);
+    --secondary: #f0eadd;
+    --secondary-foreground: var(--foreground);
+    --muted: #eee7d8;
+    --muted-foreground: #554b3f;
+    --accent: #eee7d8;
+    --accent-foreground: var(--foreground);
+    --chrome: #ebe4d5;
+    --border: #d9d0bd;
+    --input: #786a58;
+    --scrim: rgb(31 27 22 / 35%);
+    --primary: #b3261e;
+    --primary-foreground: #ffffff;
+    --primary-hover: #9f211a;
+    --primary-active: #8b1c16;
+    --brand: #9f211a;
+    --ring: #b3261e;
+    --selection: #1f1b16;
+    --selection-foreground: #f4efe4;
+    --destructive: #a4161a;
+    --destructive-foreground: #ffffff;
+    --destructive-soft: #f5e7df;
+    --destructive-hover: #8c1217;
+    --success: #4c5144;
+    --success-foreground: #ffffff;
+    --success-soft: #eeeede;
+    --warning: #704b00;
+    --warning-foreground: #ffffff;
+    --warning-soft: #f3ead5;
+    --info: #4d4c48;
+    --info-foreground: #ffffff;
+    --info-soft: #eeebe3;
+    --sidebar: rgb(240 234 221 / 84%);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-accent: rgb(226 217 199 / 72%);
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: #d9d0bd;
+    --sidebar-primary: var(--primary);
+    --r-sm: 2px;
+    --r-md: 3px;
+    --r-lg: 4px;
+    --elev-card:
+      0 0 30px -9px rgb(37 43 44 / 22%), 0 0 8px -3px rgb(37 43 44 / 14%);
+    --elev-popover:
+      0 0 46px -9px rgb(37 43 44 / 33%), 0 0 12px -3px rgb(37 43 44 / 19%);
+    --visual-veil: rgb(244 239 228 / 28%);
+    --ink-seal: #c8372d;
+    --ink-heading:
+      "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", SimSun,
+      serif;
+    --ink-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72 .18' numOctaves='3' seed='37' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .12 0 0 0 0 .1 0 0 0 0 .08 .1 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+    --ink-brush: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 8' preserveAspectRatio='none'%3E%3Cpath fill='%23b3261e' fill-opacity='.78' d='M0 4 9 2 36 1 71 2 99 0 120 2 104 4 76 5 42 4 11 6Z M4 7 28 5.5 58 6 89 5.5 116 4.5 101 6.5 66 8 31 7Z'/%3E%3C/svg%3E");
+  }
+
+  :root.dark[data-theme-style="ink"] {
+    --background: #14171a;
+    --foreground: #e7e8e4;
+    --card: rgb(27 30 33 / 90%);
+    --popover: #1b1e21;
+    --secondary: #24272a;
+    --muted: #282c30;
+    --muted-foreground: #bcc4c2;
+    --accent: #282c30;
+    --chrome: #101316;
+    --border: #343c3d;
+    --input: #a0aaa7;
+    --scrim: rgb(0 0 0 / 55%);
+    --primary: #e36356;
+    --primary-foreground: #15120e;
+    --primary-hover: #e66d62;
+    --primary-active: #eb8378;
+    --brand: #f29988;
+    --ring: #eb8276;
+    --selection: #e7e8e4;
+    --selection-foreground: #14171a;
+    --destructive: #f29988;
+    --destructive-foreground: #15120e;
+    --destructive-soft: #30201b;
+    --destructive-hover: #f19a8f;
+    --success: #b4b8a3;
+    --success-foreground: #15120e;
+    --success-soft: #22251d;
+    --warning: #d1ac6c;
+    --warning-foreground: #15120e;
+    --warning-soft: #2c2417;
+    --info: #b8b3a8;
+    --info-foreground: #15120e;
+    --info-soft: #25231e;
+    --sidebar: rgb(23 27 30 / 86%);
+    --sidebar-accent: rgb(40 44 48 / 78%);
+    --sidebar-primary: #f29988;
+    --sidebar-border: #343c3d;
+    --elev-card:
+      0 0 36px -7px rgb(0 0 0 / 64%), 0 0 12px -5px rgb(203 209 205 / 14%);
+    --elev-popover:
+      0 0 54px -8px rgb(0 0 0 / 79%), 0 0 16px -4px rgb(203 209 205 / 19%);
+    --visual-veil: rgb(20 23 26 / 30%);
+    --ink-seal: #ef9a88;
+    --ink-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72 .18' numOctaves='3' seed='37' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .92 0 0 0 0 .9 .06 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+    --ink-brush: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 8' preserveAspectRatio='none'%3E%3Cpath fill='%23e36356' fill-opacity='.8' d='M0 4 9 2 36 1 71 2 99 0 120 2 104 4 76 5 42 4 11 6Z M4 7 28 5.5 58 6 89 5.5 116 4.5 101 6.5 66 8 31 7Z'/%3E%3C/svg%3E");
+  }
+
+  /* 外壳透出背景；侧栏与顶栏是半透明宣纸。 */
+  :root[data-theme-style="ink"] [data-shell="root"] {
+    background: transparent;
+  }
+
+  :root[data-theme-style="ink"] [data-shell="sidebar"] {
+    backdrop-filter: blur(8px);
+  }
+
+  :root[data-theme-style="ink"] [data-shell="topbar"] {
+    background: color-mix(in srgb, var(--background) 62%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  /* 纸面：卡片与设置组叠一层纸纹，边缘用淡墨阴影。 */
+  :root[data-theme-style="ink"]
+  :is([data-slot="card"], [data-kit="setting-group"]) {
+    background-image: var(--ink-paper);
+    background-size: 160px;
+    box-shadow: var(--elev-card);
+  }
+
+  :root[data-theme-style="ink"] [data-slot="popover-content"] {
+    background-image: var(--ink-paper);
+    background-size: 160px;
+  }
+
+  /* 标题用宋体，页面标题下一笔朱砂。 */
+  :root[data-theme-style="ink"] :is(h1, h2) {
+    font-family: var(--ink-heading);
+    letter-spacing: 0.04em;
+  }
+
+  :root[data-theme-style="ink"] [data-slot="page-header"] [data-part="title"] {
+    padding-bottom: 10px;
+    background: var(--ink-brush) left bottom / 96px 6px no-repeat;
+  }
+
+  /* 当前导航项：左侧一方朱红印。 */
+  :root[data-theme-style="ink"] [data-shell="nav-item"][aria-current="page"] {
+    background:
+      linear-gradient(var(--ink-seal) 0 0) left center / 3px 60% no-repeat,
+      var(--sidebar-accent);
+  }
+
+  /* 主按钮像钤印：朱红底、硬边，按下略沉。 */
+  :root[data-theme-style="ink"] [data-kit="button"][data-variant="default"] {
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 12%);
+  }
+
+  :root[data-theme-style="ink"] [data-slot="page-transition"] {
+    /* 只回填起始帧，结束后不留滤镜，不影响子元素的定位与阴影。 */
+    animation: visual-ink-reveal 520ms cubic-bezier(0.22, 0.68, 0.26, 1)
+      backwards;
+  }
+
+  @keyframes visual-ink-reveal {
+    from {
+      opacity: 0;
+      filter: blur(6px);
+      transform: translateY(3px);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
+    }
+  }
+}

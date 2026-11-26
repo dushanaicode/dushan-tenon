@@ -1,6 +1,6 @@
 use super::*;
 use std::process::Command;
-use tenon_desktop::config::{self, Theme};
+use tenon_desktop::config::{self, Accent, Density, Theme, ThemeStyle};
 
 #[test]
 fn reveal_waits_for_initialization_and_is_idempotent() {
@@ -47,7 +47,7 @@ fn failed_show_can_retry_but_shutdown_prevents_reveal() {
 }
 
 #[test]
-fn initial_script_applies_light_dark_system_and_respects_origin() {
+fn initial_script_applies_appearance_and_respects_origin() {
     let root = crate::boot::tests::root();
     let config = config::load(root.path(), [], &[]).unwrap();
     for (mode, name) in [
@@ -57,6 +57,10 @@ fn initial_script_applies_light_dark_system_and_respects_origin() {
     ] {
         let mut settings = config.settings();
         settings.theme.value = mode;
+        settings.theme_style.value = ThemeStyle::Ink;
+        settings.accent.value = Accent::Rose;
+        settings.density.value = Density::Compact;
+        settings.motion.value = false;
         let script = initialization_script(&settings, "http://tauri.localhost").unwrap();
         // 执行生成的 JavaScript，验证真实 DOM 修改和来源门控，非源码子串断言。
         let harness = r#"
@@ -64,7 +68,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 for (const systemDark of [false, true]) for (const trusted of [false, true]) for (const ready of [false, true]) {
   let dark, observer;
-  const root = {classList:{toggle:(name, value)=>{assert.equal(name,'dark'); dark=value;}},style:{}};
+  const root = {classList:{toggle:(name, value)=>{assert.equal(name,'dark'); dark=value;}},style:{},dataset:{}};
   const document = {documentElement: ready ? root : null};
   const window = {location:{protocol:'http:',host:trusted?'tauri.localhost':'untrusted.localhost'},matchMedia:()=>({matches:systemDark})};
   window.top = window;
@@ -74,6 +78,7 @@ for (const systemDark of [false, true]) for (const trusted of [false, true]) for
   if (trusted) {
     assert.equal(dark, process.argv[2]==='dark'||(process.argv[2]==='system'&&systemDark));
     assert.equal(root.style.colorScheme,dark?'dark':'light');
+    assert.deepEqual({...root.dataset},{themeStyle:'ink',accent:'rose',density:'compact',motion:'off'});
     assert.equal(window.__TENON_INITIAL_SETTINGS__.settings.theme.value, process.argv[2]);
   } else {assert.equal(dark,undefined); assert.equal(window.__TENON_INITIAL_SETTINGS__,undefined);}
 }

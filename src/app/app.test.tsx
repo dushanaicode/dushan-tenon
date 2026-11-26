@@ -6,7 +6,7 @@ import {
   within,
 } from "@testing-library/react";
 import { expect, test } from "vitest";
-import { applyMode } from "@/core/appearance-bridge";
+import { applyAppearance, getSnapshot } from "@/core/appearance-bridge";
 import { activeAuth } from "@/core/core.test-support";
 import { i18n } from "@/core/i18n";
 import { toast } from "@/kit";
@@ -38,7 +38,7 @@ test("首页装配真实导航、静态品牌及唯一 Toaster，主题与语言
     calls.mock.calls.some(([command]) => command === "app_settings_get"),
   ).toBe(false);
   await act(async () => {
-    applyMode("dark");
+    applyAppearance({ ...getSnapshot(), mode: "dark" });
     await i18n.changeLanguage("en-US");
   });
   expect(document.documentElement.lang).toBe("en-US");

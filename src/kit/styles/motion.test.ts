@@ -146,3 +146,23 @@ it("系统减动无条件停止元素、伪元素和供应商动画，无恢复�
     }
   }
 });
+
+it("外观设置关闭动效时与系统减动一样全部静止", () => {
+  const off = findRule(
+    sheet,
+    ':root[data-motion="off"] *, :root[data-motion="off"] ::before, :root[data-motion="off"] ::after',
+  );
+  expect(ancestors(off)).toContainEqual(
+    expect.objectContaining({ name: "layer", params: "appearance-a11y" }),
+  );
+  expect(declarations(off)).toEqual({
+    animation: "none",
+    transition: "none",
+    "scroll-behavior": "auto",
+  });
+  expect(
+    off.nodes
+      .filter((node) => node.type === "decl")
+      .every((node) => node.important),
+  ).toBe(true);
+});

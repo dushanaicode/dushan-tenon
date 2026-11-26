@@ -9,14 +9,14 @@ import type { AppSettingsUpdate } from "@/lib/generated/AppSettingsUpdate";
 import type { ConfigSource } from "@/lib/generated/ConfigSource";
 import { appSettingsGet, appSettingsUpdate } from "@/lib/generated/commands";
 import type { IpcError } from "@/lib/generated/IpcError";
-import { applyMode } from "./appearance-bridge";
+import { appearanceOf, applyAppearance } from "./appearance-bridge";
 import { i18n } from "./i18n";
 
 const settingsKey = ["app", "settings"];
 
 async function applySettings(settings: AppSettings) {
   await i18n.changeLanguage(settings.language.value);
-  applyMode(settings.theme.value);
+  applyAppearance(appearanceOf(settings));
   return settings;
 }
 

@@ -19,6 +19,7 @@ export function buildDiagnosticText(
       : []),
     `ui.language: ${settings.language.value}`,
     `ui.theme: ${settings.theme.value}`,
+    `ui.theme_style: ${settings.themeStyle.value}`,
     "modules:",
     ...[...modules.modules]
       .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))

@@ -10,6 +10,7 @@ import { createQueryClient } from "@/core/query-client";
 import { Toaster } from "@/kit";
 import type { AppSettings } from "@/lib/generated/AppSettings";
 import type { WindowChromeProvider } from "@/shell";
+import { Backdrop } from "@/visual";
 import { App } from "./app";
 import { manifests } from "./module-registry";
 import { RootError } from "./root-error";
@@ -68,6 +69,7 @@ function ApplicationFrame() {
   }, [translation.language]);
   return (
     <>
+      <Backdrop />
       <Outlet />
       <Toaster theme={dark ? "dark" : "light"} />
     </>

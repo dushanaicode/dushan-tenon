@@ -1,0 +1,72 @@
+/* 标准主题：套件默认的中性色，强调色只改主色系；neutral 即默认值，不另写规则。 */
+@layer appearance-themes {
+  :root[data-theme-style="standard"][data-accent="azure"] {
+    --primary: #0a65b0;
+    --primary-foreground: #ffffff;
+    --primary-hover: #0957a0;
+    --primary-active: #084a8a;
+  }
+
+  :root[data-theme-style="standard"][data-accent="violet"] {
+    --primary: #6544e8;
+    --primary-foreground: #ffffff;
+    --primary-hover: #593bd2;
+    --primary-active: #4d33b8;
+  }
+
+  :root[data-theme-style="standard"][data-accent="emerald"] {
+    --primary: #047857;
+    --primary-foreground: #ffffff;
+    --primary-hover: #03684b;
+    --primary-active: #025a41;
+  }
+
+  :root[data-theme-style="standard"][data-accent="amber"] {
+    --primary: #a84c06;
+    --primary-foreground: #ffffff;
+    --primary-hover: #934205;
+    --primary-active: #7c3804;
+  }
+
+  :root[data-theme-style="standard"][data-accent="rose"] {
+    --primary: #be123c;
+    --primary-foreground: #ffffff;
+    --primary-hover: #a3102f;
+    --primary-active: #8a0e28;
+  }
+
+  :root.dark[data-theme-style="standard"][data-accent="azure"] {
+    --primary: #5cb3ff;
+    --primary-foreground: #04111f;
+    --primary-hover: #7cc2ff;
+    --primary-active: #9ccfff;
+  }
+
+  :root.dark[data-theme-style="standard"][data-accent="violet"] {
+    --primary: #ad96ff;
+    --primary-foreground: #0b0820;
+    --primary-hover: #bdaaff;
+    --primary-active: #cebeff;
+  }
+
+  :root.dark[data-theme-style="standard"][data-accent="emerald"] {
+    --primary: #34d399;
+    --primary-foreground: #04140d;
+    --primary-hover: #5ee0ae;
+    --primary-active: #86eac4;
+  }
+
+  :root.dark[data-theme-style="standard"][data-accent="amber"] {
+    --primary: #fbbf24;
+    --primary-foreground: #1a1204;
+    --primary-hover: #fcca4d;
+    --primary-active: #fdd877;
+  }
+
+  :root.dark[data-theme-style="standard"][data-accent="rose"] {
+    --primary: #fb7185;
+    --primary-foreground: #1f070b;
+    --primary-hover: #fc8b9b;
+    --primary-active: #fda4b1;
+  }
+}

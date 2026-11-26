@@ -130,3 +130,14 @@
     --elev-popover: var(--elev-card);
   }
 }
+
+/* 外观设置“紧凑”：只收紧控件、行高与间距，字号和圆角不变。 */
+@layer appearance-overrides {
+  :root[data-density="compact"] {
+    --control-h: 32px;
+    --row-h: 38px;
+    --panel-pad: 14px;
+    --stack-gap: 12px;
+    --page-padding: 18px;
+  }
+}

@@ -236,6 +236,10 @@ test("preset files declare every module explicitly", async () => {
     for (const line of [
       'language = "zh-CN"',
       'theme = "system"',
+      'theme_style = "standard"',
+      'accent = "neutral"',
+      'density = "comfortable"',
+      "motion = true",
       "developer_mode = false",
       "check_on_start = false",
       `titlebar = "${name === "full" ? "hidden" : "native"}"`,

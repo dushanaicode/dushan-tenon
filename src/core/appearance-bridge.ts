@@ -1,12 +1,22 @@
 import { useSyncExternalStore } from "react";
+import type { Accent } from "@/lib/generated/Accent";
 import type { AppSettings } from "@/lib/generated/AppSettings";
+import type { Density } from "@/lib/generated/Density";
 import type { Theme } from "@/lib/generated/Theme";
+import type { ThemeStyle } from "@/lib/generated/ThemeStyle";
 
-type AppearanceSnapshot = Readonly<{ mode: Theme; dark: boolean }>;
+export type Appearance = Readonly<{
+  mode: Theme;
+  style: ThemeStyle;
+  accent: Accent;
+  density: Density;
+  motion: boolean;
+}>;
+export type AppearanceSnapshot = Readonly<Appearance & { dark: boolean }>;
 type AppearanceBridge = {
   getSnapshot: () => AppearanceSnapshot;
   subscribe: (listener: () => void) => () => void;
-  applyMode: (mode: Theme) => void;
+  apply: (appearance: Appearance) => void;
 };
 
 declare global {
@@ -36,8 +46,18 @@ export function subscribe(listener: () => void) {
   return bridge().subscribe(listener);
 }
 
-export function applyMode(mode: Theme) {
-  bridge().applyMode(mode);
+export function appearanceOf(settings: AppSettings): Appearance {
+  return {
+    mode: settings.theme.value,
+    style: settings.themeStyle.value,
+    accent: settings.accent.value,
+    density: settings.density.value,
+    motion: settings.motion.value,
+  };
+}
+
+export function applyAppearance(appearance: Appearance) {
+  bridge().apply(appearance);
 }
 
 export function useAppearanceSnapshot() {

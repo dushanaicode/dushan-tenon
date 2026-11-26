@@ -10,5 +10,6 @@
 
 @import "tailwindcss";
 @import "../kit/styles/index.css";
+@import "../visual/styles.css";
 
 @source "../../node_modules/streamdown/dist/*.js";

@@ -96,7 +96,7 @@ it("main 只加载统一样式入口，入口包含所有当前 kit 样式和供
   expect(new Set(included).size).toBe(included.length);
 });
 
-it("完整导入链中的普通规则都在已声明层内，两个空层没有内容", () => {
+it("完整导入链中的普通规则都在已声明层内；主题层只在 visual，偏好覆盖层只有密度", () => {
   const constructs = new Set([
     "theme",
     "utility",
@@ -110,10 +110,12 @@ it("完整导入链中的普通规则都在已声明层内，两个空层没有�
     for (const node of descendants(root)) {
       if (node.type === "atrule" && node.name === "layer" && node.nodes) {
         expect(layers, file).toContain(node.params);
-        expect(
-          ["appearance-themes", "appearance-overrides"],
-          file,
-        ).not.toContain(node.params);
+        if (node.params === "appearance-themes")
+          expect(file.replaceAll("\\", "/"), file).toContain("/src/visual/");
+        if (node.params === "appearance-overrides")
+          expect(file.replaceAll("\\", "/"), file).toMatch(
+            /\/src\/kit\/styles\/tokens\.css$/,
+          );
       }
       if (node.type !== "rule" && node.type !== "decl") continue;
       const parents = ancestors(node);
@@ -123,13 +125,7 @@ it("完整导入链中的普通规则都在已声明层内，两个空层没有�
         .map((parent) => parent.params);
       const effective = [...parentLayers, ...(layer ? [layer] : [])];
       expect(effective.length, file).toBeGreaterThan(0);
-      for (const name of effective) {
-        expect(layers, file).toContain(name);
-        expect(
-          ["appearance-themes", "appearance-overrides"],
-          file,
-        ).not.toContain(name);
-      }
+      for (const name of effective) expect(layers, file).toContain(name);
     }
   }
 });

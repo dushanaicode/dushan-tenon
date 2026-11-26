@@ -32,6 +32,10 @@ export const activeAuth: AuthStatus = {
 };
 export const defaultSettings: AppSettings = {
   theme: { value: "system", source: "default" },
+  themeStyle: { value: "standard", source: "default" },
+  accent: { value: "neutral", source: "default" },
+  density: { value: "comfortable", source: "default" },
+  motion: { value: true, source: "default" },
   language: { value: "zh-CN", source: "default" },
   titlebar: { value: "native", source: "default" },
   logLevel: { value: "info", source: "default" },

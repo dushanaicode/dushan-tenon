@@ -27,7 +27,9 @@
 | `auth.mode` | `none` 或 `login`；唯一所有者与应用锁。认证策略包括会话时长、验证码及失败锁定阈值，见 [module.rs](../crates/desktop/src/config/module.rs) |
 | `modules` | 各模块的 `enabled` 开关；启动校验依赖，见[模块](modules.md) |
 | `ui.language` | `zh-CN` 或 `en-US` |
-| `ui.theme` | `light`、`dark`、`system`，见 [appearance.rs](../crates/desktop/src/config/appearance.rs) |
+| `ui.theme` | 颜色模式：`light`、`dark`、`system`，见 [appearance.rs](../crates/desktop/src/config/appearance.rs) |
+| `ui.theme_style` | 视觉主题：`standard`、`ink`、`cyber`，见[主题与外观](#主题与外观) |
+| `ui.accent`、`ui.density`、`ui.motion` | 强调色（只用于标准主题）、密度（`comfortable` 或 `compact`）、动效开关 |
 | `ui.developer_mode` | 开发入口及演示业务的可用条件；变更要求活动身份 |
 | `logging.level`、`logging.retention_days` | 日志等级与保留策略，见 [logging](../crates/framework/src/logging/mod.rs) |
 | `notify.desktop` | 桌面通知总开关；通知偏好另属模块参数 |
@@ -39,12 +41,16 @@
 | `cache` | 本地缓存或 Redis，见 [cache loader](../crates/desktop/src/config/loader/cache.rs) |
 | `jobs.max_concurrency`、`jobs.lease_seconds` | 任务执行器并发与租期，见 [JobsConfig](../crates/framework/src/job/config.rs) |
 
-新状态可用 `pnpm preset` 创建配置，见[预设](modules.md#预设与运行时禁用)。最小明暗配置为：
+新状态可用 `pnpm preset` 创建配置，见[预设](modules.md#预设与运行时禁用)。外观部分的默认值为：
 
 ```toml
 [ui]
 language = "zh-CN"
 theme = "system"
+theme_style = "standard"
+accent = "neutral"
+density = "comfortable"
+motion = true
 developer_mode = false
 ```
 
@@ -68,8 +74,16 @@ developer_mode = false
 
 扩展设置时优先在模块声明参数；需要专用交互再在模块清单贡献分节。跨分节草稿与保存提示复用 core 设施，不把业务参数写成新的设备配置项。前端组合根说明见[前端](frontend.md#app-组合根)。
 
-## 标准主题与明暗
+## 主题与外观
 
-基础版只有标准主题，`ui.theme` 的三种值分别为浅色、深色和跟随系统。字体、圆角和间距使用固定默认值。外观设置分节仅呈现明暗模式，见 [appearance-section.tsx](../src/app/settings/appearance-section.tsx)。
+外观有五项设置，都在“设置 → 外观”里立即保存并生效，不进草稿：
 
-宿主在页面加载前注入设置快照并应用明暗，前端经 [appearance-bridge.ts](../src/core/appearance-bridge.ts)读取；其他前端代码不直接访问 `__TENON_*__` 全局。原生标题栏及窗口底色随之同步，见 [window.rs](../src-tauri/src/window.rs)与 [chrome.rs](../src-tauri/src/native/chrome.rs)。基础动效遵守系统减少动态效果设置，强制色彩模式使用系统颜色；样式入口见 [styles.css](../src/app/styles.css)。
+- **主题**（`ui.theme_style`）：标准、水墨、赛博。水墨与赛博带背景图和缓慢的氛围场景；标准没有背景。
+- **颜色模式**（`ui.theme`）：浅色、深色、跟随系统；每个主题都有浅色和深色两套颜色。
+- **强调色**（`ui.accent`）：中性（默认）、天蓝、紫罗兰、翠绿、琥珀、玫瑰，只改标准主题的主色；其他主题用自带配色。
+- **密度**（`ui.density`）：宽松或紧凑；紧凑只收紧控件高度、行高与间距。
+- **动效**（`ui.motion`）：关闭后界面完全静止，氛围场景也停止。系统开启“减少动态效果”时同样静止，与此开关无关。
+
+宿主在页面加载前注入设置快照；宿主注入脚本与首屏脚本 [appearance.js](../public/appearance.js) 把五项写到 `<html>`：`.dark` 类与 `data-theme-style`、`data-accent`、`data-density`、`data-motion`。前端经 [appearance-bridge.ts](../src/core/appearance-bridge.ts) 读取和更新，其他前端代码不直接访问 `__TENON_*__` 全局。原生标题栏与窗口底色按主题和明暗同步（[chrome.rs](../crates/desktop/src/native/chrome.rs) 的底色表与主题 CSS 的 `--background` 一致，窗口显示前不闪色），见 [window.rs](../src-tauri/src/window.rs)与宿主的 [chrome.rs](../src-tauri/src/native/chrome.rs)。
+
+主题的实现在视觉子系统 `src/visual/`，合同与新增主题的步骤见[前端](frontend.md#视觉子系统与主题)。强制色彩模式下不显示背景，只用系统颜色。样式入口见 [styles.css](../src/app/styles.css)。

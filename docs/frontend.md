@@ -9,6 +9,7 @@
 | lib | 纯工具、IPC 传输、生成合同 | 无 |
 | kit | 组件、页面模板、令牌、响应式原语 | lib |
 | core | 共享状态、合同与业务无关的设施 | lib、kit |
+| visual | 主题、背景层与氛围场景，可整体裁剪 | lib、kit、core |
 | shell | Console 布局、导航、命令、窗口及工作台 | lib、kit、core |
 | modules | 单个业务模块的页面、查询及清单 | lib、kit、core、本模块 |
 | app | 入口及组合根 | 全部 |
@@ -23,7 +24,7 @@
 
 复合交互复用已有 Radix、表格、虚拟化和可调整面板适配。滚动区域使用 [ScrollArea](../src/kit/ui/scroll-area.tsx)，页面标题经 [PageHeader](../src/kit/ui/page-header.tsx)与[标题焦点注册](../src/kit/page-title-focus.tsx)协作；shell、app、modules 不通过 DOM 查询驱动焦点或状态。
 
-标准主题只提供浅色、深色与跟随系统，语义颜色及基础动效由共享样式提供。基础动效遵循系统减动设置，强制色彩使用系统颜色。业务组件消费语义令牌，不自行持有明暗状态；详见[外观合同](settings.md#标准主题与明暗)。
+kit 的令牌就是标准主题的浅色与深色；紧凑密度（`data-density`）与“动效关”（`data-motion`）也在 kit 样式里处理。基础动效遵循系统减动设置，强制色彩使用系统颜色。业务组件消费语义令牌，不自行持有明暗或主题状态；详见[外观合同](settings.md#主题与外观)。
 
 ## core 共享设施
 
@@ -60,6 +61,19 @@
 
 工作台对象以带类型的对象引用恢复，不序列化组件。模块贡献解析器、对象视图和辅助面板，外壳负责标签、激活和布局；不可访问或已删除对象通过不可用回调处理。合同在 [workbench.ts](../src/core/contracts/workbench.ts)与 [ModuleManifest](../src/core/contracts/module.ts)，持久化与显示在 [workbench](../src/shell/workbench)。焦点由 ref 注册和[焦点设施](../src/shell/shell-focus.tsx)协调，路由切换后请求页面标题焦点。
 
+## 视觉子系统与主题
+
+`src/visual/` 只由 app 挂载三处：[styles.css](../src/app/styles.css) 导入 `../visual/styles.css`，[bootstrap.tsx](../src/app/bootstrap.tsx) 挂载一次 `<Backdrop />`，[外观分节](../src/app/settings/appearance-section.tsx)放入 `<ThemeSettings />`。删掉这三处和整个目录，应用退回只有标准主题的朴素版；配置里的 `ui.theme_style` 与 `ui.accent` 随之不再生效，可一并从 desktop 删除。
+
+一个主题由四样东西组成：
+
+- `themes/<id>/theme.css`：放在 `@layer appearance-themes`，浅色块 `:root[data-theme-style="<id>"]`、深色块 `:root.dark[data-theme-style="<id>"]`。只改语义令牌和材质（纸纹、角标、导航选中态、页面转场），不改结构与交互，不用 `!important`。深色块要覆盖浅色块里的每个颜色。
+- 背景图：`public/themes/<id>/{light,dark}.webp` 与 `.thumb.webp` 缩略图，原图不超过 450 KB，缩略图不超过 40 KB。现有的水墨与赛博背景由本项目作者用自写的 WebGL2 生成器绘制，不含外部照片、字体或模型素材，随本仓库按 MIT 许可发布。有背景的主题把外壳根节点设为透明，侧栏、顶栏用半透明底；`--visual-veil` 是盖在背景上的一层薄纱，保证正文可读。
+- 可选的氛围场景 `themes/<id>/scene.ts`：Canvas 2D，由 [scene.ts](../src/visual/scene.ts) 按 30 帧驱动；动效关闭、系统减少动态效果、窗口隐藏时停止，没有 2D 上下文时只显示背景图。
+- 在 [registry.ts](../src/visual/themes/registry.ts) 登记，并加两种语言的 `visual.theme.<id>` 名称与 `.description` 说明。
+
+新增主题还要在 desktop 的 `ThemeStyle`（[appearance.rs](../crates/desktop/src/config/appearance.rs)）与原生底色表（[chrome.rs](../crates/desktop/src/native/chrome.rs)）各加一项，运行 `pnpm generate`，并在首屏脚本 [appearance.js](../public/appearance.js) 的取值表里加上。[registry.test.ts](../src/visual/themes/registry.test.ts) 会核对：底色与原生窗口底色一致、深色块完整、主要文字组合对比度不低于 4.5:1、图片存在且不超体积。
+
 ## 模块页面与演示中心
 
 业务页面和查询放在自己的模块目录，清单贡献路由、导航、设置、标题栏小组件、文件目标及工作台能力，见[模块](modules.md#前端清单)。懒加载组件、可见性和对象合同由 core 提供，业务实现不写进 shell。
@@ -72,7 +86,7 @@ demo 的演示中心由 [manifest.ts](../src/modules/demo/manifest.ts)贡献开�
 
 ## app 组合根
 
-入口必须使用宿主初值，不生成默认设置。[src/main.tsx](../src/main.tsx)经外观桥的 `getInitialSettings()` 读取设置；缺失时抛出 `Host initial settings are required`，显示启动错误而不启动路由。实现见 [appearance-bridge.ts](../src/core/appearance-bridge.ts)。[bootstrap.tsx](../src/app/bootstrap.tsx)的 `startApp()` 初始化语言、设置查询缓存和 hash 路由；[index.html](../index.html)在入口模块前同步加载 [public/appearance.js](../public/appearance.js)，校验宿主明暗模式、应用首屏明暗并建立外观桥。
+入口必须使用宿主初值，不生成默认设置。[src/main.tsx](../src/main.tsx)经外观桥的 `getInitialSettings()` 读取设置；缺失时抛出 `Host initial settings are required`，显示启动错误而不启动路由。实现见 [appearance-bridge.ts](../src/core/appearance-bridge.ts)。[bootstrap.tsx](../src/app/bootstrap.tsx)的 `startApp()` 初始化语言、设置查询缓存和 hash 路由；[index.html](../index.html)在入口模块前同步加载 [public/appearance.js](../public/appearance.js)，校验宿主的外观设置（颜色模式、主题、强调色、密度、动效），在首屏写到 `<html>` 并建立外观桥。
 
 模块只在唯一注册表 [module-registry.ts](../src/app/module-registry.ts)的 `manifests` 数组登记；新增模块时，app 内只需在此导入并加入清单，其路由、导航、设置及其他贡献从清单派生。组合根经 [ModuleDirectoryProvider](../src/core/module-directory.tsx)向 core 下发目录，并在 [app.tsx](../src/app/app.tsx)通过 props 向 Shell 传入清单、启用表、可见性上下文、导航树和设置目录；下层不反向导入注册表。
 

@@ -7,8 +7,8 @@ use std::{
     path::{Path, PathBuf},
 };
 use tenon_desktop::{
-    config::{self, Theme},
-    native::chrome::{DARK_BACKGROUND, LIGHT_BACKGROUND},
+    config::{self, ACCENTS, Accent, DENSITIES, Density, THEME_STYLES, Theme, ThemeStyle},
+    native::chrome::backgrounds,
 };
 use tenon_framework::{
     dict::DictTone,
@@ -405,9 +405,27 @@ fn write_appearance(output: &Path) -> Result<(), Box<dyn Error>> {
         "appearance.ts",
         &[
             ("THEMES", json!([Theme::Light, Theme::Dark, Theme::System])),
+            ("THEME_STYLES", json!(THEME_STYLES)),
+            ("ACCENTS", json!(ACCENTS)),
+            ("DENSITIES", json!(DENSITIES)),
+            (
+                "NATIVE_BACKGROUNDS",
+                json!(
+                    THEME_STYLES
+                        .iter()
+                        .map(|style| {
+                            let (light, dark) = backgrounds(*style);
+                            (
+                                json!(style).as_str().unwrap_or_default().to_owned(),
+                                json!({"light": light, "dark": dark}),
+                            )
+                        })
+                        .collect::<serde_json::Map<_, _>>()
+                ),
+            ),
             (
                 "APPEARANCE_DEFAULTS",
-                json!({"theme":Theme::default(),"lightBackground":LIGHT_BACKGROUND,"darkBackground":DARK_BACKGROUND}),
+                json!({"theme":Theme::default(),"themeStyle":ThemeStyle::default(),"accent":Accent::default(),"density":Density::default(),"motion":true}),
             ),
         ],
         "",
