@@ -62,7 +62,11 @@ export function ThemeSettings() {
                 <span
                   data-part="thumb"
                   data-theme-thumb={id}
-                  className="block aspect-video w-full border-b bg-muted bg-cover bg-center"
+                  className={cn(
+                    "block aspect-video w-full border-b bg-muted",
+                    // 标准主题的样张由 visual/styles.css 分层绘制，不能被 cover 拉伸。
+                    art && "bg-cover bg-center",
+                  )}
                   style={
                     art
                       ? {

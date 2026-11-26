@@ -16,7 +16,7 @@ Dushan Tenon turns that ring into a foundation. You can think of it as "an empty
 
 *Main window (light): the Showcase "Dictionary & exchange" page. The five samples were created by hand in a fresh state directory as demo data.*
 
-> **Status:** pre-release (Alpha); interfaces and configuration may change. Developed and tested on Windows 10 / 11 only.
+> **Status:** v0.1.0, the first stable release. Interfaces and configuration may still change before 1.0. Developed and tested on Windows 10 / 11 only.
 
 ## 1. What it is
 
@@ -61,11 +61,23 @@ The diagnostic pages (Job management, Schedules, Module registry, Setting inspec
 
 ### What the foundation provides
 
-These do not belong to any module; the foundation provides them directly: a settings center (General, Appearance, Network and services, Data, Advanced, About, and modules can add their own sections), a command palette (Ctrl K), the tray and a prompt when closing the window (hide to the tray or quit), launch at login (installed builds), a global shortcut to show the main window, remembered window position and size, a single instance (launching again brings back the existing window), an HTTP proxy, a database (SQLite by default, MySQL or PostgreSQL also supported), a cache (local or Redis), background jobs and schedules, full backup and restore (with SQLite and the local cache), redacted diagnostic export, plus Chinese and English interfaces and light, dark and follow-system color modes.
+These do not belong to any module; the foundation provides them directly: a settings center (General, Appearance, Network and services, Data, Advanced, About, and modules can add their own sections), a command palette (Ctrl K), the tray and a prompt when closing the window (hide to the tray or quit), launch at login (installed builds), a global shortcut to show the main window, remembered window position and size, a single instance (launching again brings back the existing window), an HTTP proxy, a database (SQLite by default, MySQL or PostgreSQL also supported), a cache (local or Redis), background jobs and schedules, full backup and restore (with SQLite and the local cache), redacted diagnostic export, auto-update (installed builds, from GitHub Releases), plus Chinese and English interfaces and light, dark and follow-system color modes.
 
 ![The General section of Settings: interface language, title bar and window](docs/images/settings-en.png)
 
 *The General section of Settings. Each item shows where its value comes from in the lower right, such as "From configuration file".*
+
+### Three themes
+
+Standard, Ink and Cyber, each with a light and a dark set. Ink and Cyber have a background picture and a slow ambient animation. Switch themes in Settings > Appearance, where you can also pick an accent color for the Standard theme, choose comfortable or compact density, and turn motion off. To write or add a theme, see the [frontend guide](docs/frontend.md#视觉子系统与主题) (in Chinese); later releases will add more themes.
+
+![The Ink theme in light mode: rice-paper background with distant mountains, a red sun and a vermilion seal, and a vermilion brush stroke under the page title](docs/images/theme-ink-en.png)
+
+*The Ink theme, light.*
+
+![Settings > Appearance in the Cyber theme, dark: three theme cards with the accent color below](docs/images/theme-cyber-en.png)
+
+*The Cyber theme, dark: choosing a theme in Settings > Appearance.*
 
 ### Three presets
 
@@ -80,6 +92,15 @@ A preset is the configuration seed for a new state directory. It decides which m
 All three presets turn on the tray, ask whether to hide to the tray or quit when you close the window, and do not launch at login. See [section 4](#switch-to-a-preset) for how to apply one.
 
 ## 4. Run it locally
+
+### Just want a look
+
+Download `dushan-tenon-<version>-x64-setup.exe` from [Releases](https://github.com/dushanaicode/dushan-tenon/releases/latest). It installs for the current user and does not need administrator rights.
+
+- The installer is not code-signed, so Windows SmartScreen may say "Windows protected your PC". Choose "More info > Run anyway". You can check the file against `SHA256SUMS.txt` on the same page first.
+- The installed app checks for updates in Settings > About. You can also turn on "Check for updates after startup" in Settings > General (off by default, so nothing goes online at startup).
+
+To change the code and build your own tool, run it from source:
 
 ### Requirements
 

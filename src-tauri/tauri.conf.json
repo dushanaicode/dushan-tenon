@@ -3,7 +3,7 @@
   "productName": "Dushan Tenon",
   "mainBinaryName": "dushan-tenon",
   "identifier": "com.dushan.tenon",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0",
   "build": {
     "beforeDevCommand": "node scripts/web.mjs dev",
     "beforeBuildCommand": "node scripts/web.mjs build",
