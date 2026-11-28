@@ -10,6 +10,7 @@ export const ACCENTS = [
   "rose",
 ] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
+export const MOTIONS = ["system", "on", "off"] as const;
 export const NATIVE_BACKGROUNDS = {
   cyber: { dark: [5, 7, 15, 255], light: [244, 248, 255, 255] },
   ink: { dark: [20, 23, 26, 255], light: [244, 239, 228, 255] },
@@ -18,7 +19,7 @@ export const NATIVE_BACKGROUNDS = {
 export const APPEARANCE_DEFAULTS = {
   accent: "neutral",
   density: "comfortable",
-  motion: true,
+  motion: "system",
   theme: "system",
   themeStyle: "standard",
 } as const;

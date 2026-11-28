@@ -168,7 +168,7 @@
 }
 
 @layer appearance-a11y {
-  /* 外观设置“动效”关闭时与系统减动相同：全部静止。 */
+  /* 外观设置“动效”关闭时全部静止；选“开启”时不受系统减动影响。 */
   :root[data-motion="off"] *,
   :root[data-motion="off"] ::before,
   :root[data-motion="off"] ::after {
@@ -181,10 +181,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *,
-    ::before,
-    ::after {
-      /* biome-ignore lint/complexity/noImportantStyles: 系统减动须覆盖供应商动画与内联动画。 */
+    :root[data-motion="system"] *,
+    :root[data-motion="system"] ::before,
+    :root[data-motion="system"] ::after {
+      /* biome-ignore lint/complexity/noImportantStyles: 跟随系统时，系统减动须覆盖供应商动画与内联动画。 */
       animation: none !important;
       /* biome-ignore lint/complexity/noImportantStyles: 同时停止控件、伪元素及 Sonner 的过渡。 */
       transition: none !important;

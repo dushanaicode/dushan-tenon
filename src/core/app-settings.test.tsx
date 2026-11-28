@@ -22,7 +22,7 @@ it("queries direct host settings and applies language and appearance", async () 
   mockAppIpc(undefined, {
     theme: { value: "dark", source: "file" },
     themeStyle: { value: "ink", source: "file" },
-    motion: { value: false, source: "file" },
+    motion: { value: "off", source: "file" },
     language: { value: "en-US", source: "file" },
   });
   const { wrapper } = queryWrapper();
@@ -34,7 +34,7 @@ it("queries direct host settings and applies language and appearance", async () 
     style: "ink",
     accent: "neutral",
     density: "comfortable",
-    motion: false,
+    motion: "off",
   });
   expect(i18n.language).toBe("en-US");
   expect(result.current.query.data?.theme.value).toBe("dark");

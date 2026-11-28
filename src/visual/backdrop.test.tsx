@@ -60,15 +60,15 @@ it.each([
   },
 );
 
-it("关闭动效或系统减少动态效果时不运行场景，只留背景图", () => {
-  const { container } = show({ style: "ink", motion: false });
+it("动效关闭，或跟随系统而系统减少动态效果时，不运行场景，只留背景图", () => {
+  const { container } = show({ style: "ink", motion: "off" });
   expect(layer(container)?.querySelector("img")).not.toBeNull();
   expect(layer(container)?.querySelector("canvas")).toBeNull();
   act(() =>
     applyAppearance({
       ...appearanceOf(defaultSettings),
       style: "ink",
-      motion: true,
+      motion: "system",
     }),
   );
   expect(layer(container)?.querySelector("canvas")).not.toBeNull();
@@ -77,6 +77,12 @@ it("关闭动效或系统减少动态效果时不运行场景，只留背景图"
     media.dispatchEvent(new Event("change"));
   });
   expect(layer(container)?.querySelector("canvas")).toBeNull();
+});
+
+it("动效开启时不受系统减少动态效果影响", () => {
+  reduced = true;
+  const { container } = show({ style: "cyber", motion: "on" });
+  expect(layer(container)?.querySelector("canvas")).not.toBeNull();
 });
 
 it("切换主题与明暗时跟随外观桥", () => {

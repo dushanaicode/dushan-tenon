@@ -24,7 +24,7 @@
 
 复合交互复用已有 Radix、表格、虚拟化和可调整面板适配。滚动区域使用 [ScrollArea](../src/kit/ui/scroll-area.tsx)，页面标题经 [PageHeader](../src/kit/ui/page-header.tsx)与[标题焦点注册](../src/kit/page-title-focus.tsx)协作；shell、app、modules 不通过 DOM 查询驱动焦点或状态。
 
-kit 的令牌就是标准主题的浅色与深色；紧凑密度（`data-density`）与“动效关”（`data-motion`）也在 kit 样式里处理。基础动效遵循系统减动设置，强制色彩使用系统颜色。业务组件消费语义令牌，不自行持有明暗或主题状态；详见[外观合同](settings.md#主题与外观)。
+kit 的令牌就是标准主题的浅色与深色；紧凑密度（`data-density`）与动效设置（`data-motion`：`system`、`on`、`off`）也在 kit 样式里处理。动效跟随系统时，基础动效遵循系统减动设置；强制色彩使用系统颜色。业务组件消费语义令牌，不自行持有明暗或主题状态；详见[外观合同](settings.md#主题与外观)。
 
 ## core 共享设施
 
@@ -69,7 +69,7 @@ kit 的令牌就是标准主题的浅色与深色；紧凑密度（`data-density
 
 - `themes/<id>/theme.css`：放在 `@layer appearance-themes`，浅色块 `:root[data-theme-style="<id>"]`、深色块 `:root.dark[data-theme-style="<id>"]`。只改语义令牌和材质（纸纹、角标、导航选中态、页面转场），不改结构与交互，不用 `!important`。深色块要覆盖浅色块里的每个颜色。
 - 背景图：`public/themes/<id>/{light,dark}.webp` 与 `.thumb.webp` 缩略图，原图不超过 450 KB，缩略图不超过 40 KB。现有的水墨与赛博背景由本项目作者用自写的 WebGL2 生成器绘制，不含外部照片、字体或模型素材，随本仓库按 MIT 许可发布。有背景的主题把外壳根节点设为透明，侧栏、顶栏用半透明底；`--visual-veil` 是盖在背景上的一层薄纱，保证正文可读。
-- 可选的氛围场景 `themes/<id>/scene.ts`：Canvas 2D，由 [scene.ts](../src/visual/scene.ts) 按 30 帧驱动；动效关闭、系统减少动态效果、窗口隐藏时停止，没有 2D 上下文时只显示背景图。
+- 可选的氛围场景 `themes/<id>/scene.ts`：Canvas 2D，由 [scene.ts](../src/visual/scene.ts) 按 30 帧驱动；动效关闭、动效跟随系统而系统减少动态效果、窗口隐藏时停止，没有 2D 上下文时只显示背景图。
 - 在 [registry.ts](../src/visual/themes/registry.ts) 登记，并加两种语言的 `visual.theme.<id>` 名称与 `.description` 说明。
 
 新增主题还要在 desktop 的 `ThemeStyle`（[appearance.rs](../crates/desktop/src/config/appearance.rs)）与原生底色表（[chrome.rs](../crates/desktop/src/native/chrome.rs)）各加一项，运行 `pnpm generate`，并在首屏脚本 [appearance.js](../public/appearance.js) 的取值表里加上。[registry.test.ts](../src/visual/themes/registry.test.ts) 会核对：底色与原生窗口底色一致、深色块完整、主要文字组合对比度不低于 4.5:1、图片存在且不超体积。

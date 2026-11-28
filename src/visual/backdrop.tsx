@@ -11,7 +11,7 @@ function subscribeReducedMotion(listener: () => void) {
   return () => media.removeEventListener("change", listener);
 }
 
-/** 系统“减少动态效果”打开时不运行场景。 */
+/** 系统是否要求“减少动态效果”；动效跟随系统时据此静止。 */
 export function useReducedMotion() {
   return useSyncExternalStore(
     subscribeReducedMotion,
@@ -35,6 +35,7 @@ export function Backdrop() {
   const theme = VISUAL_THEMES[style];
   if (!theme.art) return null;
   const image = dark ? theme.art.image.dark : theme.art.image.light;
+  const moving = motion === "on" || (motion === "system" && !reduced);
   return (
     <div aria-hidden="true" data-visual="backdrop" className="visual-backdrop">
       <img
@@ -46,9 +47,7 @@ export function Backdrop() {
         data-part="image"
         className="visual-backdrop-image"
       />
-      {theme.scene && motion && !reduced && (
-        <SceneCanvas scene={theme.scene} dark={dark} />
-      )}
+      {theme.scene && moving && <SceneCanvas scene={theme.scene} dark={dark} />}
       <div data-part="veil" className="visual-backdrop-veil" />
     </div>
   );

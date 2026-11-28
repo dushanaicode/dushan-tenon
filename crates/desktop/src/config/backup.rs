@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use tenon_framework::{i18n::Language, logging::LoggingConfig};
 
 use super::{
-    Accent, AuthMode, ConfigError, Density, ModuleConfig, NotifyConfig, Theme, ThemeStyle,
+    Accent, AuthMode, ConfigError, Density, ModuleConfig, Motion, NotifyConfig, Theme, ThemeStyle,
     UiConfig, loader, persist,
 };
 
@@ -29,7 +29,7 @@ pub struct BackupUi {
     pub theme_style: ThemeStyle,
     pub accent: Accent,
     pub density: Density,
-    pub motion: bool,
+    pub motion: Motion,
     pub language: Language,
     pub developer_mode: bool,
 }

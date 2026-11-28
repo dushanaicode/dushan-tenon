@@ -5,9 +5,11 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import { getSnapshot } from "@/core/appearance-bridge";
 import { mockAppIpc, renderApp } from "./settings.test-support";
+
+afterEach(() => vi.unstubAllGlobals());
 
 test("明暗模式成功后即时更新外观桥且没有草稿", async () => {
   const calls = mockAppIpc();
@@ -154,11 +156,29 @@ test("密度与动效立即保存并更新外观桥", async () => {
   expect(calls).toHaveBeenCalledWith("app_settings_update", {
     input: { density: "compact" },
   });
-  const motion = screen.getByRole("switch", { name: "动效" });
-  expect(motion.getAttribute("aria-checked")).toBe("true");
-  fireEvent.click(motion);
-  await waitFor(() => expect(getSnapshot().motion).toBe(false));
+  fireEvent.click(screen.getByRole("combobox", { name: "动效" }));
+  expect(
+    screen.getAllByRole("option").map((option) => option.textContent),
+  ).toEqual(["跟随系统", "开启", "关闭"]);
+  fireEvent.click(screen.getByRole("option", { name: "开启" }));
+  await waitFor(() => expect(getSnapshot().motion).toBe("on"));
   expect(calls).toHaveBeenCalledWith("app_settings_update", {
-    input: { motion: false },
+    input: { motion: "on" },
   });
+});
+
+test("动效跟随系统而系统关闭动画时，说明当前静止并提示可选开启", async () => {
+  const media = window.matchMedia.bind(window);
+  vi.stubGlobal("matchMedia", (query: string) =>
+    query === "(prefers-reduced-motion: reduce)"
+      ? Object.assign(new EventTarget(), { matches: true, media: query })
+      : media(query),
+  );
+  mockAppIpc();
+  renderApp("/settings/appearance");
+  expect(
+    await screen.findByText(
+      "系统已关闭动画，现在是静止的；选“开启”即可播放动效",
+    ),
+  ).toBeTruthy();
 });

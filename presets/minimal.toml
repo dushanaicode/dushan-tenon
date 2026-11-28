@@ -29,7 +29,7 @@ theme = "system"
 theme_style = "standard"
 accent = "neutral"
 density = "comfortable"
-motion = true
+motion = "system"
 developer_mode = false
 
 [autostart]

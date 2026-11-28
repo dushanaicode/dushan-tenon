@@ -5,7 +5,7 @@ const standard: Appearance = {
   style: "standard",
   accent: "neutral",
   density: "comfortable",
-  motion: true,
+  motion: "system",
 };
 
 /** Ordinary core tests do not load the first-paint script or a whole application. */

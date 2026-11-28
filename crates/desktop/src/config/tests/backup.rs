@@ -128,7 +128,7 @@ fn merge_preserves_inline_device_fields_and_relative_ca_path() {
     projection.ui.theme_style = ThemeStyle::Ink;
     projection.ui.accent = Accent::Amber;
     projection.ui.density = Density::Compact;
-    projection.ui.motion = false;
+    projection.ui.motion = Motion::On;
     let merged = merge_backup(target.path(), &projection).unwrap();
     assert_eq!(
         merged.parse::<Table>().unwrap()["database"],
@@ -140,7 +140,7 @@ fn merge_preserves_inline_device_fields_and_relative_ca_path() {
     assert_eq!(config.settings().theme_style.value, ThemeStyle::Ink);
     assert_eq!(config.settings().accent.value, Accent::Amber);
     assert_eq!(config.settings().density.value, Density::Compact);
-    assert!(!config.settings().motion.value);
+    assert_eq!(config.settings().motion.value, Motion::On);
     assert_eq!(config.database().kind(), DatabaseKind::Postgres);
     assert_eq!(
         fs::read_to_string(target.path().join("config.toml")).unwrap(),

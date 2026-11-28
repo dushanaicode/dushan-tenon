@@ -11,7 +11,7 @@ use tenon_framework::{
 use ts_rs::TS;
 
 use super::{
-    Accent, AuthMode, ConfigSource, Density, LoadedConfig, Theme, ThemeStyle, Titlebar,
+    Accent, AuthMode, ConfigSource, Density, LoadedConfig, Motion, Theme, ThemeStyle, Titlebar,
     persist::{change, invalid},
 };
 
@@ -34,7 +34,7 @@ pub struct AppSettings {
     pub theme_style: Setting<ThemeStyle>,
     pub accent: Setting<Accent>,
     pub density: Setting<Density>,
-    pub motion: Setting<bool>,
+    pub motion: Setting<Motion>,
     pub developer_mode: Setting<bool>,
 }
 
@@ -58,7 +58,7 @@ pub struct AppSettingsUpdate {
     #[ts(optional)]
     pub density: Option<Density>,
     #[ts(optional)]
-    pub motion: Option<bool>,
+    pub motion: Option<Motion>,
     #[ts(optional)]
     pub developer_mode: Option<bool>,
 }

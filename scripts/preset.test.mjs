@@ -239,7 +239,7 @@ test("preset files declare every module explicitly", async () => {
       'theme_style = "standard"',
       'accent = "neutral"',
       'density = "comfortable"',
-      "motion = true",
+      'motion = "system"',
       "developer_mode = false",
       "check_on_start = false",
       `titlebar = "${name === "full" ? "hidden" : "native"}"`,

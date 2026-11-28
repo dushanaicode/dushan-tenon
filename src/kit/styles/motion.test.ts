@@ -121,14 +121,17 @@ it("表格首批数据只淡入，不依赖索引或 stagger", () => {
   });
 });
 
-it("系统减动无条件停止元素、伪元素和供应商动画，无恢复分支", () => {
+it("动效跟随系统时，系统减动停止元素、伪元素和供应商动画，无恢复分支", () => {
   const media = atRules(sheet, "media");
   expect(media).toHaveLength(1);
   expect(media[0].params).toBe("(prefers-reduced-motion: reduce)");
   expect(ancestors(media[0])).toContainEqual(
     expect.objectContaining({ name: "layer", params: "appearance-a11y" }),
   );
-  const reduced = findRule(media[0], "*, ::before, ::after");
+  const reduced = findRule(
+    media[0],
+    ':root[data-motion="system"] *, :root[data-motion="system"] ::before, :root[data-motion="system"] ::after',
+  );
   expect(declarations(reduced)).toEqual({
     animation: "none",
     transition: "none",

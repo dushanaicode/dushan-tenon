@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import type { Accent } from "@/lib/generated/Accent";
 import type { AppSettings } from "@/lib/generated/AppSettings";
 import type { Density } from "@/lib/generated/Density";
+import type { Motion } from "@/lib/generated/Motion";
 import type { Theme } from "@/lib/generated/Theme";
 import type { ThemeStyle } from "@/lib/generated/ThemeStyle";
 
@@ -10,7 +11,7 @@ export type Appearance = Readonly<{
   style: ThemeStyle;
   accent: Accent;
   density: Density;
-  motion: boolean;
+  motion: Motion;
 }>;
 export type AppearanceSnapshot = Readonly<Appearance & { dark: boolean }>;
 type AppearanceBridge = {

@@ -7,16 +7,16 @@ import {
 } from "@/core/app-settings";
 import { IpcErrorMessage } from "@/core/ipc-error";
 import { SettingSelect } from "@/core/settings/setting-select";
-import { SettingSource } from "@/core/settings/setting-source";
-import { Loading, SettingGroup, SettingRow, Switch } from "@/kit";
-import { DENSITIES, THEMES } from "@/lib/generated/appearance";
-import { ThemeSettings } from "@/visual";
+import { Loading, SettingGroup } from "@/kit";
+import { DENSITIES, MOTIONS, THEMES } from "@/lib/generated/appearance";
+import { ThemeSettings, useReducedMotion } from "@/visual";
 
 export function AppearanceSection() {
   const { t } = useTranslation();
   const settings = useAppSettings();
   const update = useSettingsUpdate();
   const pending = useSettingsPending();
+  const reduced = useReducedMotion();
   if (settings.isPending) return <Loading label={t("kit.loading")} />;
   if (settings.isError) return <IpcErrorMessage error={settings.error} />;
   const { theme, density, motion } = settings.data;
@@ -49,21 +49,22 @@ export function AppearanceSection() {
           disabled={pending || isOverridden(density.source)}
           onValueChange={(density) => update.mutate({ density })}
         />
-        <SettingRow
+        <SettingSelect
           label={t("settings.appearance.motion")}
-          description={t("settings.appearance.motionHint")}
-          source={motion.source}
-          hint={<SettingSource source={motion.source} />}
-        >
-          {(control) => (
-            <Switch
-              {...control}
-              checked={motion.value}
-              disabled={pending || isOverridden(motion.source)}
-              onCheckedChange={(motion) => update.mutate({ motion })}
-            />
+          description={t(
+            motion.value === "system" && reduced
+              ? "settings.appearance.motionHintReduced"
+              : "settings.appearance.motionHint",
           )}
-        </SettingRow>
+          value={motion.value}
+          source={motion.source}
+          options={MOTIONS.map((value) => ({
+            value,
+            label: t(`settings.appearance.motion.${value}`),
+          }))}
+          disabled={pending || isOverridden(motion.source)}
+          onValueChange={(motion) => update.mutate({ motion })}
+        />
         {update.isError && <IpcErrorMessage error={update.error} />}
       </SettingGroup>
     </section>

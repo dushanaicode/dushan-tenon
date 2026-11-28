@@ -59,28 +59,26 @@ pub enum Density {
 
 pub const DENSITIES: [Density; 2] = [Density::Comfortable, Density::Compact];
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+/// 动效：跟随系统“减少动态效果”，或不论系统设置始终开启、始终关闭。
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq, TS)]
+#[serde(rename_all = "lowercase")]
+pub enum Motion {
+    #[default]
+    System,
+    On,
+    Off,
+}
+
+pub const MOTIONS: [Motion; 3] = [Motion::System, Motion::On, Motion::Off];
+
+#[derive(Clone, Copy, Debug, Default, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub(super) struct UiConfig {
     pub theme: Theme,
     pub theme_style: ThemeStyle,
     pub accent: Accent,
     pub density: Density,
-    pub motion: bool,
+    pub motion: Motion,
     pub language: Language,
     pub developer_mode: bool,
-}
-
-impl Default for UiConfig {
-    fn default() -> Self {
-        Self {
-            theme: Theme::default(),
-            theme_style: ThemeStyle::default(),
-            accent: Accent::default(),
-            density: Density::default(),
-            motion: true,
-            language: Language::default(),
-            developer_mode: false,
-        }
-    }
 }

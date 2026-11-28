@@ -35,7 +35,7 @@ export const defaultSettings: AppSettings = {
   themeStyle: { value: "standard", source: "default" },
   accent: { value: "neutral", source: "default" },
   density: { value: "comfortable", source: "default" },
-  motion: { value: true, source: "default" },
+  motion: { value: "system", source: "default" },
   language: { value: "zh-CN", source: "default" },
   titlebar: { value: "native", source: "default" },
   logLevel: { value: "info", source: "default" },

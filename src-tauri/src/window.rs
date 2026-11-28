@@ -70,7 +70,7 @@ pub(crate) fn initialization_script(
     root.dataset.themeStyle = settings.themeStyle.value;
     root.dataset.accent = settings.accent.value;
     root.dataset.density = settings.density.value;
-    root.dataset.motion = settings.motion.value ? 'on' : 'off';
+    root.dataset.motion = settings.motion.value;
     return true;
   }};
   if (!apply()) {{

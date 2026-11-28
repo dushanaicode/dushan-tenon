@@ -1,6 +1,6 @@
 use super::*;
 use std::process::Command;
-use tenon_desktop::config::{self, Accent, Density, Theme, ThemeStyle};
+use tenon_desktop::config::{self, Accent, Density, Motion, Theme, ThemeStyle};
 
 #[test]
 fn reveal_waits_for_initialization_and_is_idempotent() {
@@ -60,7 +60,7 @@ fn initial_script_applies_appearance_and_respects_origin() {
         settings.theme_style.value = ThemeStyle::Ink;
         settings.accent.value = Accent::Rose;
         settings.density.value = Density::Compact;
-        settings.motion.value = false;
+        settings.motion.value = Motion::Off;
         let script = initialization_script(&settings, "http://tauri.localhost").unwrap();
         // 执行生成的 JavaScript，验证真实 DOM 修改和来源门控，非源码子串断言。
         let harness = r#"

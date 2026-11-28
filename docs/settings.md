@@ -29,7 +29,7 @@
 | `ui.language` | `zh-CN` 或 `en-US` |
 | `ui.theme` | 颜色模式：`light`、`dark`、`system`，见 [appearance.rs](../crates/desktop/src/config/appearance.rs) |
 | `ui.theme_style` | 视觉主题：`standard`、`ink`、`cyber`，见[主题与外观](#主题与外观) |
-| `ui.accent`、`ui.density`、`ui.motion` | 强调色（只用于标准主题）、密度（`comfortable` 或 `compact`）、动效开关 |
+| `ui.accent`、`ui.density`、`ui.motion` | 强调色（只用于标准主题）、密度（`comfortable` 或 `compact`）、动效（`system`、`on` 或 `off`） |
 | `ui.developer_mode` | 开发入口及演示业务的可用条件；变更要求活动身份 |
 | `logging.level`、`logging.retention_days` | 日志等级与保留策略，见 [logging](../crates/framework/src/logging/mod.rs) |
 | `notify.desktop` | 桌面通知总开关；通知偏好另属模块参数 |
@@ -50,7 +50,7 @@ theme = "system"
 theme_style = "standard"
 accent = "neutral"
 density = "comfortable"
-motion = true
+motion = "system"
 developer_mode = false
 ```
 
@@ -82,7 +82,7 @@ developer_mode = false
 - **颜色模式**（`ui.theme`）：浅色、深色、跟随系统；每个主题都有浅色和深色两套颜色。
 - **强调色**（`ui.accent`）：中性（默认）、天蓝、紫罗兰、翠绿、琥珀、玫瑰，只改标准主题的主色；其他主题用自带配色。
 - **密度**（`ui.density`）：宽松或紧凑；紧凑只收紧控件高度、行高与间距。
-- **动效**（`ui.motion`）：关闭后界面完全静止，氛围场景也停止。系统开启“减少动态效果”时同样静止，与此开关无关。
+- **动效**（`ui.motion`）：跟随系统（默认）、开启、关闭。跟随系统时，系统要求减少动态效果（Windows 关闭“显示动画”）就静止；开启时不受系统设置影响，界面过渡和氛围场景照常播放；关闭后界面完全静止，氛围场景也停止。
 
 宿主在页面加载前注入设置快照；宿主注入脚本与首屏脚本 [appearance.js](../public/appearance.js) 把五项写到 `<html>`：`.dark` 类与 `data-theme-style`、`data-accent`、`data-density`、`data-motion`。前端经 [appearance-bridge.ts](../src/core/appearance-bridge.ts) 读取和更新，其他前端代码不直接访问 `__TENON_*__` 全局。原生标题栏与窗口底色按主题和明暗同步（[chrome.rs](../crates/desktop/src/native/chrome.rs) 的底色表与主题 CSS 的 `--background` 一致，窗口显示前不闪色），见 [window.rs](../src-tauri/src/window.rs)与宿主的 [chrome.rs](../src-tauri/src/native/chrome.rs)。
 

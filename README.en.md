@@ -69,7 +69,7 @@ These do not belong to any module; the foundation provides them directly: a sett
 
 ### Three themes
 
-Standard, Ink and Cyber, each with a light and a dark set. Ink and Cyber have a background picture and a slow ambient animation. Switch themes in Settings > Appearance, where you can also pick an accent color for the Standard theme, choose comfortable or compact density, and turn motion off. To write or add a theme, see the [frontend guide](docs/frontend.md#视觉子系统与主题) (in Chinese); later releases will add more themes.
+Standard, Ink and Cyber, each with a light and a dark set. Ink and Cyber have a background picture and a slow ambient animation. Switch themes in Settings > Appearance, where you can also pick an accent color for the Standard theme, choose comfortable or compact density, and set motion to follow the system, stay on or stay off. To write or add a theme, see the [frontend guide](docs/frontend.md#视觉子系统与主题) (in Chinese); later releases will add more themes.
 
 ![The Ink theme in light mode: rice-paper background with distant mountains, a red sun and a vermilion seal, and a vermilion brush stroke under the page title](docs/images/theme-ink-en.png)
 

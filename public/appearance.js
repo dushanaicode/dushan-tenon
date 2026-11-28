@@ -5,15 +5,13 @@
     style: ["standard", "ink", "cyber"],
     accent: ["neutral", "azure", "violet", "emerald", "amber", "rose"],
     density: ["comfortable", "compact"],
+    motion: ["system", "on", "off"],
   };
   function validate(value) {
     for (const [key, options] of Object.entries(OPTIONS)) {
       if (!options.includes(value?.[key])) {
         throw new Error(`A valid host appearance ${key} is required`);
       }
-    }
-    if (typeof value.motion !== "boolean") {
-      throw new Error("A valid host appearance motion is required");
     }
   }
   const settings = window.__TENON_INITIAL_SETTINGS__?.settings;
@@ -46,7 +44,7 @@
     root.dataset.themeStyle = snapshot.style;
     root.dataset.accent = snapshot.accent;
     root.dataset.density = snapshot.density;
-    root.dataset.motion = snapshot.motion ? "on" : "off";
+    root.dataset.motion = snapshot.motion;
   };
   const apply = (value) => {
     validate(value);

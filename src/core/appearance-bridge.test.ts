@@ -6,6 +6,7 @@ import type { AppSettings } from "@/lib/generated/AppSettings";
 import {
   ACCENTS,
   DENSITIES,
+  MOTIONS,
   THEME_STYLES,
   THEMES,
 } from "@/lib/generated/appearance";
@@ -90,7 +91,7 @@ it.each<[Theme, boolean, boolean]>([
       style: "standard",
       accent: "neutral",
       density: "comfortable",
-      motion: true,
+      motion: "system",
     });
     expect(getSnapshot()).toBe(getSnapshot());
     const { result } = renderHook(useAppearanceSnapshot);
@@ -99,7 +100,7 @@ it.each<[Theme, boolean, boolean]>([
 );
 
 it("paints style, accent, density and motion as root attributes", () => {
-  boot({ style: "ink", accent: "rose", density: "compact", motion: false });
+  boot({ style: "ink", accent: "rose", density: "compact", motion: "off" });
   expect({ ...root.dataset }).toEqual({
     themeStyle: "ink",
     accent: "rose",
@@ -115,7 +116,7 @@ it("paints style, accent, density and motion as root attributes", () => {
     themeStyle: "cyber",
     accent: "neutral",
     density: "comfortable",
-    motion: "on",
+    motion: "system",
   });
   expect(getSnapshot().style).toBe("cyber");
   expect(listener).toHaveBeenCalledTimes(1);
@@ -130,8 +131,8 @@ it("accepts every generated value", () => {
   for (const style of THEME_STYLES) boot({ style });
   for (const accent of ACCENTS) boot({ accent });
   for (const density of DENSITIES) boot({ density });
-  for (const motion of [true, false]) boot({ motion });
-  expect(getSnapshot().motion).toBe(false);
+  for (const motion of MOTIONS) boot({ motion });
+  expect(getSnapshot().motion).toBe("off");
 });
 
 it("follows system changes, preserves snapshot identity for no-ops, and unsubscribes", () => {
@@ -183,7 +184,7 @@ it.each<[keyof Appearance, unknown]>([
   ["style", "glass"],
   ["accent", "teal"],
   ["density", "cozy"],
-  ["motion", "on"],
+  ["motion", true],
 ])(
   "rejects an invalid %s at boot and at runtime without changing the snapshot",
   (key, value) => {

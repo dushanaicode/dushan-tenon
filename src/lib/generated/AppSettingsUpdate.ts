@@ -3,6 +3,7 @@ import type { Accent } from "./Accent";
 import type { Density } from "./Density";
 import type { Language } from "./Language";
 import type { LogLevel } from "./LogLevel";
+import type { Motion } from "./Motion";
 import type { Theme } from "./Theme";
 import type { ThemeStyle } from "./ThemeStyle";
 import type { Titlebar } from "./Titlebar";
@@ -16,6 +17,6 @@ export type AppSettingsUpdate = {
   themeStyle?: ThemeStyle;
   accent?: Accent;
   density?: Density;
-  motion?: boolean;
+  motion?: Motion;
   developerMode?: boolean;
 };

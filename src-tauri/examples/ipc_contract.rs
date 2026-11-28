@@ -7,7 +7,9 @@ use std::{
     path::{Path, PathBuf},
 };
 use tenon_desktop::{
-    config::{self, ACCENTS, Accent, DENSITIES, Density, THEME_STYLES, Theme, ThemeStyle},
+    config::{
+        self, ACCENTS, Accent, DENSITIES, Density, MOTIONS, Motion, THEME_STYLES, Theme, ThemeStyle,
+    },
     native::chrome::backgrounds,
 };
 use tenon_framework::{
@@ -408,6 +410,7 @@ fn write_appearance(output: &Path) -> Result<(), Box<dyn Error>> {
             ("THEME_STYLES", json!(THEME_STYLES)),
             ("ACCENTS", json!(ACCENTS)),
             ("DENSITIES", json!(DENSITIES)),
+            ("MOTIONS", json!(MOTIONS)),
             (
                 "NATIVE_BACKGROUNDS",
                 json!(
@@ -425,7 +428,7 @@ fn write_appearance(output: &Path) -> Result<(), Box<dyn Error>> {
             ),
             (
                 "APPEARANCE_DEFAULTS",
-                json!({"theme":Theme::default(),"themeStyle":ThemeStyle::default(),"accent":Accent::default(),"density":Density::default(),"motion":true}),
+                json!({"theme":Theme::default(),"themeStyle":ThemeStyle::default(),"accent":Accent::default(),"density":Density::default(),"motion":Motion::default()}),
             ),
         ],
         "",
